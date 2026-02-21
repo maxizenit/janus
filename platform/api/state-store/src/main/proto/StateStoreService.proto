@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package org.janus.api.statestore;
+
+import "google/protobuf/empty.proto";
+
+message GetDegradationValuesRequest {
+  repeated string ids = 1;
+}
+
+message GetDegradationValuesResponse {
+  map<string, double> values_by_ids = 1;
+}
+
+message UpdateDegradationValueRequest {
+  string id = 1;
+  double value = 2;
+}
+
+service StateStoreService {
+  rpc GetDegradationValues(GetDegradationValuesRequest) returns (GetDegradationValuesResponse);
+  rpc UpdateDegradationValue(UpdateDegradationValueRequest) returns (google.protobuf.Empty);
+}

@@ -1,0 +1,5 @@
+[versions]
+
+java = "25"
+
+protobuf-plugin = "0.9.6"
