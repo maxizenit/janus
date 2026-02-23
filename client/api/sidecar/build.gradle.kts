@@ -2,7 +2,7 @@ import com.google.protobuf.gradle.id
 
 plugins {
     java
-    id("com.google.protobuf") version libs.versions.protobuf.plugin.get()
+    id("com.google.protobuf") version libs.versions.protobufPlugin.get()
 }
 
 group = "org.janus"

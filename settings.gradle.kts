@@ -1,7 +1,13 @@
 rootProject.name = "janus"
 
 include(
-    "platform:api:state-store",
+    //Platform
+    "platform:state-store",
+
+    //API
+    "platform:api:state-store-api",
     "client:api:sidecar",
+
+    //SDK
     "sdk:java:annotations"
 )

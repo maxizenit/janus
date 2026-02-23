@@ -1,8 +1,8 @@
 import com.google.protobuf.gradle.id
 
 plugins {
-    java
-    id("com.google.protobuf") version libs.versions.protobuf.plugin.get()
+    id("java-library")
+    id("com.google.protobuf") version libs.versions.protobufPlugin.get()
 }
 
 group = "org.janus"
@@ -19,13 +19,19 @@ repositories {
     mavenCentral()
 }
 
+dependencies {
+    api("com.google.protobuf:protobuf-java:${libs.versions.protobuf.get()}")
+    api("io.grpc:grpc-stub:${libs.versions.grpc.get()}")
+    api("io.grpc:grpc-protobuf:${libs.versions.grpc.get()}")
+}
+
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc"
+        artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.get()}"
     }
     plugins {
         id("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java"
+            artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpc.get()}"
         }
     }
     generateProtoTasks {

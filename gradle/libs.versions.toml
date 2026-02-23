@@ -2,4 +2,13 @@
 
 java = "25"
 
-protobuf-plugin = "0.9.6"
+springBootPlugin = "4.0.3"
+springDependencyManagementPlugin = "1.1.7"
+lombokPlugin = "9.2.0"
+protobufPlugin = "0.9.6"
+
+springGrpc = "1.0.2"
+protobuf = "4.33.4"
+grpc = "1.79.0"
+
+mapstruct = "1.6.3"
