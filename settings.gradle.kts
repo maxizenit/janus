@@ -2,6 +2,7 @@ rootProject.name = "janus"
 
 include(
     //Platform
+    "platform:policy-store",
     "platform:state-store",
 
     //API
