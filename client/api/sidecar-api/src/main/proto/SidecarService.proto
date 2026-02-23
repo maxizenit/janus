@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package org.janus.api.sidecar;
+
+import "google/protobuf/empty.proto";
+
+message RegisterActualDegradationsRequest {
+  repeated string degradation_ids = 1;
+}
+
+message GetActualDegradationsResponse {
+  repeated Degradation degradations = 1;
+}
+
+message Degradation {
+  string id = 1;
+  double value = 2;
+  double critical_threshold = 3;
+  optional double min_fallback_ratio = 4;
+  optional double max_fallback_ratio = 5;
+}
+
+service SidecarService {
+  rpc RegisterActualDegradations(RegisterActualDegradationsRequest) returns (google.protobuf.Empty);
+  rpc GetActualDegradations(google.protobuf.Empty) returns (GetActualDegradationsResponse);
+}

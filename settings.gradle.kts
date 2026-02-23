@@ -8,7 +8,7 @@ include(
     //API
     "platform:api:policy-store-api",
     "platform:api:state-store-api",
-    "client:api:sidecar",
+    "client:api:sidecar-api",
 
     //SDK
     "sdk:java:annotations"
