@@ -14,5 +14,5 @@ message GetActualDegradationValuesResponse {
 
 service SidecarService {
   rpc RegisterActualDegradations(RegisterActualDegradationsRequest) returns (google.protobuf.Empty);
-  rpc GetActualDegradationValues(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc GetActualDegradationValues(google.protobuf.Empty) returns (GetActualDegradationValuesResponse);
 }
