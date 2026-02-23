@@ -5,6 +5,7 @@ include(
     "platform:state-store",
 
     //API
+    "platform:api:policy-store-api",
     "platform:api:state-store-api",
     "client:api:sidecar",
 
