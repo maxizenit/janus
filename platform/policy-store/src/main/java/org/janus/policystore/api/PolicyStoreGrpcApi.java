@@ -6,6 +6,7 @@ import org.janus.api.policystore.PolicyStoreServiceOuterClass;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -15,21 +16,34 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
     @Override
     public void getDegradationMetadata(PolicyStoreServiceOuterClass.GetDegradationMetadataRequest request,
                                        StreamObserver<PolicyStoreServiceOuterClass.GetDegradationMetadataResponse> responseObserver) {
-        double criticalThreshold = ThreadLocalRandom.current()
-                                                    .nextDouble();
-        double minFallbackRatio = ThreadLocalRandom.current()
-                                                   .nextDouble();
-        double maxFallbackRatio = ThreadLocalRandom.current()
-                                                   .nextDouble(minFallbackRatio, 1.0);
+        List<PolicyStoreServiceOuterClass.DegradationMetadata> metadata = request.getIdsList()
+                                                                                 .stream()
+                                                                                 .map(id -> {
+                                                                                     double criticalThreshold =
+                                                                                             ThreadLocalRandom.current()
+                                                                                                              .nextDouble();
+                                                                                     double minFallbackRatio =
+                                                                                             ThreadLocalRandom.current()
+                                                                                                              .nextDouble();
+                                                                                     double maxFallbackRatio =
+                                                                                             ThreadLocalRandom.current()
+                                                                                                              .nextDouble(
+                                                                                                                      minFallbackRatio,
+                                                                                                                      1.0);
+                                                                                     return PolicyStoreServiceOuterClass.DegradationMetadata.newBuilder()
+                                                                                                                                            .setId(id)
+                                                                                                                                            .setCriticalThreshold(
+                                                                                                                                                    criticalThreshold)
+                                                                                                                                            .setMinFallbackRatio(
+                                                                                                                                                    minFallbackRatio)
+                                                                                                                                            .setMaxFallbackRatio(
+                                                                                                                                                    maxFallbackRatio)
+                                                                                                                                            .build();
+                                                                                 })
+                                                                                 .toList();
 
         responseObserver.onNext(PolicyStoreServiceOuterClass.GetDegradationMetadataResponse.newBuilder()
-                                                                                           .setId(request.getId())
-                                                                                           .setCriticalThreshold(
-                                                                                                   criticalThreshold)
-                                                                                           .setMinFallbackRatio(
-                                                                                                   minFallbackRatio)
-                                                                                           .setMaxFallbackRatio(
-                                                                                                   maxFallbackRatio)
+                                                                                           .addAllMetadata(metadata)
                                                                                            .build());
         responseObserver.onCompleted();
     }
