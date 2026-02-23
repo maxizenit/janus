@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package org.janus.api.policystore;
+
+import "google/protobuf/empty.proto";
+
+message GetDegradationMetadataRequest {
+  string id = 1;
+}
+
+message GetDegradationMetadataResponse {
+  string id = 1;
+  double critical_threshold = 2;
+  optional double min_fallback_ratio = 3;
+  optional double max_fallback_ratio = 4;
+}
+
+service PolicyStoreService {
+  rpc GetDegradationMetadata(GetDegradationMetadataRequest) returns (GetDegradationMetadataResponse);
+}

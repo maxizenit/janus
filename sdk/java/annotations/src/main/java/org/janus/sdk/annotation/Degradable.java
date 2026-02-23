@@ -14,4 +14,10 @@ public @interface Degradable {
     String value();
 
     String fallback() default "";
+
+    double criticalThreshold() default Double.NaN;
+
+    double minFallbackRatio() default Double.NaN;
+
+    double maxFallbackRatio() default Double.NaN;
 }
