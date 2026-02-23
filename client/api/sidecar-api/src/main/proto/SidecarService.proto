@@ -8,11 +8,19 @@ message RegisterActualDegradationsRequest {
   repeated string degradation_ids = 1;
 }
 
-message GetActualDegradationValuesResponse {
-  map<string, double> values_by_ids = 1;
+message GetActualDegradationsResponse {
+  repeated Degradation degradations = 1;
+}
+
+message Degradation {
+  string id = 1;
+  double value = 2;
+  double critical_threshold = 3;
+  optional double min_fallback_ratio = 4;
+  optional double max_fallback_ratio = 5;
 }
 
 service SidecarService {
   rpc RegisterActualDegradations(RegisterActualDegradationsRequest) returns (google.protobuf.Empty);
-  rpc GetActualDegradationValues(google.protobuf.Empty) returns (GetActualDegradationValuesResponse);
+  rpc GetActualDegradations(google.protobuf.Empty) returns (GetActualDegradationsResponse);
 }
