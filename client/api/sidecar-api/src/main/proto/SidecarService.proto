@@ -5,7 +5,7 @@ package org.janus.api.sidecar;
 import "google/protobuf/empty.proto";
 
 message RegisterActualDegradationsRequest {
-  repeated string degradations_ids = 1;
+  repeated string degradation_ids = 1;
 }
 
 message GetActualDegradationValuesResponse {

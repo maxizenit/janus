@@ -9,7 +9,7 @@ message GetDegradationValuesRequest {
 }
 
 message GetDegradationValuesResponse {
-  map<string, double> values_by_ids = 1;
+  map<string, double> values_by_id = 1;
 }
 
 message UpdateDegradationValueRequest {

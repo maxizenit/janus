@@ -35,7 +35,7 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
 
 
         responseObserver.onNext(StateStoreServiceOuterClass.GetDegradationValuesResponse.newBuilder()
-                                                                                        .putAllValuesByIds(result)
+                                                                                        .putAllValuesById(result)
                                                                                         .build());
         responseObserver.onCompleted();
     }
