@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: decider
+  grpc:
+    client:
+      channels:
+        policy-store:
+          address: policy-store:9090
+        state-store:
+          address: state-store:9090
+
+janus:
+  decider:
+    policy-refresh-interval: 30s
