@@ -1,0 +1,10 @@
+spring:
+  grpc:
+    server:
+      port: 9093
+    client:
+      channels:
+        policy-store:
+          address: localhost:9091
+        state-store:
+          address: localhost:9092
