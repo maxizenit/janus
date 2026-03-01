@@ -14,7 +14,7 @@ public class PolicyUpdater {
 
     @Scheduled(fixedDelayString = "${janus.decider.policy-refresh-interval}")
     public void updatePolicies() {
-        policyStoreStub.getDegradationPolicies(PolicyStoreServiceOuterClass.GetDegradationMetadataRequest.newBuilder()
+        policyStoreStub.getDegradationPolicies(PolicyStoreServiceOuterClass.GetDegradationPoliciesRequest.newBuilder()
                                                                                                          .build());
     }
 }

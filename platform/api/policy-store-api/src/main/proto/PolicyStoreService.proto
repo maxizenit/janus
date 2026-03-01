@@ -34,6 +34,6 @@ message DegradationMetadata {
 }
 
 service PolicyStoreService {
-  rpc GetDegradationPolicies(GetDegradationMetadataRequest) returns (GetDegradationPoliciesResponse);
+  rpc GetDegradationPolicies(GetDegradationPoliciesRequest) returns (GetDegradationPoliciesResponse);
   rpc GetDegradationMetadata(GetDegradationMetadataRequest) returns (GetDegradationMetadataResponse);
 }

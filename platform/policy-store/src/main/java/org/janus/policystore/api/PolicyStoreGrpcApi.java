@@ -14,7 +14,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServiceImplBase {
 
     @Override
-    public void getDegradationPolicies(PolicyStoreServiceOuterClass.GetDegradationMetadataRequest request,
+    public void getDegradationPolicies(PolicyStoreServiceOuterClass.GetDegradationPoliciesRequest request,
                                        StreamObserver<PolicyStoreServiceOuterClass.GetDegradationPoliciesResponse> responseObserver) {
         List<PolicyStoreServiceOuterClass.DegradationPolicy> policies = request.getDegradationIdsList()
                                                                                .stream()
