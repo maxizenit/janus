@@ -1,11 +1,13 @@
 package org.janus.decider.configuration;
 
 import org.janus.api.policystore.PolicyStoreServiceGrpc;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.grpc.client.GrpcChannelFactory;
 
 @Configuration
+@NullMarked
 public class PolicyStoreClientConfiguration {
 
     @Bean

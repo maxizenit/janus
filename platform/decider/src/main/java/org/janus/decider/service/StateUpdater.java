@@ -2,11 +2,13 @@ package org.janus.decider.service;
 
 import lombok.RequiredArgsConstructor;
 import org.janus.api.statestore.StateStoreServiceGrpc;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class StatesUpdater {
+@NullMarked
+public class StateUpdater {
 
     private final StateStoreServiceGrpc.StateStoreServiceBlockingStub stateStoreStub;
 
