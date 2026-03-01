@@ -6,6 +6,9 @@ include(
     "platform:state-store",
     "platform:decider",
 
+    //Client
+    "client:sidecar",
+
     //API
     "platform:api:policy-store-api",
     "platform:api:state-store-api",

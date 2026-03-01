@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: sidecar
+  grpc:
+    server:
+      port: 9090
+    client:
+      channels:
+        policy-store:
+          address: policy-store:9090
+        state-store:
+          address: state-store:9090
+
+janus:
+  sidecar:
+    policy-refresh-interval: 30s

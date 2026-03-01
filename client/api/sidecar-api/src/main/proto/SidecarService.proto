@@ -3,24 +3,26 @@ syntax = "proto3";
 package org.janus.api.sidecar;
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/duration.proto";
 
 message RegisterActualDegradationsRequest {
   repeated string degradation_ids = 1;
 }
 
-message GetActualDegradationsResponse {
+message GetDegradationsResponse {
   repeated Degradation degradations = 1;
 }
 
 message Degradation {
-  string id = 1;
+  string degradation_id = 1;
   double value = 2;
-  double critical_threshold = 3;
-  optional double min_fallback_ratio = 4;
-  optional double max_fallback_ratio = 5;
+  google.protobuf.Duration evaluation_period = 3;
+  optional double critical_threshold = 4;
+  optional double min_fallback_ratio = 5;
+  optional double max_fallback_ratio = 6;
 }
 
 service SidecarService {
   rpc RegisterActualDegradations(RegisterActualDegradationsRequest) returns (google.protobuf.Empty);
-  rpc GetActualDegradations(google.protobuf.Empty) returns (GetActualDegradationsResponse);
+  rpc GetDegradations(google.protobuf.Empty) returns (GetDegradationsResponse);
 }

@@ -1,4 +1,4 @@
-package org.janus.decider.configuration;
+package org.janus.sidecar.configuration;
 
 import org.janus.api.policystore.PolicyStoreServiceGrpc;
 import org.jspecify.annotations.NullMarked;
