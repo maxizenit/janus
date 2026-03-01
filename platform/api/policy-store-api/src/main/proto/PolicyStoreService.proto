@@ -2,21 +2,35 @@ syntax = "proto3";
 
 package org.janus.api.policystore;
 
+message GetDegradationPoliciesRequest {
+  repeated string degradation_ids = 1;
+}
+
+message GetDegradationPoliciesResponse {
+  repeated DegradationPolicy degradation_policies = 1;
+}
+
 message GetDegradationMetadataRequest {
-  repeated string ids = 1;
+  repeated string degradation_ids = 1;
 }
 
 message GetDegradationMetadataResponse {
-  repeated DegradationMetadata metadata = 1;
+  repeated DegradationMetadata degradation_metadata = 1;
+}
+
+message DegradationPolicy {
+  string degradation_id = 1;
+  //TODO: информация о метриках/формуле расчёта
 }
 
 message DegradationMetadata {
-  string id = 1;
-  double critical_threshold = 2;
+  string degradation_id = 1;
+  optional double critical_threshold = 2;
   optional double min_fallback_ratio = 3;
   optional double max_fallback_ratio = 4;
 }
 
 service PolicyStoreService {
+  rpc GetDegradationPolicies(GetDegradationMetadataRequest) returns (GetDegradationPoliciesResponse);
   rpc GetDegradationMetadata(GetDegradationMetadataRequest) returns (GetDegradationMetadataResponse);
 }

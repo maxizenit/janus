@@ -14,9 +14,27 @@ import java.util.concurrent.ThreadLocalRandom;
 public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServiceImplBase {
 
     @Override
+    public void getDegradationPolicies(PolicyStoreServiceOuterClass.GetDegradationMetadataRequest request,
+                                       StreamObserver<PolicyStoreServiceOuterClass.GetDegradationPoliciesResponse> responseObserver) {
+        List<PolicyStoreServiceOuterClass.DegradationPolicy> policies = request.getDegradationIdsList()
+                                                                               .stream()
+                                                                               .map(id -> PolicyStoreServiceOuterClass.DegradationPolicy.newBuilder()
+                                                                                                                                        .setDegradationId(
+                                                                                                                                                id)
+                                                                                                                                        .build())
+                                                                               .toList();
+
+        responseObserver.onNext(PolicyStoreServiceOuterClass.GetDegradationPoliciesResponse.newBuilder()
+                                                                                           .addAllDegradationPolicies(
+                                                                                                   policies)
+                                                                                           .build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
     public void getDegradationMetadata(PolicyStoreServiceOuterClass.GetDegradationMetadataRequest request,
                                        StreamObserver<PolicyStoreServiceOuterClass.GetDegradationMetadataResponse> responseObserver) {
-        List<PolicyStoreServiceOuterClass.DegradationMetadata> metadata = request.getIdsList()
+        List<PolicyStoreServiceOuterClass.DegradationMetadata> metadata = request.getDegradationIdsList()
                                                                                  .stream()
                                                                                  .map(id -> {
                                                                                      double criticalThreshold =
@@ -31,7 +49,8 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
                                                                                                                       minFallbackRatio,
                                                                                                                       1.0);
                                                                                      return PolicyStoreServiceOuterClass.DegradationMetadata.newBuilder()
-                                                                                                                                            .setId(id)
+                                                                                                                                            .setDegradationId(
+                                                                                                                                                    id)
                                                                                                                                             .setCriticalThreshold(
                                                                                                                                                     criticalThreshold)
                                                                                                                                             .setMinFallbackRatio(
@@ -43,7 +62,8 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
                                                                                  .toList();
 
         responseObserver.onNext(PolicyStoreServiceOuterClass.GetDegradationMetadataResponse.newBuilder()
-                                                                                           .addAllMetadata(metadata)
+                                                                                           .addAllDegradationMetadata(
+                                                                                                   metadata)
                                                                                            .build());
         responseObserver.onCompleted();
     }
