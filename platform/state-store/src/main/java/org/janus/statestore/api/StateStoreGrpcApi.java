@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -21,29 +23,36 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
     private final Map<String, Double> degradationValues = new ConcurrentHashMap<>();
 
     @Override
-    public void getDegradationValues(StateStoreServiceOuterClass.GetDegradationValuesRequest request,
-                                     StreamObserver<StateStoreServiceOuterClass.GetDegradationValuesResponse> responseObserver) {
-        List<String> ids = request.getIdsList();
-        Map<String, Double> result;
-        if (ids.isEmpty()) {
-            result = Collections.emptyMap();
-        } else {
-            result = ids.stream()
-                        .filter(degradationValues::containsKey)
-                        .collect(Collectors.toMap(Function.identity(), degradationValues::get));
-        }
+    public void getDegradationStates(StateStoreServiceOuterClass.GetDegradationStatesRequest request,
+                                     StreamObserver<StateStoreServiceOuterClass.GetDegradationStatesResponse> responseObserver) {
+        List<String> ids = request.getDegradationIdsList();
+        List<StateStoreServiceOuterClass.DegradationState> states = ids.stream()
+                                                                       .map(id -> {
+                                                                           Double value = degradationValues.get(id);
+                                                                           if (value == null) {
+                                                                               return null;
+                                                                           }
+                                                                           return StateStoreServiceOuterClass.DegradationState.newBuilder()
+                                                                                                                              .setDegradationId(
+                                                                                                                                      id)
+                                                                                                                              .setValue(
+                                                                                                                                      value)
+                                                                                                                              .build();
+                                                                       })
+                                                                       .filter(Objects::nonNull)
+                                                                       .toList();
 
-
-        responseObserver.onNext(StateStoreServiceOuterClass.GetDegradationValuesResponse.newBuilder()
-                                                                                        .putAllValuesById(result)
+        responseObserver.onNext(StateStoreServiceOuterClass.GetDegradationStatesResponse.newBuilder()
+                                                                                        .addAllDegradationStates(states)
                                                                                         .build());
         responseObserver.onCompleted();
     }
 
     @Override
-    public void updateDegradationValue(StateStoreServiceOuterClass.UpdateDegradationValueRequest request,
+    public void updateDegradationState(StateStoreServiceOuterClass.UpdateDegradationStateRequest request,
                                        StreamObserver<Empty> responseObserver) {
-        degradationValues.put(request.getId(), request.getValue());
+        request.getUpdatesList()
+               .forEach(update -> degradationValues.put(update.getDegradationId(), update.getValue()));
         responseObserver.onNext(Empty.getDefaultInstance());
         responseObserver.onCompleted();
     }

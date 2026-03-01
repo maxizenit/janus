@@ -4,20 +4,35 @@ package org.janus.api.statestore;
 
 import "google/protobuf/empty.proto";
 
-message GetDegradationValuesRequest {
-  repeated string ids = 1;
+message GetDegradationStatesRequest {
+  repeated string degradation_ids = 1;
 }
 
-message GetDegradationValuesResponse {
-  map<string, double> values_by_id = 1;
+message GetDegradationStatesResponse {
+  repeated DegradationState degradation_states = 1;
 }
 
-message UpdateDegradationValueRequest {
-  string id = 1;
+message UpdateDegradationStateRequest {
+  UpdateDegradationStateSource source = 1;
+  repeated DegradationStateUpdate updates = 2;
+}
+
+enum UpdateDegradationStateSource {
+  DECIDER = 0;
+  ADMIN_UI = 1;
+}
+
+message DegradationStateUpdate {
+  string degradation_id = 1;
+  double value = 2;
+}
+
+message DegradationState {
+  string degradation_id = 1;
   double value = 2;
 }
 
 service StateStoreService {
-  rpc GetDegradationValues(GetDegradationValuesRequest) returns (GetDegradationValuesResponse);
-  rpc UpdateDegradationValue(UpdateDegradationValueRequest) returns (google.protobuf.Empty);
+  rpc GetDegradationStates(GetDegradationStatesRequest) returns (GetDegradationStatesResponse);
+  rpc UpdateDegradationState(UpdateDegradationStateRequest) returns (google.protobuf.Empty);
 }
