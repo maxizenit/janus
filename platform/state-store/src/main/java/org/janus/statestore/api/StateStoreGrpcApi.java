@@ -49,7 +49,7 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
     }
 
     @Override
-    public void updateDegradationState(StateStoreServiceOuterClass.UpdateDegradationStateRequest request,
+    public void updateDegradationStates(StateStoreServiceOuterClass.UpdateDegradationStatesRequest request,
                                        StreamObserver<Empty> responseObserver) {
         request.getUpdatesList()
                .forEach(update -> degradationValues.put(update.getDegradationId(), update.getValue()));
