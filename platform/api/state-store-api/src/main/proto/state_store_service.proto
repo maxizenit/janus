@@ -19,8 +19,8 @@ message UpdateDegradationStatesRequest {
 }
 
 enum DegradationStateUpdateSource {
-  DECIDER = 0;
-  ADMIN_UI = 1;
+  ADMIN_UI = 0;
+  DECIDER = 1;
 }
 
 message DegradationStateUpdate {
@@ -36,5 +36,6 @@ message DegradationState {
 
 service StateStoreService {
   rpc GetDegradationStates(GetDegradationStatesRequest) returns (GetDegradationStatesResponse);
+  rpc GetDegradationStatesWithAllSources(GetDegradationStatesRequest) returns (GetDegradationStatesResponse);
   rpc UpdateDegradationStates(UpdateDegradationStatesRequest) returns (google.protobuf.Empty);
 }

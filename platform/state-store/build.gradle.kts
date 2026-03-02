@@ -22,10 +22,12 @@ repositories {
 dependencies {
     implementation(project(":platform:api:state-store-api"))
 
+    implementation("org.springframework.boot:spring-boot-starter-json")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.grpc:spring-grpc-spring-boot-starter")
 
     implementation("io.grpc:grpc-services")
+    implementation("com.google.protobuf:protobuf-java-util:${libs.versions.protobuf.get()}")
 
     implementation("org.mapstruct:mapstruct:${libs.versions.mapstruct.get()}")
     annotationProcessor("org.mapstruct:mapstruct-processor:${libs.versions.mapstruct.get()}")
