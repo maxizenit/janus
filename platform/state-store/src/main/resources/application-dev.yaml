@@ -2,3 +2,8 @@ spring:
   grpc:
     server:
       port: 9092
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 1s

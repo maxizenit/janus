@@ -22,6 +22,7 @@ repositories {
 dependencies {
     implementation(project(":platform:api:state-store-api"))
 
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.grpc:spring-grpc-spring-boot-starter")
 
     implementation("io.grpc:grpc-services")
