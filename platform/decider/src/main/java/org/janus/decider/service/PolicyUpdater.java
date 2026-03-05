@@ -1,8 +1,8 @@
 package org.janus.decider.service;
 
 import lombok.RequiredArgsConstructor;
+import org.janus.api.policystore.GetDegradationPoliciesRequest;
 import org.janus.api.policystore.PolicyStoreServiceGrpc;
-import org.janus.api.policystore.PolicyStoreServiceOuterClass;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ public class PolicyUpdater {
 
     @Scheduled(fixedDelayString = "${janus.decider.policy-refresh-interval}")
     public void updatePolicies() {
-        policyStoreStub.getDegradationPolicies(PolicyStoreServiceOuterClass.GetDegradationPoliciesRequest.newBuilder()
-                                                                                                         .build());
+        policyStoreStub.getDegradationPolicies(GetDegradationPoliciesRequest.newBuilder()
+                                                                            .build());
     }
 }

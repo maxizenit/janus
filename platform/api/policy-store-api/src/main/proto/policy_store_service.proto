@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package org.janus.api.policystore;
 
+option java_package = "org.janus.api.policystore";
+option java_multiple_files = true;
+
 import "google/protobuf/duration.proto";
 
 message GetDegradationPoliciesRequest {

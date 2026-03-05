@@ -1,5 +1,6 @@
 package org.janus.statestore.mapper;
 
+import org.janus.api.statestore.DegradationStateUpdateSource;
 import org.janus.api.statestore.StateStoreServiceOuterClass;
 import org.janus.statestore.model.DegradationState;
 import org.janus.statestore.model.DegradationStateUpdate;
@@ -11,8 +12,8 @@ import org.mapstruct.MappingConstants;
 public interface DegradationStateUpdateMapper {
 
     @Mapping(source = "updateSourceGrpcObject", target = "source")
-    DegradationStateUpdate fromGrpcToModel(StateStoreServiceOuterClass.DegradationStateUpdate grpcObject,
-                                           StateStoreServiceOuterClass.DegradationStateUpdateSource updateSourceGrpcObject);
+    DegradationStateUpdate fromGrpcToModel(org.janus.api.statestore.DegradationStateUpdate grpcObject,
+                                           DegradationStateUpdateSource updateSourceGrpcObject);
 
     DegradationState fromModelToState(DegradationStateUpdate modelObject);
 

@@ -8,5 +8,5 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface DegradationStateMapper {
 
-    StateStoreServiceOuterClass.DegradationState fromModelToGrpc(DegradationState modelObject);
+    org.janus.api.statestore.DegradationState fromModelToGrpc(DegradationState modelObject);
 }
