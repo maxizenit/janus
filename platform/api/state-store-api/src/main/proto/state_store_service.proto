@@ -3,6 +3,7 @@ syntax = "proto3";
 package org.janus.api.statestore;
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/duration.proto";
 
 message GetDegradationStatesRequest {
   repeated string degradation_ids = 1;
@@ -12,19 +13,20 @@ message GetDegradationStatesResponse {
   repeated DegradationState degradation_states = 1;
 }
 
-message UpdateDegradationStateRequest {
-  UpdateDegradationStateSource source = 1;
+message UpdateDegradationStatesRequest {
+  DegradationStateUpdateSource source = 1;
   repeated DegradationStateUpdate updates = 2;
 }
 
-enum UpdateDegradationStateSource {
-  DECIDER = 0;
-  ADMIN_UI = 1;
+enum DegradationStateUpdateSource {
+  ADMIN_UI = 0;
+  DECIDER = 1;
 }
 
 message DegradationStateUpdate {
   string degradation_id = 1;
   double value = 2;
+  google.protobuf.Duration ttl = 3;
 }
 
 message DegradationState {
@@ -34,5 +36,6 @@ message DegradationState {
 
 service StateStoreService {
   rpc GetDegradationStates(GetDegradationStatesRequest) returns (GetDegradationStatesResponse);
-  rpc UpdateDegradationState(UpdateDegradationStateRequest) returns (google.protobuf.Empty);
+  rpc GetDegradationStatesWithAllSources(GetDegradationStatesRequest) returns (GetDegradationStatesResponse);
+  rpc UpdateDegradationStates(UpdateDegradationStatesRequest) returns (google.protobuf.Empty);
 }
