@@ -78,7 +78,7 @@ public class DegradationStateService {
                 try {
                     for (DegradationStateUpdate update : updates) {
                         String key = createStateKey(update.degradationId(), update.source());
-                        DegradationState state = stateUpdateMapper.fromModelToState(update);
+                        DegradationState state = stateUpdateMapper.fromUpdateToState(update);
                         String json = objectMapper.writeValueAsString(state);
 
                         Duration ttl = update.ttl();

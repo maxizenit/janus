@@ -7,7 +7,6 @@ import org.janus.api.statestore.DegradationState;
 import org.janus.api.statestore.GetDegradationStatesRequest;
 import org.janus.api.statestore.GetDegradationStatesResponse;
 import org.janus.api.statestore.StateStoreServiceGrpc;
-import org.janus.api.statestore.StateStoreServiceOuterClass;
 import org.janus.api.statestore.UpdateDegradationStatesRequest;
 import org.janus.statestore.mapper.DegradationStateMapper;
 import org.janus.statestore.mapper.DegradationStateUpdateMapper;
@@ -32,7 +31,7 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
                                      StreamObserver<GetDegradationStatesResponse> responseObserver) {
         List<DegradationState> states = stateService.getDegradationStates(request.getDegradationIdsList())
                                                     .stream()
-                                                    .map(stateMapper::fromModelToGrpc)
+                                                    .map(stateMapper::fromStateToStateGrpc)
                                                     .toList();
 
         responseObserver.onNext(GetDegradationStatesResponse.newBuilder()
@@ -53,8 +52,8 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
                                         StreamObserver<Empty> responseObserver) {
         List<DegradationStateUpdate> updates = request.getUpdatesList()
                                                       .stream()
-                                                      .map(update -> updateMapper.fromGrpcToModel(update,
-                                                                                                  request.getSource()))
+                                                      .map(update -> updateMapper.fromUpdateGrpcToUpdate(update,
+                                                                                                         request.getSource()))
                                                       .toList();
         stateService.updateDegradationStates(updates);
 

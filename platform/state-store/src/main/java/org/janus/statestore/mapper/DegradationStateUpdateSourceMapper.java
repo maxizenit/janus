@@ -9,5 +9,5 @@ import org.mapstruct.ValueMapping;
 public interface DegradationStateUpdateSourceMapper {
 
     @ValueMapping(source = "UNRECOGNIZED", target = MappingConstants.NULL)
-    DegradationStateUpdateSource fromGrpcToModel(org.janus.api.statestore.DegradationStateUpdateSource grpcObject);
+    DegradationStateUpdateSource fromSourceGrpcToSource(org.janus.api.statestore.DegradationStateUpdateSource sourceGrpc);
 }
