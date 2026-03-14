@@ -6,6 +6,11 @@ option java_package = "org.janus.api.policystore";
 option java_multiple_files = true;
 
 import "google/protobuf/duration.proto";
+import "google/protobuf/field_mask.proto";
+import "degradation_policy.proto";
+import "decider_degradation_policy.proto";
+import "sidecar_degradation_policy.proto";
+import "signal_source.proto";
 
 message GetDegradationPoliciesRequest {
   repeated string degradation_ids = 1;
@@ -15,28 +20,60 @@ message GetDegradationPoliciesResponse {
   repeated DegradationPolicy degradation_policies = 1;
 }
 
-message GetDegradationMetadataRequest {
+message GetDeciderDegradationPoliciesRequest {
   repeated string degradation_ids = 1;
 }
 
-message GetDegradationMetadataResponse {
-  repeated DegradationMetadata degradation_metadata = 1;
+message GetDeciderDegradationPoliciesResponse {
+  repeated DeciderDegradationPolicy degradation_policies = 1;
 }
 
-message DegradationPolicy {
-  string degradation_id = 1;
-  google.protobuf.Duration evaluation_period = 2;//TODO: скопировать в отдельный message для sidecar
-  //TODO: информация о метриках/формуле расчёта
+message GetSidecarDegradationPoliciesRequest {
+  repeated string degradation_ids = 1;
 }
 
-message DegradationMetadata {
+message GetSidecarDegradationPoliciesResponse {
+  repeated SidecarDegradationPolicy degradation_policies = 1;
+}
+
+message CreateDegradationPolicyRequest {
   string degradation_id = 1;
-  optional double critical_threshold = 2;
-  optional double min_fallback_ratio = 3;
-  optional double max_fallback_ratio = 4;
+  google.protobuf.Duration evaluation_interval = 2;
+  SignalSource signal_source = 3;
+  optional double critical_threshold = 4;
+  optional double min_fallback_ratio = 5;
+  optional double max_fallback_ratio = 6;
+}
+
+message UpdateDegradationPolicyRequest {
+  string degradation_id = 1;
+  optional google.protobuf.Duration evaluation_interval = 2;
+  optional SignalSource signal_source = 3;
+  optional double critical_threshold = 4;
+  optional double min_fallback_ratio = 5;
+  optional double max_fallback_ratio = 6;
+
+  google.protobuf.FieldMask update_mask = 100;
+}
+
+message DeleteDegradationPolicyRequest {
+  string degradation_id = 1;
+}
+
+message DeleteDegradationPolicyResponse {
 }
 
 service PolicyStoreService {
+
   rpc GetDegradationPolicies(GetDegradationPoliciesRequest) returns (GetDegradationPoliciesResponse);
-  rpc GetDegradationMetadata(GetDegradationMetadataRequest) returns (GetDegradationMetadataResponse);
+
+  rpc GetDeciderDegradationPolicies(GetDeciderDegradationPoliciesRequest) returns (GetDeciderDegradationPoliciesResponse);
+
+  rpc GetSidecarDegradationPolicies(GetSidecarDegradationPoliciesRequest) returns (GetSidecarDegradationPoliciesResponse);
+
+  rpc CreateDegradationPolicy(CreateDegradationPolicyRequest) returns (DegradationPolicy);
+
+  rpc UpdateDegradationPolicy(UpdateDegradationPolicyRequest) returns (DegradationPolicy);
+
+  rpc DeleteDegradationPolicy(DeleteDegradationPolicyRequest) returns (DeleteDegradationPolicyResponse);
 }

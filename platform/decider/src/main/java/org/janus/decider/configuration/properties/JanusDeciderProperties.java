@@ -8,4 +8,5 @@ import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties("janus.decider")
 @Validated
-public record JanusDeciderProperties(@NotNull @DurationMin(millis = 1) Duration policyRefreshInterval) {}
+public record JanusDeciderProperties(
+    @NotNull @DurationMin(millis = 1) Duration policyRefreshInterval) {}

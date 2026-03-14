@@ -21,42 +21,42 @@ import org.springframework.stereotype.Service;
 @NullMarked
 public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceImplBase {
 
-    private final DegradationStateService stateService;
-    private final DegradationStateMapper stateMapper;
-    private final DegradationStateUpdateMapper updateMapper;
+  private final DegradationStateService stateService;
+  private final DegradationStateMapper stateMapper;
+  private final DegradationStateUpdateMapper updateMapper;
 
-    @Override
-    public void getDegradationStates(GetDegradationStatesRequest request,
-                                     StreamObserver<GetDegradationStatesResponse> responseObserver) {
-        List<DegradationState> states = stateService.getDegradationStates(request.getDegradationIdsList())
-                                                    .stream()
-                                                    .map(stateMapper::fromStateToStateGrpc)
-                                                    .toList();
+  @Override
+  public void getDegradationStates(
+      GetDegradationStatesRequest request,
+      StreamObserver<GetDegradationStatesResponse> responseObserver) {
+    List<DegradationState> states =
+        stateService.getDegradationStates(request.getDegradationIdsList()).stream()
+            .map(stateMapper::fromStateToStateGrpc)
+            .toList();
 
-        responseObserver.onNext(GetDegradationStatesResponse.newBuilder()
-                                                            .addAllDegradationStates(states)
-                                                            .build());
-        responseObserver.onCompleted();
-    }
+    responseObserver.onNext(
+        GetDegradationStatesResponse.newBuilder().addAllDegradationStates(states).build());
+    responseObserver.onCompleted();
+  }
 
-    @Override
-    public void getDegradationStatesWithAllSources(GetDegradationStatesRequest request,
-                                                   StreamObserver<GetDegradationStatesResponse> responseObserver) {
-        //TODO: implementation
-        super.getDegradationStatesWithAllSources(request, responseObserver);
-    }
+  @Override
+  public void getDegradationStatesWithAllSources(
+      GetDegradationStatesRequest request,
+      StreamObserver<GetDegradationStatesResponse> responseObserver) {
+    // TODO: implementation
+    super.getDegradationStatesWithAllSources(request, responseObserver);
+  }
 
-    @Override
-    public void updateDegradationStates(UpdateDegradationStatesRequest request,
-                                        StreamObserver<Empty> responseObserver) {
-        List<DegradationStateUpdate> updates = request.getUpdatesList()
-                                                      .stream()
-                                                      .map(update -> updateMapper.fromUpdateGrpcToUpdate(update,
-                                                                                                         request.getSource()))
-                                                      .toList();
-        stateService.updateDegradationStates(updates);
+  @Override
+  public void updateDegradationStates(
+      UpdateDegradationStatesRequest request, StreamObserver<Empty> responseObserver) {
+    List<DegradationStateUpdate> updates =
+        request.getUpdatesList().stream()
+            .map(update -> updateMapper.fromUpdateGrpcToUpdate(update, request.getSource()))
+            .toList();
+    stateService.updateDegradationStates(updates);
 
-        responseObserver.onNext(Empty.getDefaultInstance());
-        responseObserver.onCompleted();
-    }
+    responseObserver.onNext(Empty.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
 }

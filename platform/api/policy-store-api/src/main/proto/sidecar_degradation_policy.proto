@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package org.janus.api.policystore;
+
+option java_package = "org.janus.api.policystore";
+option java_multiple_files = true;
+
+import "google/protobuf/duration.proto";
+
+message SidecarDegradationPolicy {
+  string degradation_id = 1;
+  google.protobuf.Duration evaluation_interval = 2;
+  optional double critical_threshold = 3;
+  optional double min_fallback_ratio = 4;
+  optional double max_fallback_ratio = 5;
+}
