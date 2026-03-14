@@ -1,11 +1,10 @@
 package org.janus.decider.configuration.properties;
 
 import jakarta.validation.constraints.NotNull;
+import java.time.Duration;
 import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
-
-import java.time.Duration;
 
 @ConfigurationProperties("janus.decider")
 @Validated

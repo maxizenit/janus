@@ -12,17 +12,17 @@ import org.springframework.stereotype.Service;
 @NullMarked
 public class SidecarGrpcApi extends SidecarServiceGrpc.SidecarServiceImplBase {
 
-    @Override
-    public void registerActualDegradations(RegisterActualDegradationsRequest request,
-                                           StreamObserver<Empty> responseObserver) {
-        responseObserver.onNext(Empty.getDefaultInstance());
-        responseObserver.onCompleted();
-    }
+  @Override
+  public void registerActualDegradations(
+      RegisterActualDegradationsRequest request, StreamObserver<Empty> responseObserver) {
+    responseObserver.onNext(Empty.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
 
-    @Override
-    public void getDegradations(Empty request, StreamObserver<GetDegradationsResponse> responseObserver) {
-        responseObserver.onNext(GetDegradationsResponse.newBuilder()
-                                                       .build());
-        responseObserver.onCompleted();
-    }
+  @Override
+  public void getDegradations(
+      Empty request, StreamObserver<GetDegradationsResponse> responseObserver) {
+    responseObserver.onNext(GetDegradationsResponse.newBuilder().build());
+    responseObserver.onCompleted();
+  }
 }

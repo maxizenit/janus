@@ -11,13 +11,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Degradable {
 
-    String value();
+  String value();
 
-    String fallback() default "";
+  String fallback() default "";
 
-    double criticalThreshold() default Double.NaN;
+  double criticalThreshold() default Double.NaN;
 
-    double minFallbackRatio() default Double.NaN;
+  double minFallbackRatio() default Double.NaN;
 
-    double maxFallbackRatio() default Double.NaN;
+  double maxFallbackRatio() default Double.NaN;
 }

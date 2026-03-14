@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class SidecarApplication {
 
-    static void main(String[] args) {
-        SpringApplication.run(SidecarApplication.class, args);
-    }
+  static void main(String[] args) {
+    SpringApplication.run(SidecarApplication.class, args);
+  }
 }

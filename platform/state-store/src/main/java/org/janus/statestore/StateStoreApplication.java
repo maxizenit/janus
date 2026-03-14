@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class StateStoreApplication {
 
-    static void main(String[] args) {
-        SpringApplication.run(StateStoreApplication.class, args);
-    }
+  static void main(String[] args) {
+    SpringApplication.run(StateStoreApplication.class, args);
+  }
 }

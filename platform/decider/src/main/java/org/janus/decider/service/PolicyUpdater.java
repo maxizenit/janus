@@ -12,11 +12,10 @@ import org.springframework.stereotype.Service;
 @NullMarked
 public class PolicyUpdater {
 
-    private final PolicyStoreServiceGrpc.PolicyStoreServiceBlockingStub policyStoreStub;
+  private final PolicyStoreServiceGrpc.PolicyStoreServiceBlockingStub policyStoreStub;
 
-    @Scheduled(fixedDelayString = "${janus.decider.policy-refresh-interval}")
-    public void updatePolicies() {
-        policyStoreStub.getDegradationPolicies(GetDegradationPoliciesRequest.newBuilder()
-                                                                            .build());
-    }
+  @Scheduled(fixedDelayString = "${janus.decider.policy-refresh-interval}")
+  public void updatePolicies() {
+    policyStoreStub.getDegradationPolicies(GetDegradationPoliciesRequest.newBuilder().build());
+  }
 }
