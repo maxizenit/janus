@@ -1,4 +1,3 @@
 package org.janus.statestore.model;
 
-public record DegradationState(String degradationId, double value) {
-}
+public record DegradationState(String degradationId, double value) {}

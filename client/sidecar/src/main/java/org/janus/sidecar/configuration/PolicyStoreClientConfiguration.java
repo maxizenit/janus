@@ -10,8 +10,9 @@ import org.springframework.grpc.client.GrpcChannelFactory;
 @NullMarked
 public class PolicyStoreClientConfiguration {
 
-    @Bean
-    public PolicyStoreServiceGrpc.PolicyStoreServiceBlockingStub policyStoreStub(GrpcChannelFactory channelFactory) {
-        return PolicyStoreServiceGrpc.newBlockingStub(channelFactory.createChannel("policy-store"));
-    }
+  @Bean
+  public PolicyStoreServiceGrpc.PolicyStoreServiceBlockingStub policyStoreStub(
+      GrpcChannelFactory channelFactory) {
+    return PolicyStoreServiceGrpc.newBlockingStub(channelFactory.createChannel("policy-store"));
+  }
 }

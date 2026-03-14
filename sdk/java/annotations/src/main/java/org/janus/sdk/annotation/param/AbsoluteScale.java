@@ -11,11 +11,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AbsoluteScale {
 
-    String value() default "";
+  String value() default "";
 
-    double min();
+  double min();
 
-    double max();
+  double max();
 
-    Direction direction() default Direction.DECREASE;
+  Direction direction() default Direction.DECREASE;
 }

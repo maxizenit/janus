@@ -2,6 +2,7 @@ package org.janus.statestore.api;
 
 import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.janus.api.statestore.DegradationState;
 import org.janus.api.statestore.GetDegradationStatesRequest;
@@ -14,8 +15,6 @@ import org.janus.statestore.model.DegradationStateUpdate;
 import org.janus.statestore.service.DegradationStateService;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

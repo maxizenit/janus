@@ -8,6 +8,7 @@ import org.mapstruct.ValueMapping;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface DegradationStateUpdateSourceMapper {
 
-    @ValueMapping(source = "UNRECOGNIZED", target = MappingConstants.NULL)
-    DegradationStateUpdateSource fromSourceGrpcToSource(org.janus.api.statestore.DegradationStateUpdateSource sourceGrpc);
+  @ValueMapping(source = "UNRECOGNIZED", target = MappingConstants.NULL)
+  DegradationStateUpdateSource fromSourceGrpcToSource(
+      org.janus.api.statestore.DegradationStateUpdateSource sourceGrpc);
 }

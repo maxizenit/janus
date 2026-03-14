@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum DegradationStateUpdateSource {
-    ADMIN_UI(0),
-    DECIDER(1);
+  ADMIN_UI(0),
+  DECIDER(1);
 
-    private final int priority;
+  private final int priority;
 }

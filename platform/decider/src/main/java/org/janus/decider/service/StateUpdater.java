@@ -10,8 +10,7 @@ import org.springframework.stereotype.Service;
 @NullMarked
 public class StateUpdater {
 
-    private final StateStoreServiceGrpc.StateStoreServiceBlockingStub stateStoreStub;
+  private final StateStoreServiceGrpc.StateStoreServiceBlockingStub stateStoreStub;
 
-    public void updateStates() {
-    }
+  public void updateStates() {}
 }

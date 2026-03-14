@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Bounds {
 
-    double min();
+  double min();
 
-    double max();
+  double max();
 }

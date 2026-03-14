@@ -10,8 +10,9 @@ import org.springframework.grpc.client.GrpcChannelFactory;
 @NullMarked
 public class StateStoreClientConfiguration {
 
-    @Bean
-    public StateStoreServiceGrpc.StateStoreServiceBlockingStub stateStoreStub(GrpcChannelFactory channelFactory) {
-        return StateStoreServiceGrpc.newBlockingStub(channelFactory.createChannel("state-store"));
-    }
+  @Bean
+  public StateStoreServiceGrpc.StateStoreServiceBlockingStub stateStoreStub(
+      GrpcChannelFactory channelFactory) {
+    return StateStoreServiceGrpc.newBlockingStub(channelFactory.createChannel("state-store"));
+  }
 }
