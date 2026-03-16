@@ -8,3 +8,7 @@ spring:
           address: localhost:9091
         state-store:
           address: localhost:9092
+
+logging:
+  level:
+    org.janus.sidecar: DEBUG
