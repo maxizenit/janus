@@ -33,6 +33,7 @@ dependencies {
     annotationProcessor("org.mapstruct:mapstruct-processor:${libs.versions.mapstruct.get()}")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-redis-test")
     testImplementation("org.springframework.grpc:spring-grpc-test")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

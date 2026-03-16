@@ -8,5 +8,5 @@ import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties("janus.sidecar")
 @Validated
-public record JanusSidecarProperties(@NotNull @DurationMin(millis = 1) Duration policyRefreshInterval) {
-}
+public record JanusSidecarProperties(
+    @NotNull @DurationMin(millis = 1) Duration policyRefreshInterval) {}

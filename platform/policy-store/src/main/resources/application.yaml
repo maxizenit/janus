@@ -4,3 +4,7 @@ spring:
   grpc:
     server:
       port: 9090
+  datasource:
+    url: jdbc:postgresql://postgres:5432/janus-policy-store-db
+    username: postgres
+    password: postgres

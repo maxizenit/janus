@@ -1,0 +1,137 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0-0-1-1
+      author: Liquibase
+      changes:
+        - createTable:
+            tableName: degradation_policy
+            columns:
+              - column:
+                  name: degradation_id
+                  type: varchar
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_degradation_policy
+
+              - column:
+                  name: evaluation_interval_ms
+                  type: bigint
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: signal_source_type
+                  type: varchar
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: source_degradation_id
+                  type: varchar
+
+              - column:
+                  name: source_prometheus_metric_reference
+                  type: varchar
+
+              - column:
+                  name: critical_threshold
+                  type: double precision
+
+              - column:
+                  name: min_fallback_ratio
+                  type: double precision
+
+              - column:
+                  name: max_fallback_ratio
+                  type: double precision
+
+        - addForeignKeyConstraint:
+            baseTableName: degradation_policy
+            baseColumnNames: source_degradation_id
+            referencedTableName: degradation_policy
+            referencedColumnNames: degradation_id
+            constraintName: fk_degradation_policy_source_degradation
+
+        - createIndex:
+            tableName: degradation_policy
+            indexName: idx_degradation_policy_source_degradation_id
+            columns:
+              - column:
+                  name: source_degradation_id
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_eval_interval_positive
+              check (evaluation_interval_ms > 0);
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_signal_source_type
+              check (signal_source_type in ('DEGRADATION', 'PROMETHEUS'));
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_signal_source_payload
+              check (
+                (
+                  signal_source_type = 'DEGRADATION'
+                  and source_degradation_id is not null
+                  and source_prometheus_metric_reference is null
+                )
+                or
+                (
+                  signal_source_type = 'PROMETHEUS'
+                  and source_degradation_id is null
+                  and source_prometheus_metric_reference is not null
+                )
+              );
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_no_self_reference
+              check (
+                source_degradation_id is null
+                or source_degradation_id <> degradation_id
+              );
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_critical_threshold_range
+              check (
+                critical_threshold is null
+                or critical_threshold between 0 and 1
+              );
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_min_fallback_ratio_range
+              check (
+                min_fallback_ratio is null
+                or min_fallback_ratio between 0 and 1
+              );
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_max_fallback_ratio_range
+              check (
+                max_fallback_ratio is null
+                or max_fallback_ratio between 0 and 1
+              );
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_fallback_ratio_order
+              check (
+                min_fallback_ratio is null
+                or max_fallback_ratio is null
+                or min_fallback_ratio <= max_fallback_ratio
+              );

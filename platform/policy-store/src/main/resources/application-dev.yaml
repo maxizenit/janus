@@ -2,3 +2,10 @@ spring:
   grpc:
     server:
       port: 9091
+  datasource:
+    url: jdbc:h2:mem:db
+    username: sa
+    password: password
+  h2:
+    console:
+      enabled: true

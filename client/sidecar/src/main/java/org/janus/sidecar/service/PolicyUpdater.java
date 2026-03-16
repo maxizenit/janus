@@ -1,7 +1,7 @@
 package org.janus.sidecar.service;
 
 import lombok.RequiredArgsConstructor;
-import org.janus.api.policystore.GetDegradationPoliciesRequest;
+import org.janus.api.policystore.GetSidecarDegradationPoliciesRequest;
 import org.janus.api.policystore.PolicyStoreServiceGrpc;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,6 +16,7 @@ public class PolicyUpdater {
 
   @Scheduled(fixedDelayString = "${janus.sidecar.policy-refresh-interval}")
   public void updatePolicies() {
-    policyStoreStub.getDegradationPolicies(GetDegradationPoliciesRequest.newBuilder().build());
+    policyStoreStub.getSidecarDegradationPolicies(
+        GetSidecarDegradationPoliciesRequest.newBuilder().build());
   }
 }
