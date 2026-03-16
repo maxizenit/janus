@@ -1,5 +1,6 @@
 package org.janus.statestore.mapper;
 
+import com.google.protobuf.util.Durations;
 import java.time.Duration;
 import org.janus.statestore.model.DegradationState;
 import org.janus.statestore.model.DegradationStateUpdate;
@@ -20,8 +21,6 @@ public interface DegradationStateUpdateMapper {
   DegradationState fromUpdateToState(DegradationStateUpdate update);
 
   default Duration fromGrpcDurationToJavaDuration(com.google.protobuf.Duration grpcDuration) {
-    return grpcDuration == null
-        ? null
-        : Duration.ofMillis(com.google.protobuf.util.Durations.toMillis(grpcDuration));
+    return grpcDuration == null ? null : Duration.ofMillis(Durations.toMillis(grpcDuration));
   }
 }

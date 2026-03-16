@@ -5,27 +5,25 @@ package org.janus.api.sidecar;
 option java_package = "org.janus.api.sidecar";
 option java_multiple_files = true;
 
-import "google/protobuf/empty.proto";
-import "google/protobuf/duration.proto";
+import "degradation.proto";
 
-message RegisterActualDegradationsRequest {
+message SyncActualDegradationsRequest {
   repeated string degradation_ids = 1;
+}
+
+message SyncActualDegradationsResponse {
+}
+
+message GetDegradationsRequest {
 }
 
 message GetDegradationsResponse {
   repeated Degradation degradations = 1;
 }
 
-message Degradation {
-  string degradation_id = 1;
-  double value = 2;
-  google.protobuf.Duration evaluation_interval = 3;
-  optional double critical_threshold = 4;
-  optional double min_fallback_ratio = 5;
-  optional double max_fallback_ratio = 6;
-}
-
 service SidecarService {
-  rpc RegisterActualDegradations(RegisterActualDegradationsRequest) returns (google.protobuf.Empty);
-  rpc GetDegradations(google.protobuf.Empty) returns (GetDegradationsResponse);
+
+  rpc SyncActualDegradations(SyncActualDegradationsRequest) returns (SyncActualDegradationsResponse);
+
+  rpc GetDegradations(GetDegradationsRequest) returns (GetDegradationsResponse);
 }

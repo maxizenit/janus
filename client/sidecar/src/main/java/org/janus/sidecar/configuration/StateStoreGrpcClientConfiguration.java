@@ -1,6 +1,6 @@
 package org.janus.sidecar.configuration;
 
-import org.janus.api.policystore.PolicyStoreServiceGrpc;
+import org.janus.api.statestore.StateStoreServiceGrpc;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,11 +8,11 @@ import org.springframework.grpc.client.GrpcChannelFactory;
 
 @Configuration
 @NullMarked
-public class PolicyStoreClientConfiguration {
+public class StateStoreGrpcClientConfiguration {
 
   @Bean
-  public PolicyStoreServiceGrpc.PolicyStoreServiceBlockingStub policyStoreStub(
+  public StateStoreServiceGrpc.StateStoreServiceBlockingStub stateStoreStub(
       GrpcChannelFactory channelFactory) {
-    return PolicyStoreServiceGrpc.newBlockingStub(channelFactory.createChannel("policy-store"));
+    return StateStoreServiceGrpc.newBlockingStub(channelFactory.createChannel("state-store"));
   }
 }
