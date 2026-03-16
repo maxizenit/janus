@@ -49,7 +49,7 @@ public class DegradationPolicyValidator {
         requireNotBlank(policy.getSourceDegradationId(), "sourceDegradationId required");
         require(
             policy.getSourcePrometheusMetricReference() == null,
-            "sourceMetricReference must be null");
+            "sourcePrometheusMetricReference must be null");
 
         require(
             !policy.getDegradationId().equals(policy.getSourceDegradationId()),
@@ -62,7 +62,7 @@ public class DegradationPolicyValidator {
 
       case PROMETHEUS -> {
         requireNotBlank(
-            policy.getSourcePrometheusMetricReference(), "sourceMetricReference required");
+            policy.getSourcePrometheusMetricReference(), "sourcePrometheusMetricReference required");
         require(policy.getSourceDegradationId() == null, "sourceDegradationId must be null");
       }
     }
