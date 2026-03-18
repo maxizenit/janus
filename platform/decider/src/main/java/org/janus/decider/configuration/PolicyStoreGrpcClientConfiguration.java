@@ -8,7 +8,7 @@ import org.springframework.grpc.client.GrpcChannelFactory;
 
 @Configuration
 @NullMarked
-public class PolicyStoreClientConfiguration {
+public class PolicyStoreGrpcClientConfiguration {
 
   @Bean
   public PolicyStoreServiceGrpc.PolicyStoreServiceBlockingStub policyStoreStub(
