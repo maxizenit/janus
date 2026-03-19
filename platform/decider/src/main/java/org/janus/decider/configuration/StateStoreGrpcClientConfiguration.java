@@ -8,7 +8,7 @@ import org.springframework.grpc.client.GrpcChannelFactory;
 
 @Configuration
 @NullMarked
-public class StateStoreClientConfiguration {
+public class StateStoreGrpcClientConfiguration {
 
   @Bean
   public StateStoreServiceGrpc.StateStoreServiceBlockingStub stateStoreStub(
