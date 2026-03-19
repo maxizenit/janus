@@ -26,7 +26,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webclient")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation("org.springframework.grpc:spring-grpc-spring-boot-starter")
+    implementation("org.springframework.grpc:spring-grpc-client-spring-boot-starter")
 
     implementation("io.grpc:grpc-services")
     implementation("com.google.protobuf:protobuf-java-util:${libs.versions.protobuf.get()}")

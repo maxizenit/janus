@@ -26,7 +26,8 @@ dependencies {
     implementation(project(":platform:api:state-store-api"))
 
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.grpc:spring-grpc-spring-boot-starter")
+    implementation("org.springframework.grpc:spring-grpc-client-spring-boot-starter")
+    implementation("org.springframework.grpc:spring-grpc-server-spring-boot-starter")
 
     implementation("io.grpc:grpc-services")
     implementation("com.google.protobuf:protobuf-java-util:${libs.versions.protobuf.get()}")

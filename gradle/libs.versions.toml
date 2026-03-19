@@ -2,7 +2,7 @@
 
 java = "25"
 
-springBootPlugin = "4.0.3"
+springBootPlugin = "4.0.4"
 springDependencyManagementPlugin = "1.1.7"
 lombokPlugin = "9.2.0"
 protobufPlugin = "0.9.6"
