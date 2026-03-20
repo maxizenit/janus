@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.janus.decider.configuration.properties.PrometheusProperties;
 import org.janus.decider.model.snapshot.SignalSourceSnapshot;
 import org.jspecify.annotations.NullMarked;
@@ -13,6 +14,7 @@ import tools.jackson.databind.JsonNode;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 @NullMarked
 public class PrometheusSignalClient implements SignalClient {
 
@@ -23,11 +25,23 @@ public class PrometheusSignalClient implements SignalClient {
   @Override
   public double getSignalValue(SignalSourceSnapshot signalSource, Duration evaluationInterval) {
     if (signalSource.type() != SignalSourceSnapshot.SignalSourceType.PROMETHEUS) {
+      log.error(
+          "Unsupported signal source type for Prometheus client: signalSourceType={}, reference={}",
+          signalSource.type(),
+          signalSource.reference());
       throw new UnsupportedOperationException(
           "Signal source type is not supported yet: " + signalSource.type());
     }
 
     var query = resolveQuery(signalSource.reference(), evaluationInterval);
+    var queryTime = Instant.now(clock);
+
+    log.debug(
+        "Prometheus query started: reference={}, evaluationInterval={}, query={}, timeout={}",
+        signalSource.reference(),
+        evaluationInterval,
+        query,
+        properties.requestTimeout());
 
     var body =
         prometheusWebClient
@@ -37,17 +51,31 @@ public class PrometheusSignalClient implements SignalClient {
                     uriBuilder
                         .path("/api/v1/query")
                         .queryParam("query", query)
-                        .queryParam("time", Instant.now(clock).getEpochSecond())
+                        .queryParam("time", queryTime.getEpochSecond())
                         .build())
             .retrieve()
             .bodyToMono(JsonNode.class)
             .block(properties.requestTimeout());
 
     if (body == null) {
+      log.error("Prometheus response body is null: query={}", query);
       throw new IllegalStateException("Prometheus response body is null");
     }
 
-    return extractSingleValue(body, query);
+    var resultType = body.path("data").path("resultType").asString();
+    log.debug(
+        "Prometheus query completed: reference={}, query={}, resultType={}",
+        signalSource.reference(),
+        query,
+        resultType);
+
+    var value = extractSingleValue(body, query);
+    log.debug(
+        "Prometheus value extracted: reference={}, query={}, value={}",
+        signalSource.reference(),
+        query,
+        value);
+    return value;
   }
 
   private static String resolveQuery(String template, Duration evaluationInterval) {
@@ -72,7 +100,18 @@ public class PrometheusSignalClient implements SignalClient {
   private static double extractSingleValue(JsonNode body, String query) {
     var status = body.path("status").asString();
     if (!"success".equals(status)) {
-      throw new IllegalStateException("Prometheus query failed: query=" + query + ", body=" + body);
+      var error = body.path("error").asString();
+      var errorType = body.path("errorType").asString();
+
+      throw new IllegalStateException(
+          "Prometheus query failed: query="
+              + query
+              + ", status="
+              + status
+              + ", errorType="
+              + errorType
+              + ", error="
+              + error);
     }
 
     var data = body.path("data");
