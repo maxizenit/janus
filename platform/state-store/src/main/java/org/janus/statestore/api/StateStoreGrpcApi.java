@@ -1,10 +1,11 @@
 package org.janus.statestore.api;
 
 import com.google.protobuf.Empty;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.janus.api.statestore.DegradationState;
+import lombok.extern.slf4j.Slf4j;
 import org.janus.api.statestore.GetDegradationStatesRequest;
 import org.janus.api.statestore.GetDegradationStatesResponse;
 import org.janus.api.statestore.StateStoreServiceGrpc;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @NullMarked
 public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceImplBase {
 
@@ -29,10 +31,18 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
   public void getDegradationStates(
       GetDegradationStatesRequest request,
       StreamObserver<GetDegradationStatesResponse> responseObserver) {
-    List<DegradationState> states =
-        stateService.getDegradationStates(request.getDegradationIdsList()).stream()
+    var degradationIds = request.getDegradationIdsList();
+    log.debug("GetDegradationStates request received: degradationCount={}", degradationIds.size());
+
+    var states =
+        stateService.getDegradationStates(degradationIds).stream()
             .map(stateMapper::fromStateToStateGrpc)
             .toList();
+
+    log.debug(
+        "GetDegradationStates request completed: requested={}, returned={}",
+        degradationIds.size(),
+        states.size());
 
     responseObserver.onNext(
         GetDegradationStatesResponse.newBuilder().addAllDegradationStates(states).build());
@@ -43,18 +53,33 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
   public void getDegradationStatesWithAllSources(
       GetDegradationStatesRequest request,
       StreamObserver<GetDegradationStatesResponse> responseObserver) {
-    // TODO: implementation
-    super.getDegradationStatesWithAllSources(request, responseObserver);
+    log.warn(
+        "GetDegradationStatesWithAllSources request rejected: method is not implemented, degradationCount={}",
+        request.getDegradationIdsCount());
+    responseObserver.onError(
+        Status.UNIMPLEMENTED
+            .withDescription("GetDegradationStatesWithAllSources is not implemented")
+            .asRuntimeException());
   }
 
   @Override
   public void updateDegradationStates(
       UpdateDegradationStatesRequest request, StreamObserver<Empty> responseObserver) {
+    log.info(
+        "UpdateDegradationStates request received: source={}, updatesCount={}",
+        request.getSource(),
+        request.getUpdatesCount());
+
     List<DegradationStateUpdate> updates =
         request.getUpdatesList().stream()
             .map(update -> updateMapper.fromUpdateGrpcToUpdate(update, request.getSource()))
             .toList();
     stateService.updateDegradationStates(updates);
+
+    log.info(
+        "UpdateDegradationStates request completed: source={}, updatesCount={}",
+        request.getSource(),
+        updates.size());
 
     responseObserver.onNext(Empty.getDefaultInstance());
     responseObserver.onCompleted();
