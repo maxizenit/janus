@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,49 +38,82 @@ public class PolicyRefreshService {
 
   public Set<String> refreshPolicies(Set<String> degradationIds) {
     if (degradationIds.isEmpty()) {
+      log.debug("Skipping policy refresh: empty degradationIds");
       return Collections.emptySet();
     }
-    log.debug("Refreshing policies for {} degradations", degradationIds.size());
+
+    log.info("Refreshing policies started: requested={}", degradationIds.size());
 
     var policies = policyStoreClient.getPolicies(degradationIds);
     var now = Instant.now(clock);
     var refreshedIds = new HashSet<String>();
+    var updatedCount = new AtomicInteger();
+    var unchangedCount = new AtomicInteger();
 
-    for (var entry : policies.entrySet()) {
-      registry
-          .find(entry.getKey())
-          .ifPresent(
-              holder -> {
-                if (!holder.isActive()) {
-                  return;
-                }
+    var missingIds = new HashSet<>(degradationIds);
+    missingIds.removeAll(policies.keySet());
 
-                var oldPolicy = holder.getPolicy().orElse(null);
-                var newPolicy = entry.getValue();
+    log.debug(
+        "Policies fetched from policy store: requested={}, received={}",
+        degradationIds.size(),
+        policies.size());
 
-                holder.replacePolicy(newPolicy);
-                refreshedIds.add(holder.getDegradationId());
-                log.debug(
-                    "Policy updated: degradation={}, evaluationInterval={}",
-                    holder.getDegradationId(),
-                    newPolicy.evaluationInterval());
-
-                var evaluationChanged =
-                    oldPolicy == null
-                        || !Objects.equals(
-                            oldPolicy.evaluationInterval(), newPolicy.evaluationInterval());
-
-                if (evaluationChanged) {
-                  holder.setNextStateRefreshAt(now);
-                  stateRefreshScheduler.scheduleNow(holder.getDegradationId());
-                  log.info(
-                      "Evaluation interval changed: degradation={}, old={}, new={}",
-                      holder.getDegradationId(),
-                      oldPolicy != null ? oldPolicy.evaluationInterval() : null,
-                      newPolicy.evaluationInterval());
-                }
-              });
+    if (!missingIds.isEmpty()) {
+      log.warn(
+          "Policies missing in policy store response: missingCount={}, missingIds={}",
+          missingIds.size(),
+          missingIds.size() <= 20 ? missingIds : "[omitted]");
     }
+
+    policies.forEach(
+        (degradationId, newPolicy) ->
+            registry
+                .find(degradationId)
+                .ifPresent(
+                    holder -> {
+                      if (!holder.isActive()) {
+                        log.debug(
+                            "Skipping policy refresh for inactive degradation: degradation={}",
+                            holder.getDegradationId());
+                        return;
+                      }
+
+                      var oldPolicy = holder.getPolicy().orElse(null);
+
+                      holder.replacePolicy(newPolicy);
+                      refreshedIds.add(holder.getDegradationId());
+
+                      var evaluationChanged =
+                          oldPolicy == null
+                              || !Objects.equals(
+                                  oldPolicy.evaluationInterval(), newPolicy.evaluationInterval());
+
+                      if (evaluationChanged) {
+                        updatedCount.incrementAndGet();
+                        holder.setNextStateRefreshAt(now);
+                        stateRefreshScheduler.scheduleNow(holder.getDegradationId());
+                        log.info(
+                            "Policy refreshed: degradation={}, oldEvaluationInterval={}, newEvaluationInterval={}, scheduledAt={}",
+                            holder.getDegradationId(),
+                            oldPolicy != null ? oldPolicy.evaluationInterval() : null,
+                            newPolicy.evaluationInterval(),
+                            now);
+                      } else {
+                        unchangedCount.incrementAndGet();
+                        log.debug(
+                            "Policy unchanged: degradation={}, evaluationInterval={}",
+                            holder.getDegradationId(),
+                            newPolicy.evaluationInterval());
+                      }
+                    }));
+
+    log.info(
+        "Refreshing policies completed: requested={}, refreshed={}, updated={}, unchanged={}, missing={}",
+        degradationIds.size(),
+        refreshedIds.size(),
+        updatedCount.get(),
+        unchangedCount.get(),
+        missingIds.size());
 
     return Set.copyOf(refreshedIds);
   }

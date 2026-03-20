@@ -51,17 +51,32 @@ public class StateRefreshCoordinator implements StateRefreshScheduler, SmartLife
         queue.drainTo(batch);
 
         var ids = batch.stream().map(StateRefreshTask::degradationId).collect(Collectors.toSet());
-        log.debug("Scheduling state refresh batch: size={}", ids.size());
+        log.debug(
+            "Scheduling state refresh batch: size={}, queueSize={}, degradationIds={}",
+            ids.size(),
+            queue.size(),
+            ids.size() <= 20 ? ids : "[omitted]");
 
         stateRefreshExecutor.submit(
             () -> {
+              log.trace("Submitting state refresh batch to executor: size={}", ids.size());
               var results = stateRefreshService.refresh(ids);
+              log.debug(
+                  "State refresh batch processed: requested={}, results={}",
+                  ids.size(),
+                  results.size());
+
               for (var result : results) {
+                log.trace(
+                    "Scheduling next state refresh: degradation={}, nextRefreshAt={}",
+                    result.degradationId(),
+                    result.nextRefreshAt());
                 scheduleAt(result.degradationId(), result.nextRefreshAt());
               }
             });
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
+        log.debug("State refresh coordinator loop interrupted");
         break;
       } catch (Exception e) {
         log.error("State refresh coordinator loop failed", e);
@@ -90,10 +105,19 @@ public class StateRefreshCoordinator implements StateRefreshScheduler, SmartLife
   @Override
   public void scheduleNow(String degradationId) {
     queue.offer(StateRefreshTask.immediate(degradationId));
+    log.trace(
+        "State refresh scheduled immediately: degradation={}, queueSize={}",
+        degradationId,
+        queue.size());
   }
 
   @Override
   public void scheduleAt(String degradationId, Instant instant) {
     queue.offer(new StateRefreshTask(degradationId, instant));
+    log.trace(
+        "State refresh scheduled at: degradation={}, scheduledAt={}, queueSize={}",
+        degradationId,
+        instant,
+        queue.size());
   }
 }

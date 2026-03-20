@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,11 @@ public class StateRefreshService {
   private final Clock clock;
 
   public List<StateRefreshResult> refresh(Set<String> degradationIds) {
+    if (degradationIds.isEmpty()) {
+      log.debug("Skipping state refresh: empty degradationIds");
+      return Collections.emptyList();
+    }
+
     var eligible =
         degradationIds.stream()
             .map(registry::find)
@@ -37,6 +43,8 @@ public class StateRefreshService {
             .toList();
 
     if (eligible.isEmpty()) {
+      log.debug(
+          "Skipping state refresh: no eligible degradations, requested={}", degradationIds.size());
       return Collections.emptyList();
     }
 
@@ -45,11 +53,19 @@ public class StateRefreshService {
           eligible.stream()
               .map(RegisteredDegradation::getDegradationId)
               .collect(Collectors.toSet());
-      log.debug("Refreshing states for {} degradations", ids.size());
+      log.debug(
+          "Refreshing states started: requested={}, eligible={}",
+          degradationIds.size(),
+          ids.size());
 
       var states = stateStoreClient.getStates(ids);
       var now = Instant.now(clock);
       var results = new ArrayList<StateRefreshResult>(eligible.size());
+      var updatedCount = new AtomicInteger();
+      var missingCount = new AtomicInteger();
+
+      log.debug(
+          "States fetched from state store: eligible={}, returned={}", ids.size(), states.size());
 
       for (var holder : eligible) {
         try {
@@ -60,6 +76,10 @@ public class StateRefreshService {
           var state = states.get(holder.getDegradationId());
           if (state != null) {
             holder.setState(state);
+            updatedCount.incrementAndGet();
+          } else {
+            missingCount.incrementAndGet();
+            log.debug("State not found in state store: degradation={}", holder.getDegradationId());
           }
 
           holder
@@ -70,9 +90,10 @@ public class StateRefreshService {
                     holder.setNextStateRefreshAt(nextRefreshAt);
                     results.add(new StateRefreshResult(holder.getDegradationId(), nextRefreshAt));
                     log.debug(
-                        "State updated: degradation={}, value={}",
+                        "State refreshed: degradation={}, value={}, nextRefreshAt={}",
                         holder.getDegradationId(),
-                        state != null ? state.value() : null);
+                        state != null ? state.value() : null,
+                        nextRefreshAt);
                   });
 
         } finally {
@@ -80,19 +101,36 @@ public class StateRefreshService {
         }
       }
 
+      log.info(
+          "Refreshing states completed: requested={}, eligible={}, updated={}, missing={}, rescheduled={}",
+          degradationIds.size(),
+          eligible.size(),
+          updatedCount.get(),
+          missingCount.get(),
+          results.size());
+
       return List.copyOf(results);
     } catch (Exception e) {
       var now = Instant.now(clock);
+      int staleMarked = 0;
 
       for (var holder : eligible) {
         try {
           holder.getState().ifPresent(previous -> holder.setState(previous.staleCopy(now)));
+          staleMarked++;
           log.warn(
               "State refresh failed, marking stale: degradation={}", holder.getDegradationId());
         } finally {
           holder.finishStateRefresh();
         }
       }
+
+      log.warn(
+          "Refreshing states failed: requested={}, eligible={}, staleMarked={}",
+          degradationIds.size(),
+          eligible.size(),
+          staleMarked,
+          e);
 
       throw e;
     }
