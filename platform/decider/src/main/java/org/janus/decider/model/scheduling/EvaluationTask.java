@@ -6,18 +6,18 @@ import java.util.concurrent.TimeUnit;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public record EvaluationTask(String degradationId, Instant executeAt) implements Delayed {
+public record EvaluationTask(String degradationId, Instant scheduledAt) implements Delayed {
 
   @Override
   public long getDelay(TimeUnit unit) {
-    var delayMillis = executeAt.toEpochMilli() - Instant.now().toEpochMilli();
+    var delayMillis = scheduledAt.toEpochMilli() - Instant.now().toEpochMilli();
     return unit.convert(delayMillis, TimeUnit.MILLISECONDS);
   }
 
   @Override
   public int compareTo(Delayed o) {
     if (o instanceof EvaluationTask other) {
-      return this.executeAt.compareTo(other.executeAt);
+      return this.scheduledAt.compareTo(other.scheduledAt);
     }
     return 0;
   }

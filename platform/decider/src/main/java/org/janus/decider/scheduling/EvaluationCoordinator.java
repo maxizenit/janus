@@ -43,14 +43,27 @@ public class EvaluationCoordinator implements EvaluationScheduler, SmartLifecycl
     while (running.get()) {
       try {
         var task = queue.take();
+        log.debug(
+            "Evaluation task taken: degradation={}, scheduledAt={}, queueSize={}",
+            task.degradationId(),
+            task.scheduledAt(),
+            queue.size());
+
         evaluationExecutor.submit(
             () ->
                 evaluationService
                     .evaluate(task.degradationId())
                     .ifPresent(
-                        result -> scheduleAt(result.degradationId(), result.nextEvaluationAt())));
+                        result -> {
+                          log.debug(
+                              "Evaluation result received: degradation={}, nextEvaluationAt={}",
+                              result.degradationId(),
+                              result.nextEvaluationAt());
+                          scheduleAt(result.degradationId(), result.nextEvaluationAt());
+                        }));
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
+        log.debug("Evaluation coordinator loop interrupted");
         break;
       } catch (Exception e) {
         log.error("Evaluation coordinator loop failed", e);
@@ -79,10 +92,19 @@ public class EvaluationCoordinator implements EvaluationScheduler, SmartLifecycl
   @Override
   public void scheduleNow(String degradationId) {
     queue.offer(EvaluationTask.immediate(degradationId));
+    log.debug(
+        "Evaluation scheduled immediately: degradation={}, queueSize={}",
+        degradationId,
+        queue.size());
   }
 
   @Override
   public void scheduleAt(String degradationId, Instant instant) {
     queue.offer(new EvaluationTask(degradationId, instant));
+    log.debug(
+        "Evaluation scheduled at: degradation={}, scheduledAt={}, queueSize={}",
+        degradationId,
+        instant,
+        queue.size());
   }
 }

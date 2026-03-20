@@ -2,6 +2,7 @@ package org.janus.policystore.api;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.janus.api.policystore.CreateDegradationPolicyRequest;
 import org.janus.api.policystore.DegradationPolicy;
 import org.janus.api.policystore.DeleteDegradationPolicyRequest;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @NullMarked
 public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServiceImplBase {
 
@@ -32,10 +34,18 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
       GetDegradationPoliciesRequest request,
       StreamObserver<GetDegradationPoliciesResponse> responseObserver) {
     var degradationIds = request.getDegradationIdsList();
+    log.debug(
+        "GetDegradationPolicies request received: degradationCount={}", degradationIds.size());
+
     var policies =
         degradationIds.isEmpty()
             ? policyService.getAllPolicies()
             : policyService.getPoliciesByDegradationIds(degradationIds);
+    log.debug(
+        "GetDegradationPolicies request completed: requested={}, returned={}",
+        degradationIds.size(),
+        policies.size());
+
     var mappedPolicies = policies.stream().map(policyMapper::fromEntityToProto).toList();
 
     responseObserver.onNext(
@@ -50,7 +60,16 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
       GetDeciderDegradationPoliciesRequest request,
       StreamObserver<GetDeciderDegradationPoliciesResponse> responseObserver) {
     var degradationIds = request.getDegradationIdsList();
+    log.debug(
+        "GetDeciderDegradationPolicies request received: degradationCount={}",
+        degradationIds.size());
+
     var policies = policyService.getPoliciesByDegradationIds(degradationIds);
+    log.debug(
+        "GetDeciderDegradationPolicies request completed: requested={}, returned={}",
+        degradationIds.size(),
+        policies.size());
+
     var mappedPolicies = policies.stream().map(policyMapper::fromEntityToDeciderProto).toList();
 
     responseObserver.onNext(
@@ -65,7 +84,16 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
       GetSidecarDegradationPoliciesRequest request,
       StreamObserver<GetSidecarDegradationPoliciesResponse> responseObserver) {
     var degradationIds = request.getDegradationIdsList();
+    log.debug(
+        "GetSidecarDegradationPolicies request received: degradationCount={}",
+        degradationIds.size());
+
     var policies = policyService.getPoliciesByDegradationIds(degradationIds);
+    log.debug(
+        "GetSidecarDegradationPolicies request completed: requested={}, returned={}",
+        degradationIds.size(),
+        policies.size());
+
     var mappedPolicies = policies.stream().map(policyMapper::fromEntityToSidecarProto).toList();
 
     responseObserver.onNext(
@@ -78,7 +106,13 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
   @Override
   public void createDegradationPolicy(
       CreateDegradationPolicyRequest request, StreamObserver<DegradationPolicy> responseObserver) {
+    log.info(
+        "CreateDegradationPolicy request received: degradationId={}", request.getDegradationId());
+
     var policy = policyService.createPolicy(request);
+    log.info(
+        "CreateDegradationPolicy request completed: degradationId={}", policy.getDegradationId());
+
     var mappedPolicy = policyMapper.fromEntityToProto(policy);
 
     responseObserver.onNext(mappedPolicy);
@@ -88,7 +122,15 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
   @Override
   public void updateDegradationPolicy(
       UpdateDegradationPolicyRequest request, StreamObserver<DegradationPolicy> responseObserver) {
+    log.info(
+        "UpdateDegradationPolicy request received: degradationId={}, updateMaskPaths={}",
+        request.getDegradationId(),
+        request.getUpdateMask().getPathsList());
+
     var policy = policyService.updatePolicy(request);
+    log.info(
+        "UpdateDegradationPolicy request completed: degradationId={}", policy.getDegradationId());
+
     var mappedPolicy = policyMapper.fromEntityToProto(policy);
 
     responseObserver.onNext(mappedPolicy);
@@ -99,7 +141,12 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
   public void deleteDegradationPolicy(
       DeleteDegradationPolicyRequest request,
       StreamObserver<DeleteDegradationPolicyResponse> responseObserver) {
+    log.info(
+        "DeleteDegradationPolicy request received: degradationId={}", request.getDegradationId());
+
     policyService.deletePolicyByDegradationId(request.getDegradationId());
+    log.info(
+        "DeleteDegradationPolicy request completed: degradationId={}", request.getDegradationId());
 
     responseObserver.onNext(DeleteDegradationPolicyResponse.getDefaultInstance());
     responseObserver.onCompleted();

@@ -1,6 +1,7 @@
 package org.janus.decider.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @NullMarked
 public class InitialLoadService {
 
@@ -15,6 +17,8 @@ public class InitialLoadService {
 
   @EventListener(ApplicationReadyEvent.class)
   public void onApplicationReady() {
+    log.info("Initial decider policy load started");
     policyRefreshService.refreshAllPolicies();
+    log.info("Initial decider policy load completed");
   }
 }

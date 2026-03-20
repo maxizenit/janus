@@ -1,5 +1,6 @@
 package org.janus.sidecar.service.handler;
 
+import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.janus.sidecar.model.handler.SyncActualDegradationsCommand;
@@ -31,6 +32,21 @@ public class SyncActualDegradationsHandler {
 
     if (!result.addedIds().isEmpty()) {
       var initializedIds = policyRefreshService.refreshPolicies(result.addedIds());
+      var notInitializedIds = new HashSet<>(result.addedIds());
+      notInitializedIds.removeAll(initializedIds);
+
+      log.info(
+          "Initial policy refresh completed: added={}, initialized={}",
+          result.addedIds().size(),
+          initializedIds.size());
+
+      if (!notInitializedIds.isEmpty()) {
+        log.warn(
+            "Added degradations were not initialized by policy store: missingCount={}, missingIds={}",
+            notInitializedIds.size(),
+            notInitializedIds.size() <= 20 ? notInitializedIds : "[omitted]");
+      }
+
       initialLoadService.scheduleInitialStateLoad(initializedIds);
     }
 

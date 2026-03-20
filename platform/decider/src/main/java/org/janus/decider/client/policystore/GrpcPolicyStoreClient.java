@@ -4,10 +4,12 @@ import com.google.protobuf.util.Durations;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.janus.api.policystore.DeciderDegradationPolicy;
 import org.janus.api.policystore.GetDeciderDegradationPoliciesRequest;
 import org.janus.api.policystore.PolicyStoreServiceGrpc;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 @NullMarked
 public class GrpcPolicyStoreClient implements PolicyStoreClient {
 
@@ -27,21 +30,55 @@ public class GrpcPolicyStoreClient implements PolicyStoreClient {
   @Override
   public Map<String, PolicySnapshot> getPolicies(Set<String> degradationIds) {
     if (degradationIds.isEmpty()) {
+      log.debug("Skipping decider policy lookup: empty degradationIds");
       return Collections.emptyMap();
     }
+
+    log.debug("Loading decider policies by ids: degradationCount={}", degradationIds.size());
 
     var request =
         GetDeciderDegradationPoliciesRequest.newBuilder()
             .addAllDegradationIds(degradationIds)
             .build();
     var response = policyStoreStub.getDeciderDegradationPolicies(request);
-    return response.getDegradationPoliciesList().stream()
-        .collect(Collectors.toMap(DeciderDegradationPolicy::getDegradationId, this::toSnapshot));
+    var policies =
+        response.getDegradationPoliciesList().stream()
+            .collect(
+                Collectors.toMap(DeciderDegradationPolicy::getDegradationId, this::toSnapshot));
+
+    var missingIds = new HashSet<>(degradationIds);
+    missingIds.removeAll(policies.keySet());
+
+    log.debug(
+        "Decider policies loaded by ids: requested={}, returned={}",
+        degradationIds.size(),
+        policies.size());
+
+    if (!missingIds.isEmpty()) {
+      log.warn(
+          "Policy store returned partial decider policy response: requested={}, returned={}, missingCount={}, missingIds={}",
+          degradationIds.size(),
+          policies.size(),
+          missingIds.size(),
+          missingIds.size() <= 20 ? missingIds : "[omitted]");
+    }
+
+    return policies;
   }
 
   @Override
   public Map<String, PolicySnapshot> getAllPolicies() {
-    return Map.of();
+    log.debug("Loading all decider policies");
+
+    var request = GetDeciderDegradationPoliciesRequest.newBuilder().build();
+    var response = policyStoreStub.getDeciderDegradationPolicies(request);
+    var policies =
+        response.getDegradationPoliciesList().stream()
+            .collect(
+                Collectors.toMap(DeciderDegradationPolicy::getDegradationId, this::toSnapshot));
+
+    log.debug("All decider policies loaded: count={}", policies.size());
+    return policies;
   }
 
   private PolicySnapshot toSnapshot(DeciderDegradationPolicy policy) {
