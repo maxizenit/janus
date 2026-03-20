@@ -1,6 +1,5 @@
 package org.janus.statestore.api;
 
-import com.google.protobuf.Empty;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import java.util.List;
@@ -10,6 +9,7 @@ import org.janus.api.statestore.GetDegradationStatesRequest;
 import org.janus.api.statestore.GetDegradationStatesResponse;
 import org.janus.api.statestore.StateStoreServiceGrpc;
 import org.janus.api.statestore.UpdateDegradationStatesRequest;
+import org.janus.api.statestore.UpdateDegradationStatesResponse;
 import org.janus.statestore.mapper.DegradationStateMapper;
 import org.janus.statestore.mapper.DegradationStateUpdateMapper;
 import org.janus.statestore.model.DegradationStateUpdate;
@@ -64,7 +64,8 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
 
   @Override
   public void updateDegradationStates(
-      UpdateDegradationStatesRequest request, StreamObserver<Empty> responseObserver) {
+      UpdateDegradationStatesRequest request,
+      StreamObserver<UpdateDegradationStatesResponse> responseObserver) {
     log.info(
         "UpdateDegradationStates request received: source={}, updatesCount={}",
         request.getSource(),
@@ -81,7 +82,7 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
         request.getSource(),
         updates.size());
 
-    responseObserver.onNext(Empty.getDefaultInstance());
+    responseObserver.onNext(UpdateDegradationStatesResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
 }
