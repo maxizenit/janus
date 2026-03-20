@@ -26,7 +26,10 @@ message UpdateDegradationStatesResponse {
 }
 
 service StateStoreService {
+
   rpc GetDegradationStates(GetDegradationStatesRequest) returns (GetDegradationStatesResponse);
+
   rpc GetDegradationStatesWithAllSources(GetDegradationStatesRequest) returns (GetDegradationStatesResponse);
+
   rpc UpdateDegradationStates(UpdateDegradationStatesRequest) returns (UpdateDegradationStatesResponse);
 }
