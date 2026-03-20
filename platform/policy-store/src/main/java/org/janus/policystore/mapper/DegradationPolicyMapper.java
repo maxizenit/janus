@@ -1,6 +1,7 @@
 package org.janus.policystore.mapper;
 
 import com.google.protobuf.util.Durations;
+import lombok.extern.slf4j.Slf4j;
 import org.janus.api.policystore.CreateDegradationPolicyRequest;
 import org.janus.api.policystore.DeciderDegradationPolicy;
 import org.janus.api.policystore.DegradationPolicy;
@@ -14,6 +15,7 @@ import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 @NullMarked
 public class DegradationPolicyMapper {
 
@@ -142,6 +144,10 @@ public class DegradationPolicyMapper {
               .setMetricReference(entity.getSourcePrometheusMetricReference())
               .build());
     } else {
+      log.error(
+          "Unsupported signal source type while mapping policy: degradationId={}, signalSourceType={}",
+          entity.getDegradationId(),
+          entity.getSignalSourceType());
       throw new IllegalArgumentException();
     }
 
@@ -161,6 +167,12 @@ public class DegradationPolicyMapper {
         entity.setSourcePrometheusMetricReference(
             signalSource.getPrometheus().getMetricReference());
         entity.setSourceDegradationId(null);
+      }
+      default -> {
+        log.warn(
+            "Signal source kind is not set while enriching policy entity: degradationId={}",
+            entity.getDegradationId());
+        throw new IllegalArgumentException("Signal source kind must be set");
       }
     }
   }
