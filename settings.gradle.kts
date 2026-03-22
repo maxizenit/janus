@@ -16,5 +16,6 @@ include(
 
     //SDK
     "sdk:java:annotations",
-    "sdk:java:core"
+    "sdk:java:core",
+    "sdk:java:spring-boot-starter"
 )
