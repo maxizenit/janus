@@ -20,4 +20,6 @@ dependencies {
     api(project(":sdk:java:annotations"))
 
     api("org.jspecify:jspecify:${libs.versions.jspecify.get()}")
+    api("jakarta.validation:jakarta.validation-api:${libs.versions.jakartaValidation.get()}")
+    api("org.hibernate.validator:hibernate-validator:${libs.versions.hibernateValidator.get()}")
 }
