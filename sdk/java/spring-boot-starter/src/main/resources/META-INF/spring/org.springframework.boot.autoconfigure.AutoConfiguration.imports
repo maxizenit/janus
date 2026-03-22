@@ -1,0 +1,2 @@
+org.janus.sdk.starter.configuration.JanusSdkAutoConfiguration
+org.janus.sdk.starter.configuration.SidecarGrpcClientConfiguration

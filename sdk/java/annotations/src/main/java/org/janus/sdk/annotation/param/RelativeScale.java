@@ -11,8 +11,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RelativeScale {
 
-  String value() default "";
-
   double minFactor() default 0.0;
 
   double maxFactor() default 1.0;
