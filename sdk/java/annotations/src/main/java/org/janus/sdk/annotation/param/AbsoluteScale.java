@@ -11,8 +11,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AbsoluteScale {
 
-  String value() default "";
-
   double min();
 
   double max();

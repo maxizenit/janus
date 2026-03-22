@@ -4,7 +4,7 @@ plugins {
 
 group = "org.janus"
 version = "0.0.1-SNAPSHOT"
-description = "Java SDK Annotations"
+description = "Java SDK Core"
 
 java {
     toolchain {
@@ -14,4 +14,10 @@ java {
 
 repositories {
     mavenCentral()
+}
+
+dependencies {
+    api(project(":sdk:java:annotations"))
+
+    api("org.jspecify:jspecify:${libs.versions.jspecify.get()}")
 }

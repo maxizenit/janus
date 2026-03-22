@@ -15,5 +15,6 @@ include(
     "client:api:sidecar-api",
 
     //SDK
-    "sdk:java:annotations"
+    "sdk:java:annotations",
+    "sdk:java:core"
 )
