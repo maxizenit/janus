@@ -4,23 +4,44 @@ import com.google.protobuf.util.Durations;
 import java.time.Duration;
 import org.janus.statestore.model.DegradationState;
 import org.janus.statestore.model.DegradationStateUpdate;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
+import org.janus.statestore.model.DegradationStateUpdateSource;
+import org.jspecify.annotations.NullMarked;
+import org.springframework.stereotype.Component;
 
-@Mapper(
-    componentModel = MappingConstants.ComponentModel.SPRING,
-    uses = DegradationStateUpdateSourceMapper.class)
-public interface DegradationStateUpdateMapper {
+@Component
+@NullMarked
+public class DegradationStateUpdateMapper {
 
-  @Mapping(source = "sourceGrpc", target = "source")
-  DegradationStateUpdate fromUpdateGrpcToUpdate(
+  private final DegradationStateUpdateSourceMapper sourceMapper;
+
+  public DegradationStateUpdateMapper(DegradationStateUpdateSourceMapper sourceMapper) {
+    this.sourceMapper = sourceMapper;
+  }
+
+  public DegradationStateUpdate fromGrpcToDomain(
       org.janus.api.statestore.DegradationStateUpdate updateGrpc,
-      org.janus.api.statestore.DegradationStateUpdateSource sourceGrpc);
+      org.janus.api.statestore.DegradationStateUpdateSource sourceGrpc) {
+    DegradationStateUpdateSource source = sourceMapper.fromGrpcToDomain(sourceGrpc);
+    if (source == null) {
+      throw new IllegalArgumentException("Source must be recognized");
+    }
 
-  DegradationState fromUpdateToState(DegradationStateUpdate update);
+    return new DegradationStateUpdate(
+        updateGrpc.getDegradationId(),
+        updateGrpc.getValue(),
+        source,
+        fromGrpc(updateGrpc.getTtl()));
+  }
 
-  default Duration fromGrpcDurationToJavaDuration(com.google.protobuf.Duration grpcDuration) {
-    return grpcDuration == null ? null : Duration.ofMillis(Durations.toMillis(grpcDuration));
+  public DegradationState fromUpdateToState(DegradationStateUpdate update) {
+    return new DegradationState(update.degradationId(), update.value());
+  }
+
+  public Duration fromGrpc(com.google.protobuf.Duration durationGrpc) {
+    return Duration.ofMillis(Durations.toMillis(durationGrpc));
+  }
+
+  public com.google.protobuf.Duration toGrpc(Duration duration) {
+    return Durations.fromMillis(duration.toMillis());
   }
 }

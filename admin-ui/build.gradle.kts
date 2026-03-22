@@ -7,7 +7,7 @@ plugins {
 
 group = "org.janus"
 version = "0.0.1-SNAPSHOT"
-description = "State Store"
+description = "Admin UI"
 
 java {
     toolchain {
@@ -20,24 +20,23 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":platform:api:policy-store-api"))
     implementation(project(":platform:api:state-store-api"))
 
-    implementation("org.springframework.boot:spring-boot-starter-json")
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation("org.springframework.grpc:spring-grpc-server-spring-boot-starter")
+    implementation("com.vaadin:vaadin-spring-boot-starter")
+    developmentOnly("com.vaadin:vaadin-dev")
 
-    implementation("io.grpc:grpc-services")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.grpc:spring-grpc-client-spring-boot-starter")
     implementation("com.google.protobuf:protobuf-java-util:${libs.versions.protobuf.get()}")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-data-redis-test")
-    testImplementation("org.springframework.grpc:spring-grpc-test")
-
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 dependencyManagement {
     imports {
+        mavenBom("com.vaadin:vaadin-bom:${libs.versions.vaadin.get()}")
         mavenBom("org.springframework.grpc:spring-grpc-dependencies:${libs.versions.springGrpc.get()}")
     }
 }
