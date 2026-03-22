@@ -1,0 +1,113 @@
+package org.janus.adminui.mapper;
+
+import com.google.protobuf.FieldMask;
+import com.google.protobuf.util.Durations;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import org.janus.adminui.model.PolicyView;
+import org.janus.adminui.model.SignalSourceTypeView;
+import org.janus.api.policystore.CreateDegradationPolicyRequest;
+import org.janus.api.policystore.DegradationPolicy;
+import org.janus.api.policystore.SignalSource;
+import org.janus.api.policystore.UpdateDegradationPolicyRequest;
+import org.springframework.stereotype.Component;
+
+@Component
+public class PolicyViewMapper {
+
+  public PolicyView fromGrpc(DegradationPolicy policy) {
+    SignalSourceTypeView signalSourceType =
+        policy.getSignalSource().hasDegradation()
+            ? SignalSourceTypeView.DEGRADATION
+            : SignalSourceTypeView.PROMETHEUS;
+
+    String sourceDegradationId =
+        policy.getSignalSource().hasDegradation()
+            ? policy.getSignalSource().getDegradation().getDegradationId()
+            : null;
+
+    String metricReference =
+        policy.getSignalSource().hasPrometheus()
+            ? policy.getSignalSource().getPrometheus().getMetricReference()
+            : null;
+
+    return new PolicyView(
+        policy.getDegradationId(),
+        Duration.ofMillis(Durations.toMillis(policy.getEvaluationInterval())),
+        signalSourceType,
+        sourceDegradationId,
+        metricReference,
+        policy.hasCriticalThreshold() ? policy.getCriticalThreshold() : null,
+        policy.hasMinFallbackRatio() ? policy.getMinFallbackRatio() : null,
+        policy.hasMaxFallbackRatio() ? policy.getMaxFallbackRatio() : null);
+  }
+
+  public CreateDegradationPolicyRequest toCreateRequest(PolicyView view) {
+    var builder =
+        CreateDegradationPolicyRequest.newBuilder()
+            .setDegradationId(view.degradationId())
+            .setEvaluationInterval(Durations.fromMillis(view.evaluationInterval().toMillis()))
+            .setSignalSource(toSignalSource(view));
+
+    if (view.criticalThreshold() != null) {
+      builder.setCriticalThreshold(view.criticalThreshold());
+    }
+    if (view.minFallbackRatio() != null) {
+      builder.setMinFallbackRatio(view.minFallbackRatio());
+    }
+    if (view.maxFallbackRatio() != null) {
+      builder.setMaxFallbackRatio(view.maxFallbackRatio());
+    }
+
+    return builder.build();
+  }
+
+  public UpdateDegradationPolicyRequest toUpdateRequest(PolicyView view) {
+    List<String> paths = new ArrayList<>();
+    var builder =
+        UpdateDegradationPolicyRequest.newBuilder().setDegradationId(view.degradationId());
+
+    builder.setEvaluationInterval(Durations.fromMillis(view.evaluationInterval().toMillis()));
+    paths.add("evaluation_interval");
+
+    builder.setSignalSource(toSignalSource(view));
+    paths.add("signal_source");
+
+    if (view.criticalThreshold() != null) {
+      builder.setCriticalThreshold(view.criticalThreshold());
+      paths.add("critical_threshold");
+    }
+    if (view.minFallbackRatio() != null) {
+      builder.setMinFallbackRatio(view.minFallbackRatio());
+      paths.add("min_fallback_ratio");
+    }
+    if (view.maxFallbackRatio() != null) {
+      builder.setMaxFallbackRatio(view.maxFallbackRatio());
+      paths.add("max_fallback_ratio");
+    }
+
+    builder.setUpdateMask(FieldMask.newBuilder().addAllPaths(paths).build());
+    return builder.build();
+  }
+
+  private SignalSource toSignalSource(PolicyView view) {
+    var builder = SignalSource.newBuilder();
+    return switch (view.signalSourceType()) {
+      case DEGRADATION ->
+          builder
+              .setDegradation(
+                  org.janus.api.policystore.DegradationSignal.newBuilder()
+                      .setDegradationId(view.sourceDegradationId())
+                      .build())
+              .build();
+      case PROMETHEUS ->
+          builder
+              .setPrometheus(
+                  org.janus.api.policystore.PrometheusMetric.newBuilder()
+                      .setMetricReference(view.metricReference())
+                      .build())
+              .build();
+    };
+  }
+}

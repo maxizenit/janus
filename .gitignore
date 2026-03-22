@@ -39,3 +39,7 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Vaadin ###
+admin-ui/src/main/frontend
+admin-ui/target

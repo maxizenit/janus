@@ -17,5 +17,8 @@ include(
     //SDK
     "sdk:java:annotations",
     "sdk:java:core",
-    "sdk:java:spring-boot-starter"
+    "sdk:java:spring-boot-starter",
+
+    //Admin UI
+    "admin-ui"
 )

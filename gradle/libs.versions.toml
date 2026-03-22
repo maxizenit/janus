@@ -14,3 +14,5 @@ grpc = "1.79.0"
 mapstruct = "1.6.3"
 
 jspecify = "1.0.0"
+
+vaadin = "25.0.7"
