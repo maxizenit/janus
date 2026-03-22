@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package org.janus.api.statestore;
+
+option java_package = "org.janus.api.statestore";
+option java_multiple_files = true;
+
+import "degradation_state_update_source.proto";
+import "degradation_state_source_entry.proto";
+
+message AdminDegradationState {
+  string degradation_id = 1;
+  double effective_value = 2;
+  DegradationStateUpdateSource effective_source = 3;
+  repeated DegradationStateSourceEntry source_states = 4;
+}

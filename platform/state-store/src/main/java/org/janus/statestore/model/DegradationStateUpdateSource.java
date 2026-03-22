@@ -1,13 +1,16 @@
 package org.janus.statestore.model;
 
+import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
 public enum DegradationStateUpdateSource {
-  ADMIN_UI(0),
-  DECIDER(1);
+  ADMIN_UI,
+  DECIDER;
 
-  private final int priority;
+  public static List<DegradationStateUpdateSource> resolutionOrder() {
+    return List.of(ADMIN_UI, DECIDER);
+  }
 }

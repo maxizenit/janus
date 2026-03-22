@@ -1,14 +1,28 @@
 package org.janus.statestore.mapper;
 
 import org.janus.statestore.model.DegradationStateUpdateSource;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.ValueMapping;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface DegradationStateUpdateSourceMapper {
+@Component
+@NullMarked
+public class DegradationStateUpdateSourceMapper {
 
-  @ValueMapping(source = "UNRECOGNIZED", target = MappingConstants.NULL)
-  DegradationStateUpdateSource fromSourceGrpcToSource(
-      org.janus.api.statestore.DegradationStateUpdateSource sourceGrpc);
+  public @Nullable DegradationStateUpdateSource fromGrpcToDomain(
+      org.janus.api.statestore.DegradationStateUpdateSource sourceGrpc) {
+    return switch (sourceGrpc) {
+      case ADMIN_UI -> DegradationStateUpdateSource.ADMIN_UI;
+      case DECIDER -> DegradationStateUpdateSource.DECIDER;
+      case UNRECOGNIZED -> null;
+    };
+  }
+
+  public org.janus.api.statestore.DegradationStateUpdateSource fromDomainToGrpc(
+      DegradationStateUpdateSource source) {
+    return switch (source) {
+      case ADMIN_UI -> org.janus.api.statestore.DegradationStateUpdateSource.ADMIN_UI;
+      case DECIDER -> org.janus.api.statestore.DegradationStateUpdateSource.DECIDER;
+    };
+  }
 }

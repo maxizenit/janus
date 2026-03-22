@@ -29,9 +29,6 @@ dependencies {
     implementation("io.grpc:grpc-services")
     implementation("com.google.protobuf:protobuf-java-util:${libs.versions.protobuf.get()}")
 
-    implementation("org.mapstruct:mapstruct:${libs.versions.mapstruct.get()}")
-    annotationProcessor("org.mapstruct:mapstruct-processor:${libs.versions.mapstruct.get()}")
-
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-redis-test")
     testImplementation("org.springframework.grpc:spring-grpc-test")
