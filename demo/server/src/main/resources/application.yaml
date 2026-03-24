@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: demo-server
+
+server:
+  port: 8090
+
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
