@@ -6,6 +6,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface DegradationPolicyRepository extends JpaRepository<DegradationPolicy, String> {
 
   boolean existsById(String degradationId);
-
-  boolean existsBySourceDegradationId(String sourceDegradationId);
 }

@@ -7,13 +7,8 @@ option java_multiple_files = true;
 
 message SignalSource {
   oneof kind {
-    DegradationSignal degradation = 1;
-    PrometheusMetric prometheus = 2;
+    PrometheusMetric prometheus = 1;
   }
-}
-
-message DegradationSignal {
-  string degradation_id = 1;
 }
 
 message PrometheusMetric {

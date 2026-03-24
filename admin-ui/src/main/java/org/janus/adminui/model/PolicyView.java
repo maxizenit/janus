@@ -9,7 +9,6 @@ public record PolicyView(
     String degradationId,
     Duration evaluationInterval,
     SignalSourceTypeView signalSourceType,
-    @Nullable String sourceDegradationId,
     @Nullable String metricReference,
     @Nullable Double criticalThreshold,
     @Nullable Double minFallbackRatio,

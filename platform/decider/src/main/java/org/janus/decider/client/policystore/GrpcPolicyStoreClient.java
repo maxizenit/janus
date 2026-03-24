@@ -91,10 +91,6 @@ public class GrpcPolicyStoreClient implements PolicyStoreClient {
 
   private SignalSourceSnapshot toSignalSourceSnapshot(SignalSource signalSource) {
     return switch (signalSource.getKindCase()) {
-      case DEGRADATION ->
-          new SignalSourceSnapshot(
-              SignalSourceSnapshot.SignalSourceType.DEGRADATION,
-              signalSource.getDegradation().getDegradationId());
       case PROMETHEUS ->
           new SignalSourceSnapshot(
               SignalSourceSnapshot.SignalSourceType.PROMETHEUS,

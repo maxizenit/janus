@@ -11,5 +11,5 @@ import "signal_source.proto";
 message DeciderDegradationPolicy {
   string degradation_id = 1;
   google.protobuf.Duration evaluation_interval = 2;
-  SignalSource signal_source = 3;
+  optional SignalSource signal_source = 3;
 }
