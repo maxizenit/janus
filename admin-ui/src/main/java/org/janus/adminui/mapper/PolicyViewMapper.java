@@ -18,17 +18,10 @@ public class PolicyViewMapper {
 
   public PolicyView fromGrpc(DegradationPolicy policy) {
     SignalSourceTypeView signalSourceType =
-        policy.getSignalSource().hasDegradation()
-            ? SignalSourceTypeView.DEGRADATION
-            : SignalSourceTypeView.PROMETHEUS;
-
-    String sourceDegradationId =
-        policy.getSignalSource().hasDegradation()
-            ? policy.getSignalSource().getDegradation().getDegradationId()
-            : null;
+        policy.hasSignalSource() ? SignalSourceTypeView.PROMETHEUS : SignalSourceTypeView.MANUAL;
 
     String metricReference =
-        policy.getSignalSource().hasPrometheus()
+        policy.hasSignalSource() && policy.getSignalSource().hasPrometheus()
             ? policy.getSignalSource().getPrometheus().getMetricReference()
             : null;
 
@@ -36,7 +29,6 @@ public class PolicyViewMapper {
         policy.getDegradationId(),
         Duration.ofMillis(Durations.toMillis(policy.getEvaluationInterval())),
         signalSourceType,
-        sourceDegradationId,
         metricReference,
         policy.hasCriticalThreshold() ? policy.getCriticalThreshold() : null,
         policy.hasMinFallbackRatio() ? policy.getMinFallbackRatio() : null,
@@ -47,9 +39,11 @@ public class PolicyViewMapper {
     var builder =
         CreateDegradationPolicyRequest.newBuilder()
             .setDegradationId(view.degradationId())
-            .setEvaluationInterval(Durations.fromMillis(view.evaluationInterval().toMillis()))
-            .setSignalSource(toSignalSource(view));
+            .setEvaluationInterval(Durations.fromMillis(view.evaluationInterval().toMillis()));
 
+    if (!SignalSourceTypeView.MANUAL.equals(view.signalSourceType())) {
+      builder.setSignalSource(toSignalSource(view));
+    }
     if (view.criticalThreshold() != null) {
       builder.setCriticalThreshold(view.criticalThreshold());
     }
@@ -71,8 +65,10 @@ public class PolicyViewMapper {
     builder.setEvaluationInterval(Durations.fromMillis(view.evaluationInterval().toMillis()));
     paths.add("evaluation_interval");
 
-    builder.setSignalSource(toSignalSource(view));
     paths.add("signal_source");
+    if (!SignalSourceTypeView.MANUAL.equals(view.signalSourceType())) {
+      builder.setSignalSource(toSignalSource(view));
+    }
 
     if (view.criticalThreshold() != null) {
       builder.setCriticalThreshold(view.criticalThreshold());
@@ -94,13 +90,6 @@ public class PolicyViewMapper {
   private SignalSource toSignalSource(PolicyView view) {
     var builder = SignalSource.newBuilder();
     return switch (view.signalSourceType()) {
-      case DEGRADATION ->
-          builder
-              .setDegradation(
-                  org.janus.api.policystore.DegradationSignal.newBuilder()
-                      .setDegradationId(view.sourceDegradationId())
-                      .build())
-              .build();
       case PROMETHEUS ->
           builder
               .setPrometheus(
@@ -108,6 +97,7 @@ public class PolicyViewMapper {
                       .setMetricReference(view.metricReference())
                       .build())
               .build();
+      case MANUAL -> throw new IllegalArgumentException("Manual policy has no signal source");
     };
   }
 }

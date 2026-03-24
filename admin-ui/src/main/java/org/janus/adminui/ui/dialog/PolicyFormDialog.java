@@ -31,7 +31,6 @@ public class PolicyFormDialog extends Dialog {
     signalSourceType.setLabel("Signal source type");
     signalSourceType.setItems(SignalSourceTypeView.values());
 
-    TextField sourceDegradationId = new TextField("Source degradation ID");
     TextField metricReference = new TextField("Metric reference");
     NumberField criticalThreshold = new NumberField("Critical threshold");
     NumberField minFallbackRatio = new NumberField("Min fallback ratio");
@@ -52,9 +51,6 @@ public class PolicyFormDialog extends Dialog {
         .asRequired()
         .bind(PolicyFormData::getSignalSourceType, PolicyFormData::setSignalSourceType);
     binder
-        .forField(sourceDegradationId)
-        .bind(PolicyFormData::getSourceDegradationId, PolicyFormData::setSourceDegradationId);
-    binder
         .forField(metricReference)
         .bind(PolicyFormData::getMetricReference, PolicyFormData::setMetricReference);
     binder
@@ -71,9 +67,8 @@ public class PolicyFormDialog extends Dialog {
 
     Runnable updateVisibility =
         () -> {
-          boolean degradation = signalSourceType.getValue() == SignalSourceTypeView.DEGRADATION;
-          sourceDegradationId.setVisible(degradation);
-          metricReference.setVisible(!degradation);
+          boolean prometheus = SignalSourceTypeView.PROMETHEUS.equals(signalSourceType.getValue());
+          metricReference.setVisible(prometheus);
         };
     signalSourceType.addValueChangeListener(e -> updateVisibility.run());
     updateVisibility.run();
@@ -95,7 +90,6 @@ public class PolicyFormDialog extends Dialog {
             degradationId,
             evaluationIntervalSeconds,
             signalSourceType,
-            sourceDegradationId,
             metricReference,
             criticalThreshold,
             minFallbackRatio,
@@ -109,7 +103,6 @@ public class PolicyFormDialog extends Dialog {
     private String degradationId;
     private Double evaluationIntervalSeconds;
     private SignalSourceTypeView signalSourceType;
-    @Nullable private String sourceDegradationId;
     @Nullable private String metricReference;
     @Nullable private Double criticalThreshold;
     @Nullable private Double minFallbackRatio;
@@ -121,13 +114,12 @@ public class PolicyFormDialog extends Dialog {
         data.degradationId = view.degradationId();
         data.evaluationIntervalSeconds = (double) view.evaluationInterval().toSeconds();
         data.signalSourceType = view.signalSourceType();
-        data.sourceDegradationId = view.sourceDegradationId();
         data.metricReference = view.metricReference();
         data.criticalThreshold = view.criticalThreshold();
         data.minFallbackRatio = view.minFallbackRatio();
         data.maxFallbackRatio = view.maxFallbackRatio();
       } else {
-        data.signalSourceType = SignalSourceTypeView.DEGRADATION;
+        data.signalSourceType = SignalSourceTypeView.MANUAL;
       }
       return data;
     }
@@ -137,7 +129,6 @@ public class PolicyFormDialog extends Dialog {
           degradationId,
           Duration.ofSeconds(evaluationIntervalSeconds.longValue()),
           signalSourceType,
-          sourceDegradationId,
           metricReference,
           criticalThreshold,
           minFallbackRatio,

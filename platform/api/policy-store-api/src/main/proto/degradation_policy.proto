@@ -11,7 +11,7 @@ import "signal_source.proto";
 message DegradationPolicy {
   string degradation_id = 1;
   google.protobuf.Duration evaluation_interval = 2;
-  SignalSource signal_source = 3;
+  optional SignalSource signal_source = 3;
   optional double critical_threshold = 4;
   optional double min_fallback_ratio = 5;
   optional double max_fallback_ratio = 6;

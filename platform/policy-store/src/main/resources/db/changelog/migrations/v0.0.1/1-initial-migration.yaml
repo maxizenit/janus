@@ -23,12 +23,6 @@ databaseChangeLog:
               - column:
                   name: signal_source_type
                   type: varchar
-                  constraints:
-                    nullable: false
-
-              - column:
-                  name: source_degradation_id
-                  type: varchar
 
               - column:
                   name: source_prometheus_metric_reference
@@ -46,20 +40,6 @@ databaseChangeLog:
                   name: max_fallback_ratio
                   type: double precision
 
-        - addForeignKeyConstraint:
-            baseTableName: degradation_policy
-            baseColumnNames: source_degradation_id
-            referencedTableName: degradation_policy
-            referencedColumnNames: degradation_id
-            constraintName: fk_degradation_policy_source_degradation
-
-        - createIndex:
-            tableName: degradation_policy
-            indexName: idx_degradation_policy_source_degradation_id
-            columns:
-              - column:
-                  name: source_degradation_id
-
         - sql:
             sql: |
               alter table degradation_policy
@@ -70,7 +50,7 @@ databaseChangeLog:
             sql: |
               alter table degradation_policy
               add constraint chk_degradation_policy_signal_source_type
-              check (signal_source_type in ('DEGRADATION', 'PROMETHEUS'));
+              check (signal_source_type is null or signal_source_type in ('PROMETHEUS'));
 
         - sql:
             sql: |
@@ -78,25 +58,14 @@ databaseChangeLog:
               add constraint chk_degradation_policy_signal_source_payload
               check (
                 (
-                  signal_source_type = 'DEGRADATION'
-                  and source_degradation_id is not null
-                  and source_prometheus_metric_reference is null
+                  signal_source_type = 'PROMETHEUS'
+                  and source_prometheus_metric_reference is not null
                 )
                 or
                 (
-                  signal_source_type = 'PROMETHEUS'
-                  and source_degradation_id is null
-                  and source_prometheus_metric_reference is not null
+                  signal_source_type is null
+                  and source_prometheus_metric_reference is null
                 )
-              );
-
-        - sql:
-            sql: |
-              alter table degradation_policy
-              add constraint chk_degradation_policy_no_self_reference
-              check (
-                source_degradation_id is null
-                or source_degradation_id <> degradation_id
               );
 
         - sql:

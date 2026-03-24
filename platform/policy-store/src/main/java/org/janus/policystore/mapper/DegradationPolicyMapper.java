@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.janus.api.policystore.CreateDegradationPolicyRequest;
 import org.janus.api.policystore.DeciderDegradationPolicy;
 import org.janus.api.policystore.DegradationPolicy;
-import org.janus.api.policystore.DegradationSignal;
 import org.janus.api.policystore.PrometheusMetric;
 import org.janus.api.policystore.SidecarDegradationPolicy;
 import org.janus.api.policystore.SignalSource;
@@ -25,7 +24,9 @@ public class DegradationPolicyMapper {
 
     builder.setDegradationId(entity.getDegradationId());
     builder.setEvaluationInterval(Durations.fromMillis(entity.getEvaluationIntervalMs()));
-    builder.setSignalSource(extractSignalSource(entity));
+    if (entity.getSignalSourceType() != null) {
+      builder.setSignalSource(extractSignalSource(entity));
+    }
 
     if (entity.getCriticalThreshold() != null) {
       builder.setCriticalThreshold(entity.getCriticalThreshold());
@@ -46,7 +47,9 @@ public class DegradationPolicyMapper {
 
     builder.setDegradationId(entity.getDegradationId());
     builder.setEvaluationInterval(Durations.fromMillis(entity.getEvaluationIntervalMs()));
-    builder.setSignalSource(extractSignalSource(entity));
+    if (entity.getSignalSourceType() != null) {
+      builder.setSignalSource(extractSignalSource(entity));
+    }
 
     return builder.build();
   }
@@ -78,7 +81,9 @@ public class DegradationPolicyMapper {
     policy.setDegradationId(createRequestProto.getDegradationId());
     policy.setEvaluationIntervalMs(Durations.toMillis(createRequestProto.getEvaluationInterval()));
 
-    enrichEntityOfSignalSource(policy, createRequestProto.getSignalSource());
+    if (createRequestProto.hasSignalSource()) {
+      enrichEntityOfSignalSource(policy, createRequestProto.getSignalSource());
+    }
 
     if (createRequestProto.hasCriticalThreshold()) {
       policy.setCriticalThreshold(createRequestProto.getCriticalThreshold());
@@ -107,6 +112,11 @@ public class DegradationPolicyMapper {
 
     for (String path : updateRequestProto.getUpdateMask().getPathsList()) {
       switch (path) {
+        case "signal_source" -> {
+          if (!updateRequestProto.hasSignalSource()) {
+            clearSignalSource(entity);
+          }
+        }
         case "critical_threshold" -> {
           if (updateRequestProto.hasCriticalThreshold()) {
             entity.setCriticalThreshold(updateRequestProto.getCriticalThreshold());
@@ -135,10 +145,7 @@ public class DegradationPolicyMapper {
   private SignalSource extractSignalSource(org.janus.policystore.entity.DegradationPolicy entity) {
     var builder = SignalSource.newBuilder();
 
-    if (SignalSourceType.DEGRADATION.equals(entity.getSignalSourceType())) {
-      builder.setDegradation(
-          DegradationSignal.newBuilder().setDegradationId(entity.getSourceDegradationId()).build());
-    } else if (SignalSourceType.PROMETHEUS.equals(entity.getSignalSourceType())) {
+    if (SignalSourceType.PROMETHEUS.equals(entity.getSignalSourceType())) {
       builder.setPrometheus(
           PrometheusMetric.newBuilder()
               .setMetricReference(entity.getSourcePrometheusMetricReference())
@@ -157,16 +164,10 @@ public class DegradationPolicyMapper {
   private void enrichEntityOfSignalSource(
       org.janus.policystore.entity.DegradationPolicy entity, SignalSource signalSource) {
     switch (signalSource.getKindCase()) {
-      case SignalSource.KindCase.DEGRADATION -> {
-        entity.setSignalSourceType(SignalSourceType.DEGRADATION);
-        entity.setSourceDegradationId(signalSource.getDegradation().getDegradationId());
-        entity.setSourcePrometheusMetricReference(null);
-      }
       case SignalSource.KindCase.PROMETHEUS -> {
         entity.setSignalSourceType(SignalSourceType.PROMETHEUS);
         entity.setSourcePrometheusMetricReference(
             signalSource.getPrometheus().getMetricReference());
-        entity.setSourceDegradationId(null);
       }
       default -> {
         log.warn(
@@ -175,5 +176,10 @@ public class DegradationPolicyMapper {
         throw new IllegalArgumentException("Signal source kind must be set");
       }
     }
+  }
+
+  private void clearSignalSource(org.janus.policystore.entity.DegradationPolicy entity) {
+    entity.setSignalSourceType(null);
+    entity.setSourcePrometheusMetricReference(null);
   }
 }

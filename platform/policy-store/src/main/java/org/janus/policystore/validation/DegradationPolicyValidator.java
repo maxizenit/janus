@@ -46,10 +46,6 @@ public class DegradationPolicyValidator {
 
   public void validateForDelete(String degradationId) {
     require(policyRepository.existsById(degradationId), "Policy not found: " + degradationId);
-    require(
-        !policyRepository.existsBySourceDegradationId(degradationId),
-        "Policy is referenced by other policies: " + degradationId);
-
     log.debug(
         "Degradation policy validation for delete completed: degradationId={}", degradationId);
   }
@@ -60,28 +56,18 @@ public class DegradationPolicyValidator {
   }
 
   private void validateSource(DegradationPolicy policy) {
+    if (policy.getSignalSourceType() == null) {
+      require(
+          policy.getSourcePrometheusMetricReference() == null,
+          "sourcePrometheusMetricReference must be null");
+      return;
+    }
+
     switch (policy.getSignalSourceType()) {
-      case DEGRADATION -> {
-        requireNotBlank(policy.getSourceDegradationId(), "sourceDegradationId required");
-        require(
-            policy.getSourcePrometheusMetricReference() == null,
-            "sourcePrometheusMetricReference must be null");
-
-        require(
-            !policy.getDegradationId().equals(policy.getSourceDegradationId()),
-            "policy must not reference itself");
-
-        require(
-            policyRepository.existsById(policy.getSourceDegradationId()),
-            "source policy not found: " + policy.getSourceDegradationId());
-      }
-
-      case PROMETHEUS -> {
-        requireNotBlank(
-            policy.getSourcePrometheusMetricReference(),
-            "sourcePrometheusMetricReference required");
-        require(policy.getSourceDegradationId() == null, "sourceDegradationId must be null");
-      }
+      case PROMETHEUS ->
+          requireNotBlank(
+              policy.getSourcePrometheusMetricReference(),
+              "sourcePrometheusMetricReference required");
     }
   }
 
