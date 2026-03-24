@@ -11,6 +11,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
+import java.time.format.DateTimeFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.janus.adminui.configuration.properties.AdminUiProperties;
 import org.janus.adminui.model.SourceStateView;
@@ -40,10 +41,10 @@ public class StatesView extends VerticalLayout {
     Button refresh = new Button("Refresh", e -> refresh());
 
     grid.addColumn(StateView::degradationId).setHeader("Degradation ID").setAutoWidth(true);
-    grid.addColumn(StateView::effectiveValue).setHeader("Effective value");
-    grid.addColumn(StateView::effectiveSource).setHeader("Effective source");
+    grid.addColumn(StatesView::formatEffectiveValue).setHeader("Effective value");
+    grid.addColumn(StatesView::formatEffectiveSource).setHeader("Effective source");
     grid.addColumn(StatesView::formatSources).setHeader("Source states");
-    grid.addColumn(StateView::refreshedAt).setHeader("Refreshed at");
+    grid.addColumn(StatesView::formatRefreshedAt).setHeader("Refreshed at");
 
     grid.addComponentColumn(
             state -> {
@@ -56,6 +57,9 @@ public class StatesView extends VerticalLayout {
                         Notification.show("Override cleared");
                         refresh();
                       });
+              clear.setEnabled(
+                  state.sourceStates().stream()
+                      .anyMatch(source -> "ADMIN_UI".equals(source.source())));
               return new HorizontalLayout(override, clear);
             })
         .setHeader("Actions");
@@ -103,10 +107,25 @@ public class StatesView extends VerticalLayout {
   }
 
   private static String formatSources(StateView state) {
+    if (state.sourceStates().isEmpty()) {
+      return "—";
+    }
     return state.sourceStates().stream()
         .map(StatesView::formatSource)
         .reduce((left, right) -> left + " | " + right)
         .orElse("");
+  }
+
+  private static String formatEffectiveValue(StateView state) {
+    return state.effectiveValue() == null ? "—" : state.effectiveValue().toString();
+  }
+
+  private static String formatEffectiveSource(StateView state) {
+    return state.effectiveSource() == null ? "—" : state.effectiveSource();
+  }
+
+  private static String formatRefreshedAt(StateView state) {
+    return DateTimeFormatter.ISO_INSTANT.format(state.refreshedAt());
   }
 
   private static String formatSource(SourceStateView source) {
