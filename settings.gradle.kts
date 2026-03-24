@@ -20,5 +20,9 @@ include(
     "sdk:java:spring-boot-starter",
 
     //Admin UI
-    "admin-ui"
+    "admin-ui",
+
+    //Demo
+    "demo:client",
+    "demo:server"
 )
