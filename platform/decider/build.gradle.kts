@@ -54,6 +54,10 @@ dependencyManagement {
     }
 }
 
+tasks.withType<Jar> {
+    archiveBaseName.set("janus-decider")
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }

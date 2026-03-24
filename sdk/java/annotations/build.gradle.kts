@@ -15,3 +15,7 @@ java {
 repositories {
     mavenCentral()
 }
+
+tasks.withType<Jar> {
+    archiveBaseName.set("janus-sdk-annotations")
+}

@@ -57,6 +57,10 @@ dependencyManagement {
     }
 }
 
+tasks.withType<Jar> {
+    archiveBaseName.set("janus-policy-store")
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }

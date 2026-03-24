@@ -53,6 +53,10 @@ dependencyManagement {
     }
 }
 
+tasks.withType<Jar> {
+    archiveBaseName.set("janus-sidecar")
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }

@@ -44,6 +44,10 @@ dependencyManagement {
     }
 }
 
+tasks.withType<Jar> {
+    archiveBaseName.set("janus-admin-ui")
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }

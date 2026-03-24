@@ -46,6 +46,10 @@ dependencyManagement {
     }
 }
 
+tasks.withType<Jar> {
+    archiveBaseName.set("janus-spring-boot-starter")
+}
+
 tasks.withType<BootJar> {
     enabled = false
 }

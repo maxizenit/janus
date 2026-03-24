@@ -23,3 +23,7 @@ dependencies {
     api("jakarta.validation:jakarta.validation-api:${libs.versions.jakartaValidation.get()}")
     api("org.hibernate.validator:hibernate-validator:${libs.versions.hibernateValidator.get()}")
 }
+
+tasks.withType<Jar> {
+    archiveBaseName.set("janus-sdk-core")
+}

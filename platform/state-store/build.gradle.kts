@@ -47,6 +47,10 @@ dependencyManagement {
     }
 }
 
+tasks.withType<Jar> {
+    archiveBaseName.set("janus-state-store")
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
