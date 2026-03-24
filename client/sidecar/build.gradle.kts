@@ -25,9 +25,13 @@ dependencies {
     implementation(project(":platform:api:policy-store-api"))
     implementation(project(":platform:api:state-store-api"))
 
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.grpc:spring-grpc-client-spring-boot-starter")
     implementation("org.springframework.grpc:spring-grpc-server-spring-boot-starter")
+
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     implementation("io.grpc:grpc-services")
     implementation("com.google.protobuf:protobuf-java-util:${libs.versions.protobuf.get()}")
@@ -36,6 +40,7 @@ dependencies {
     annotationProcessor("org.mapstruct:mapstruct-processor:${libs.versions.mapstruct.get()}")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
     testImplementation("org.springframework.grpc:spring-grpc-test")
 
