@@ -12,6 +12,10 @@ spring:
       port: 6379
       timeout: 1s
 
+management:
+  server:
+    port: 8083
+
 logging:
   level:
     org.janus.decider: DEBUG

@@ -22,14 +22,19 @@ repositories {
 dependencies {
     implementation(project(":platform:api:state-store-api"))
 
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-json")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.grpc:spring-grpc-server-spring-boot-starter")
+
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     implementation("io.grpc:grpc-services")
     implementation("com.google.protobuf:protobuf-java-util:${libs.versions.protobuf.get()}")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-redis-test")
     testImplementation("org.springframework.grpc:spring-grpc-test")
 

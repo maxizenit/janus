@@ -11,6 +11,17 @@ spring:
         state-store:
           address: state-store:9090
 
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
 janus:
   sidecar:
     policy-refresh-interval: 30s

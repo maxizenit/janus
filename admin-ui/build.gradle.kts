@@ -26,9 +26,12 @@ dependencies {
     implementation("com.vaadin:vaadin-spring-boot-starter")
     developmentOnly("com.vaadin:vaadin-dev")
 
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.grpc:spring-grpc-client-spring-boot-starter")
     implementation("com.google.protobuf:protobuf-java-util:${libs.versions.protobuf.get()}")
+
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

@@ -8,3 +8,14 @@ spring:
     url: jdbc:postgresql://postgres:5432/janus-policy-store-db
     username: postgres
     password: postgres
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}

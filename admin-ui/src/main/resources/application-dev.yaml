@@ -7,6 +7,10 @@ spring:
         state-store:
           address: localhost:9092
 
+management:
+  server:
+    port: 8080
+
 logging:
   level:
     org.janus.adminui: DEBUG
