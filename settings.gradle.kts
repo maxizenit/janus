@@ -23,5 +23,6 @@ include(
     "admin-ui",
 
     //Demo
+    "demo:client",
     "demo:server"
 )
