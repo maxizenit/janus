@@ -14,6 +14,17 @@ spring:
       port: 6379
       timeout: 1s
 
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
 janus:
   decider:
     instance-id: ${HOSTNAME:${random.uuid}}
