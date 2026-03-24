@@ -12,5 +12,4 @@ import org.springframework.validation.annotation.Validated;
 public record JanusSdkProperties(
     boolean enabled,
     @NotBlank String sidecarChannel,
-    @NotNull @DurationMin(millis = 1) Duration refreshInterval,
-    @NotNull @DurationMin(millis = 1) Duration initialRefreshTimeout) {}
+    @NotNull @DurationMin(millis = 1) Duration refreshInterval) {}
