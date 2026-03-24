@@ -44,3 +44,7 @@ protobuf {
         }
     }
 }
+
+tasks.withType<Jar> {
+    archiveBaseName.set("janus-state-store-api")
+}
