@@ -46,11 +46,7 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
         degradationIds.size(),
         policies.size());
 
-    var mappedPolicies =
-        policies.stream()
-            .filter(policy -> policy.getSignalSourceType() != null)
-            .map(policyMapper::fromEntityToProto)
-            .toList();
+    var mappedPolicies = policies.stream().map(policyMapper::fromEntityToProto).toList();
 
     responseObserver.onNext(
         GetDegradationPoliciesResponse.newBuilder()
@@ -74,7 +70,11 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
         degradationIds.size(),
         policies.size());
 
-    var mappedPolicies = policies.stream().map(policyMapper::fromEntityToDeciderProto).toList();
+    var mappedPolicies =
+        policies.stream()
+            .filter(policy -> policy.getSignalSourceType() != null)
+            .map(policyMapper::fromEntityToDeciderProto)
+            .toList();
 
     responseObserver.onNext(
         GetDeciderDegradationPoliciesResponse.newBuilder()
