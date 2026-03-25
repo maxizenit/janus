@@ -9,6 +9,9 @@ spring:
         state-store:
           address: localhost:9092
 
+server:
+  port: 8084
+
 management:
   server:
     port: 8084
