@@ -10,7 +10,7 @@ import org.springframework.web.client.RestClient;
 public class DemoClientConfiguration {
 
   @Bean
-  public RestClient demoServerRestClient(RestClient.Builder builder) {
-    return builder.baseUrl("http://localhost:8090").build();
+  public RestClient demoServerRestClient() {
+    return RestClient.builder().baseUrl("http://localhost:8090").build();
   }
 }
