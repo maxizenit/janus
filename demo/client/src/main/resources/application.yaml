@@ -21,6 +21,10 @@ management:
     tags:
       application: ${spring.application.name}
 
+logging:
+  level:
+    org.janus: DEBUG
+
 janus:
   sdk:
     enabled: true
