@@ -1,8 +1,8 @@
 package org.janus.sdk.core.fallback;
 
+import java.util.concurrent.ThreadLocalRandom;
 import org.janus.sdk.core.descriptor.DegradableMethodDescriptor;
 import org.janus.sdk.core.runtime.DegradationRuntimeState;
-import org.janus.sdk.core.util.MathUtils;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -21,6 +21,8 @@ public class DefaultFallbackDecisionService implements FallbackDecisionService {
             ? descriptor.criticalThreshold()
             : runtimeState.criticalThreshold();
 
+    double degradationValue = runtimeState.value();
+
     double minFallbackRatio =
         !Double.isNaN(descriptor.minFallbackRatio())
             ? descriptor.minFallbackRatio()
@@ -31,11 +33,13 @@ public class DefaultFallbackDecisionService implements FallbackDecisionService {
             ? descriptor.maxFallbackRatio()
             : runtimeState.maxFallbackRatio();
 
-    double degradationValue = runtimeState.value();
-    boolean fallbackRequired = degradationValue >= criticalThreshold;
+    double fallbackRatio =
+        calculateFallbackRatio(
+            degradationValue, criticalThreshold, minFallbackRatio, maxFallbackRatio);
 
-    double normalizedFallbackRatio =
-        MathUtils.normalizeClamped(degradationValue, minFallbackRatio, maxFallbackRatio);
+    boolean fallbackRequired =
+        degradationValue >= criticalThreshold
+            && ThreadLocalRandom.current().nextDouble() < fallbackRatio;
 
     return new FallbackDecision(
         fallbackRequired,
@@ -43,6 +47,26 @@ public class DefaultFallbackDecisionService implements FallbackDecisionService {
         criticalThreshold,
         minFallbackRatio,
         maxFallbackRatio,
-        normalizedFallbackRatio);
+        fallbackRatio);
+  }
+
+  private double calculateFallbackRatio(
+      double degradationValue,
+      double criticalThreshold,
+      double minFallbackRatio,
+      double maxFallbackRatio) {
+
+    if (degradationValue < criticalThreshold) {
+      return 0.0;
+    }
+
+    if (criticalThreshold >= 1.0) {
+      return maxFallbackRatio;
+    }
+
+    double normalized =
+        (Math.min(degradationValue, 1.0) - criticalThreshold) / (1.0 - criticalThreshold);
+
+    return minFallbackRatio + normalized * (maxFallbackRatio - minFallbackRatio);
   }
 }
