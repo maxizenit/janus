@@ -36,7 +36,7 @@ public class DefaultFallbackArgumentsTransformer implements FallbackArgumentsTra
                 .formatted(descriptor.method().toGenericString(), parameter.index()));
       }
 
-      double normalizedRatio = decision.normalizedFallbackRatio();
+      double normalizedRatio = decision.fallbackRatio();
 
       if (parameter.absoluteScale() != null) {
         transformed[parameter.index()] =

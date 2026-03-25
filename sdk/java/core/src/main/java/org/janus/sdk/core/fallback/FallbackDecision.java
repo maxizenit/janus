@@ -9,4 +9,4 @@ public record FallbackDecision(
     double effectiveCriticalThreshold,
     double effectiveMinFallbackRatio,
     double effectiveMaxFallbackRatio,
-    double normalizedFallbackRatio) {}
+    double fallbackRatio) {}
