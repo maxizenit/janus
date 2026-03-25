@@ -8,6 +8,9 @@ spring:
       port: 6379
       timeout: 1s
 
+server:
+  port: 8082
+
 management:
   server:
     port: 8082
