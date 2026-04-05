@@ -1,12 +1,8 @@
 package org.janus.sdk.core.transform;
 
-import static org.janus.sdk.annotation.param.Direction.DECREASE;
-import static org.janus.sdk.annotation.param.Direction.INCREASE;
-
 import java.math.BigDecimal;
 import org.janus.sdk.annotation.param.Direction;
 import org.janus.sdk.core.descriptor.AbsoluteScaleDescriptor;
-import org.janus.sdk.core.descriptor.BoundsDescriptor;
 import org.janus.sdk.core.descriptor.DegradableMethodDescriptor;
 import org.janus.sdk.core.descriptor.ParameterDescriptor;
 import org.janus.sdk.core.descriptor.RelativeScaleDescriptor;
@@ -51,7 +47,6 @@ public class DefaultFallbackArgumentsTransformer implements FallbackArgumentsTra
                 parameter.parameterType(),
                 originalArgument,
                 parameter.relativeScale(),
-                parameter.bounds(),
                 normalizedRatio);
       }
     }
@@ -70,7 +65,6 @@ public class DefaultFallbackArgumentsTransformer implements FallbackArgumentsTra
       Class<?> targetType,
       Object originalArgument,
       RelativeScaleDescriptor scale,
-      BoundsDescriptor bounds,
       double normalizedRatio) {
     double originalValue = asDouble(originalArgument);
     double factor =
@@ -78,8 +72,12 @@ public class DefaultFallbackArgumentsTransformer implements FallbackArgumentsTra
 
     double scaled = originalValue * factor;
 
-    if (bounds != null) {
-      scaled = Math.max(bounds.min(), Math.min(bounds.max(), scaled));
+    if (!Double.isNaN(scale.min())) {
+      scaled = Math.max(scale.min(), scaled);
+    }
+
+    if (!Double.isNaN(scale.max())) {
+      scaled = Math.min(scale.max(), scaled);
     }
 
     return cast(targetType, scaled);

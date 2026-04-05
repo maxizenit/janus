@@ -4,4 +4,5 @@ import org.janus.sdk.annotation.param.Direction;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public record RelativeScaleDescriptor(double minFactor, double maxFactor, Direction direction) {}
+public record RelativeScaleDescriptor(
+    double minFactor, double maxFactor, Direction direction, double min, double max) {}

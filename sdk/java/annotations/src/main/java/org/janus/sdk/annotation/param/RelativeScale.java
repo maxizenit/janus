@@ -16,4 +16,8 @@ public @interface RelativeScale {
   double maxFactor() default 1.0;
 
   Direction direction() default Direction.DECREASE;
+
+  double min() default Double.NaN;
+
+  double max() default Double.NaN;
 }
