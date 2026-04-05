@@ -43,3 +43,6 @@ bin/
 ### Vaadin ###
 admin-ui/src/main/frontend
 admin-ui/target
+
+### Claude ###
+.claude
