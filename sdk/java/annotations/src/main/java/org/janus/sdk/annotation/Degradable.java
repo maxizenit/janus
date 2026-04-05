@@ -20,4 +20,6 @@ public @interface Degradable {
   double minFallbackRatio() default Double.NaN;
 
   double maxFallbackRatio() default Double.NaN;
+
+  double fallbackCurveExponent() default Double.NaN;
 }

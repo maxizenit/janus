@@ -15,4 +15,5 @@ message DegradationPolicy {
   optional double critical_threshold = 4;
   optional double min_fallback_ratio = 5;
   optional double max_fallback_ratio = 6;
+  optional double fallback_curve_exponent = 7;
 }

@@ -24,5 +24,6 @@ public record SidecarProperties(
   public record DefaultThresholds(
       @DecimalMin("0.0") @DecimalMax("1.0") @Nullable Double criticalThreshold,
       @DecimalMin("0.0") @DecimalMax("1.0") @Nullable Double minFallbackRatio,
-      @DecimalMin("0.0") @DecimalMax("1.0") @Nullable Double maxFallbackRatio) {}
+      @DecimalMin("0.0") @DecimalMax("1.0") @Nullable Double maxFallbackRatio,
+      @DecimalMin(value = "0.0", inclusive = false) @Nullable Double fallbackCurveExponent) {}
 }

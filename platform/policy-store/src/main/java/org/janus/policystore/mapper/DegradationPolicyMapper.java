@@ -37,6 +37,9 @@ public class DegradationPolicyMapper {
     if (entity.getMaxFallbackRatio() != null) {
       builder.setMaxFallbackRatio(entity.getMaxFallbackRatio());
     }
+    if (entity.getFallbackCurveExponent() != null) {
+      builder.setFallbackCurveExponent(entity.getFallbackCurveExponent());
+    }
 
     return builder.build();
   }
@@ -70,6 +73,9 @@ public class DegradationPolicyMapper {
     if (entity.getMaxFallbackRatio() != null) {
       builder.setMaxFallbackRatio(entity.getMaxFallbackRatio());
     }
+    if (entity.getFallbackCurveExponent() != null) {
+      builder.setFallbackCurveExponent(entity.getFallbackCurveExponent());
+    }
 
     return builder.build();
   }
@@ -93,6 +99,9 @@ public class DegradationPolicyMapper {
     }
     if (createRequestProto.hasMaxFallbackRatio()) {
       policy.setMaxFallbackRatio(createRequestProto.getMaxFallbackRatio());
+    }
+    if (createRequestProto.hasFallbackCurveExponent()) {
+      policy.setFallbackCurveExponent(createRequestProto.getFallbackCurveExponent());
     }
 
     return policy;
@@ -136,6 +145,13 @@ public class DegradationPolicyMapper {
             entity.setMaxFallbackRatio(updateRequestProto.getMaxFallbackRatio());
           } else {
             entity.setMaxFallbackRatio(null);
+          }
+        }
+        case "fallback_curve_exponent" -> {
+          if (updateRequestProto.hasFallbackCurveExponent()) {
+            entity.setFallbackCurveExponent(updateRequestProto.getFallbackCurveExponent());
+          } else {
+            entity.setFallbackCurveExponent(null);
           }
         }
       }

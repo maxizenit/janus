@@ -38,6 +38,7 @@ public class DegradableDescriptorFactory {
         degradable.criticalThreshold(),
         degradable.minFallbackRatio(),
         degradable.maxFallbackRatio(),
+        degradable.fallbackCurveExponent(),
         List.copyOf(parameters));
   }
 

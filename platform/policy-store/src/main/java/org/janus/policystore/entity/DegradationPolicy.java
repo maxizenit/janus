@@ -39,4 +39,7 @@ public class DegradationPolicy {
   @DecimalMin("0.0")
   @DecimalMax("1.0")
   private Double maxFallbackRatio;
+
+  @DecimalMin("0.0")
+  private Double fallbackCurveExponent;
 }

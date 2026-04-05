@@ -33,9 +33,18 @@ public class DefaultFallbackDecisionService implements FallbackDecisionService {
             ? descriptor.maxFallbackRatio()
             : runtimeState.maxFallbackRatio();
 
+    double fallbackCurveExponent =
+        !Double.isNaN(descriptor.fallbackCurveExponent())
+            ? descriptor.fallbackCurveExponent()
+            : runtimeState.fallbackCurveExponent();
+
     double fallbackRatio =
         calculateFallbackRatio(
-            degradationValue, criticalThreshold, minFallbackRatio, maxFallbackRatio);
+            degradationValue,
+            criticalThreshold,
+            minFallbackRatio,
+            maxFallbackRatio,
+            fallbackCurveExponent);
 
     boolean fallbackRequired =
         degradationValue >= criticalThreshold
@@ -54,7 +63,8 @@ public class DefaultFallbackDecisionService implements FallbackDecisionService {
       double degradationValue,
       double criticalThreshold,
       double minFallbackRatio,
-      double maxFallbackRatio) {
+      double maxFallbackRatio,
+      double fallbackCurveExponent) {
 
     if (degradationValue < criticalThreshold) {
       return 0.0;
@@ -67,6 +77,8 @@ public class DefaultFallbackDecisionService implements FallbackDecisionService {
     double normalized =
         (Math.min(degradationValue, 1.0) - criticalThreshold) / (1.0 - criticalThreshold);
 
-    return minFallbackRatio + normalized * (maxFallbackRatio - minFallbackRatio);
+    double curved = Math.pow(normalized, fallbackCurveExponent);
+
+    return minFallbackRatio + curved * (maxFallbackRatio - minFallbackRatio);
   }
 }

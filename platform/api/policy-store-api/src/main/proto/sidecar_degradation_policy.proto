@@ -13,4 +13,5 @@ message SidecarDegradationPolicy {
   optional double critical_threshold = 3;
   optional double min_fallback_ratio = 4;
   optional double max_fallback_ratio = 5;
+  optional double fallback_curve_exponent = 6;
 }

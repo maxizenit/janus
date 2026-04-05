@@ -71,6 +71,13 @@ public class DefaultDegradableDescriptorValidator implements DegradableDescripto
     validateNonNanOrRange(
         descriptor.maxFallbackRatio(), "maxFallbackRatio", descriptor.method(), 0.0, 1.0);
 
+    if (!Double.isNaN(descriptor.fallbackCurveExponent())
+        && descriptor.fallbackCurveExponent() <= 0.0) {
+      throw new InvalidDegradableDefinitionException(
+          "fallbackCurveExponent must be positive for method %s"
+              .formatted(descriptor.method().toGenericString()));
+    }
+
     if (!Double.isNaN(descriptor.minFallbackRatio())
         && !Double.isNaN(descriptor.maxFallbackRatio())
         && descriptor.minFallbackRatio() > descriptor.maxFallbackRatio()) {
