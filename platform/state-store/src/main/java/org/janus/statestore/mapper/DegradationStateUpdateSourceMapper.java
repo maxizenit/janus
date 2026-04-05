@@ -13,7 +13,7 @@ public class DegradationStateUpdateSourceMapper {
       org.janus.api.statestore.DegradationStateUpdateSource sourceGrpc) {
     return switch (sourceGrpc) {
       case ADMIN_UI -> DegradationStateUpdateSource.ADMIN_UI;
-      case DECIDER -> DegradationStateUpdateSource.DECIDER;
+      case EVALUATOR -> DegradationStateUpdateSource.EVALUATOR;
       case UNRECOGNIZED -> null;
     };
   }
@@ -22,7 +22,7 @@ public class DegradationStateUpdateSourceMapper {
       DegradationStateUpdateSource source) {
     return switch (source) {
       case ADMIN_UI -> org.janus.api.statestore.DegradationStateUpdateSource.ADMIN_UI;
-      case DECIDER -> org.janus.api.statestore.DegradationStateUpdateSource.DECIDER;
+      case EVALUATOR -> org.janus.api.statestore.DegradationStateUpdateSource.EVALUATOR;
     };
   }
 }

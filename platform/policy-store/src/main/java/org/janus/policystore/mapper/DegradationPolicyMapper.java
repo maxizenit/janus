@@ -3,7 +3,7 @@ package org.janus.policystore.mapper;
 import com.google.protobuf.util.Durations;
 import lombok.extern.slf4j.Slf4j;
 import org.janus.api.policystore.CreateDegradationPolicyRequest;
-import org.janus.api.policystore.DeciderDegradationPolicy;
+import org.janus.api.policystore.EvaluatorDegradationPolicy;
 import org.janus.api.policystore.DegradationPolicy;
 import org.janus.api.policystore.PrometheusMetric;
 import org.janus.api.policystore.SidecarDegradationPolicy;
@@ -41,9 +41,9 @@ public class DegradationPolicyMapper {
     return builder.build();
   }
 
-  public DeciderDegradationPolicy fromEntityToDeciderProto(
+  public EvaluatorDegradationPolicy fromEntityToEvaluatorProto(
       org.janus.policystore.entity.DegradationPolicy entity) {
-    var builder = DeciderDegradationPolicy.newBuilder();
+    var builder = EvaluatorDegradationPolicy.newBuilder();
 
     builder.setDegradationId(entity.getDegradationId());
     builder.setEvaluationInterval(Durations.fromMillis(entity.getEvaluationIntervalMs()));
