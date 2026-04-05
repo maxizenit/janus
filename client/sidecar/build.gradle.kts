@@ -36,6 +36,8 @@ dependencies {
     implementation("io.grpc:grpc-services")
     implementation("com.google.protobuf:protobuf-java-util:${libs.versions.protobuf.get()}")
 
+    implementation("org.xerial:sqlite-jdbc:${libs.versions.sqliteJdbc.get()}")
+
     implementation("org.mapstruct:mapstruct:${libs.versions.mapstruct.get()}")
     annotationProcessor("org.mapstruct:mapstruct-processor:${libs.versions.mapstruct.get()}")
 

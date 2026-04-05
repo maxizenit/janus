@@ -9,9 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.janus.sidecar.model.RegisteredDegradation;
 import org.janus.sidecar.model.handler.SyncActualDegradationsResult;
 import org.jspecify.annotations.NullMarked;
-import org.springframework.stereotype.Service;
 
-@Service
 @Slf4j
 @NullMarked
 public class InMemoryActualDegradationRegistry implements ActualDegradationRegistry {

@@ -28,3 +28,4 @@ janus:
     state-refresh-threads: 4
     state-refresh-queue-capacity: 1000
     max-sync-degradation-ids: 1000
+    sqlite-path: ./janus-sidecar.db
