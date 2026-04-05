@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.janus.demo.client.integration.DemoServerClient;
 import org.janus.sdk.annotation.Degradable;
-import org.janus.sdk.annotation.param.Bounds;
 import org.janus.sdk.annotation.param.RelativeScale;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,7 @@ public class RecommendationService {
       minFallbackRatio = 0.3,
       maxFallbackRatio = 1.0)
   public List<String> getRecommendations(
-      @RelativeScale(minFactor = 0.2, maxFactor = 1.0) @Bounds(min = 1, max = 20) int limit) {
+      @RelativeScale(minFactor = 0.2, maxFactor = 1.0, min = 1, max = 20) int limit) {
 
     return demoServerClient.fetchRecommendations(limit);
   }

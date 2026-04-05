@@ -102,12 +102,6 @@ public class DefaultDegradableDescriptorValidator implements DegradableDescripto
               .formatted(descriptor.method().toGenericString(), parameter.index()));
     }
 
-    if (parameter.hasBounds() && !parameter.hasRelativeScale()) {
-      throw new InvalidDegradableDefinitionException(
-          "Bounds can only be used together with RelativeScale: method=%s, parameterIndex=%d"
-              .formatted(descriptor.method().toGenericString(), parameter.index()));
-    }
-
     if (parameter.isScaled() && !NumericTypes.isSupported(parameter.parameterType())) {
       throw new InvalidDegradableDefinitionException(
           "Scale annotations are only supported for numeric parameter types: method=%s, parameterIndex=%d, parameterType=%s"
@@ -131,12 +125,12 @@ public class DefaultDegradableDescriptorValidator implements DegradableDescripto
             "RelativeScale.minFactor must be less than or equal to maxFactor: method=%s, parameterIndex=%d"
                 .formatted(descriptor.method().toGenericString(), parameter.index()));
       }
-    }
 
-    if (parameter.bounds() != null) {
-      if (parameter.bounds().min() > parameter.bounds().max()) {
+      if (!Double.isNaN(parameter.relativeScale().min())
+          && !Double.isNaN(parameter.relativeScale().max())
+          && parameter.relativeScale().min() > parameter.relativeScale().max()) {
         throw new InvalidDegradableDefinitionException(
-            "Bounds.min must be less than or equal to max: method=%s, parameterIndex=%d"
+            "RelativeScale.min must be less than or equal to max: method=%s, parameterIndex=%d"
                 .formatted(descriptor.method().toGenericString(), parameter.index()));
       }
     }

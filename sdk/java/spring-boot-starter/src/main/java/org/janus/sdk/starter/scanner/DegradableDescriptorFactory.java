@@ -6,10 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.janus.sdk.annotation.Degradable;
 import org.janus.sdk.annotation.param.AbsoluteScale;
-import org.janus.sdk.annotation.param.Bounds;
 import org.janus.sdk.annotation.param.RelativeScale;
 import org.janus.sdk.core.descriptor.AbsoluteScaleDescriptor;
-import org.janus.sdk.core.descriptor.BoundsDescriptor;
 import org.janus.sdk.core.descriptor.DegradableMethodDescriptor;
 import org.janus.sdk.core.descriptor.ParameterDescriptor;
 import org.janus.sdk.core.descriptor.RelativeScaleDescriptor;
@@ -72,7 +70,6 @@ public class DegradableDescriptorFactory {
   private ParameterDescriptor createParameterDescriptor(int index, Parameter parameter) {
     var absoluteScale = parameter.getAnnotation(AbsoluteScale.class);
     var relativeScale = parameter.getAnnotation(RelativeScale.class);
-    var bounds = parameter.getAnnotation(Bounds.class);
 
     return new ParameterDescriptor(
         index,
@@ -83,8 +80,11 @@ public class DegradableDescriptorFactory {
             : null,
         relativeScale != null
             ? new RelativeScaleDescriptor(
-                relativeScale.minFactor(), relativeScale.maxFactor(), relativeScale.direction())
-            : null,
-        bounds != null ? new BoundsDescriptor(bounds.min(), bounds.max()) : null);
+                relativeScale.minFactor(),
+                relativeScale.maxFactor(),
+                relativeScale.direction(),
+                relativeScale.min(),
+                relativeScale.max())
+            : null);
   }
 }

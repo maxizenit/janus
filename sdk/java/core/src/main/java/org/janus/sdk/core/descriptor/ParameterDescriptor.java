@@ -8,8 +8,7 @@ public record ParameterDescriptor(
     int index,
     Class<?> parameterType,
     @Nullable AbsoluteScaleDescriptor absoluteScale,
-    @Nullable RelativeScaleDescriptor relativeScale,
-    @Nullable BoundsDescriptor bounds) {
+    @Nullable RelativeScaleDescriptor relativeScale) {
 
   public boolean hasAbsoluteScale() {
     return absoluteScale != null;
@@ -17,10 +16,6 @@ public record ParameterDescriptor(
 
   public boolean hasRelativeScale() {
     return relativeScale != null;
-  }
-
-  public boolean hasBounds() {
-    return bounds != null;
   }
 
   public boolean isScaled() {
