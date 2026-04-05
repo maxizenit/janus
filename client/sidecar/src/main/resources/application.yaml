@@ -29,3 +29,7 @@ janus:
     state-refresh-queue-capacity: 1000
     max-sync-degradation-ids: 1000
     sqlite-path: ./janus-sidecar.db
+    default-thresholds:
+      critical-threshold: 0.5
+      min-fallback-ratio: 0.0
+      max-fallback-ratio: 1.0
