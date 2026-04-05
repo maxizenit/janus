@@ -27,6 +27,7 @@ public class DegradableAspect {
   private final FallbackDecisionService decisionService;
   private final FallbackArgumentsTransformer argumentsTransformer;
   private final FallbackMethodInvoker fallbackMethodInvoker;
+  private final DegradableMetrics metrics;
 
   @Around("@annotation(degradable)")
   public Object around(ProceedingJoinPoint joinPoint, Degradable degradable) throws Throwable {
@@ -47,8 +48,11 @@ public class DegradableAspect {
     var decision = decisionService.decide(descriptor, state);
 
     if (!decision.fallbackRequired()) {
+      metrics.recordInvocation(descriptor.degradationId(), false);
       return joinPoint.proceed();
     }
+
+    metrics.recordInvocation(descriptor.degradationId(), true);
 
     var fallbackArguments =
         argumentsTransformer.transform(descriptor, decision, joinPoint.getArgs());

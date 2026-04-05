@@ -33,6 +33,7 @@ dependencies {
     api("org.springframework.grpc:spring-grpc-client-spring-boot-starter")
 
     implementation("com.google.protobuf:protobuf-java-util:${libs.versions.protobuf.get()}")
+    implementation("io.micrometer:micrometer-core")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.grpc:spring-grpc-test")
