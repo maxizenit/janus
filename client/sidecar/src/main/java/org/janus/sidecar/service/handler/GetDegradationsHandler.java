@@ -2,7 +2,10 @@ package org.janus.sidecar.service.handler;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
+import org.janus.sidecar.configuration.properties.SidecarProperties;
+import org.janus.sidecar.configuration.properties.SidecarProperties.DefaultThresholds;
 import org.janus.sidecar.model.DegradationView;
 import org.janus.sidecar.model.RegisteredDegradation;
 import org.janus.sidecar.registry.ActualDegradationRegistry;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 public class GetDegradationsHandler {
 
   private final ActualDegradationRegistry registry;
+  private final SidecarProperties properties;
 
   public List<DegradationView> handle() {
     return registry.findAllActive().stream()
@@ -36,11 +40,21 @@ public class GetDegradationsHandler {
         holder.getDegradationId(),
         state.value(),
         policy.evaluationInterval(),
-        policy.criticalThreshold(),
-        policy.minFallbackRatio(),
-        policy.maxFallbackRatio(),
+        resolveWithDefault(policy.criticalThreshold(), DefaultThresholds::criticalThreshold),
+        resolveWithDefault(policy.minFallbackRatio(), DefaultThresholds::minFallbackRatio),
+        resolveWithDefault(policy.maxFallbackRatio(), DefaultThresholds::maxFallbackRatio),
         state.loadedAt(),
         policy.loadedAt(),
         state.stale());
+  }
+
+  private @Nullable Double resolveWithDefault(
+      @Nullable Double policyValue,
+      Function<DefaultThresholds, @Nullable Double> defaultExtractor) {
+    if (policyValue != null) {
+      return policyValue;
+    }
+    var defaults = properties.defaultThresholds();
+    return defaults != null ? defaultExtractor.apply(defaults) : null;
   }
 }
