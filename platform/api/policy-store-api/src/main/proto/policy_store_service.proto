@@ -8,7 +8,7 @@ option java_multiple_files = true;
 import "google/protobuf/duration.proto";
 import "google/protobuf/field_mask.proto";
 import "degradation_policy.proto";
-import "decider_degradation_policy.proto";
+import "evaluator_degradation_policy.proto";
 import "sidecar_degradation_policy.proto";
 import "signal_source.proto";
 
@@ -20,12 +20,12 @@ message GetDegradationPoliciesResponse {
   repeated DegradationPolicy degradation_policies = 1;
 }
 
-message GetDeciderDegradationPoliciesRequest {
+message GetEvaluatorDegradationPoliciesRequest {
   repeated string degradation_ids = 1;
 }
 
-message GetDeciderDegradationPoliciesResponse {
-  repeated DeciderDegradationPolicy degradation_policies = 1;
+message GetEvaluatorDegradationPoliciesResponse {
+  repeated EvaluatorDegradationPolicy degradation_policies = 1;
 }
 
 message GetSidecarDegradationPoliciesRequest {
@@ -67,7 +67,7 @@ service PolicyStoreService {
 
   rpc GetDegradationPolicies(GetDegradationPoliciesRequest) returns (GetDegradationPoliciesResponse);
 
-  rpc GetDeciderDegradationPolicies(GetDeciderDegradationPoliciesRequest) returns (GetDeciderDegradationPoliciesResponse);
+  rpc GetEvaluatorDegradationPolicies(GetEvaluatorDegradationPoliciesRequest) returns (GetEvaluatorDegradationPoliciesResponse);
 
   rpc GetSidecarDegradationPolicies(GetSidecarDegradationPoliciesRequest) returns (GetSidecarDegradationPoliciesResponse);
 

@@ -7,8 +7,8 @@ import org.janus.api.policystore.CreateDegradationPolicyRequest;
 import org.janus.api.policystore.DegradationPolicy;
 import org.janus.api.policystore.DeleteDegradationPolicyRequest;
 import org.janus.api.policystore.DeleteDegradationPolicyResponse;
-import org.janus.api.policystore.GetDeciderDegradationPoliciesRequest;
-import org.janus.api.policystore.GetDeciderDegradationPoliciesResponse;
+import org.janus.api.policystore.GetEvaluatorDegradationPoliciesRequest;
+import org.janus.api.policystore.GetEvaluatorDegradationPoliciesResponse;
 import org.janus.api.policystore.GetDegradationPoliciesRequest;
 import org.janus.api.policystore.GetDegradationPoliciesResponse;
 import org.janus.api.policystore.GetSidecarDegradationPoliciesRequest;
@@ -56,28 +56,28 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
   }
 
   @Override
-  public void getDeciderDegradationPolicies(
-      GetDeciderDegradationPoliciesRequest request,
-      StreamObserver<GetDeciderDegradationPoliciesResponse> responseObserver) {
+  public void getEvaluatorDegradationPolicies(
+      GetEvaluatorDegradationPoliciesRequest request,
+      StreamObserver<GetEvaluatorDegradationPoliciesResponse> responseObserver) {
     var degradationIds = request.getDegradationIdsList();
     log.debug(
-        "GetDeciderDegradationPolicies request received: degradationCount={}",
+        "GetEvaluatorDegradationPolicies request received: degradationCount={}",
         degradationIds.size());
 
     var policies = policyService.getPoliciesByDegradationIds(degradationIds);
     log.debug(
-        "GetDeciderDegradationPolicies request completed: requested={}, returned={}",
+        "GetEvaluatorDegradationPolicies request completed: requested={}, returned={}",
         degradationIds.size(),
         policies.size());
 
     var mappedPolicies =
         policies.stream()
             .filter(policy -> policy.getSignalSourceType() != null)
-            .map(policyMapper::fromEntityToDeciderProto)
+            .map(policyMapper::fromEntityToEvaluatorProto)
             .toList();
 
     responseObserver.onNext(
-        GetDeciderDegradationPoliciesResponse.newBuilder()
+        GetEvaluatorDegradationPoliciesResponse.newBuilder()
             .addAllDegradationPolicies(mappedPolicies)
             .build());
     responseObserver.onCompleted();

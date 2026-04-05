@@ -8,9 +8,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum DegradationStateUpdateSource {
   ADMIN_UI,
-  DECIDER;
+  EVALUATOR;
 
   public static List<DegradationStateUpdateSource> resolutionOrder() {
-    return List.of(ADMIN_UI, DECIDER);
+    return List.of(ADMIN_UI, EVALUATOR);
   }
 }

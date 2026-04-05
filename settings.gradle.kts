@@ -4,7 +4,7 @@ include(
     //Platform
     "platform:policy-store",
     "platform:state-store",
-    "platform:decider",
+    "platform:evaluator",
 
     //Client
     "client:sidecar",
