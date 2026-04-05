@@ -19,3 +19,5 @@ vaadin = "25.0.7"
 
 jakartaValidation = "3.1.1"
 hibernateValidator = "9.1.0.Final"
+
+sqliteJdbc = "3.51.3.0"
