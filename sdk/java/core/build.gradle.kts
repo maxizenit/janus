@@ -23,6 +23,14 @@ dependencies {
     api("org.jspecify:jspecify:${libs.versions.jspecify.get()}")
     api("jakarta.validation:jakarta.validation-api:${libs.versions.jakartaValidation.get()}")
     api("org.hibernate.validator:hibernate-validator:${libs.versions.hibernateValidator.get()}")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testImplementation("org.assertj:assertj-core:3.27.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 tasks.withType<Jar> {
