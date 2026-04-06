@@ -42,6 +42,7 @@ bin/
 
 ### Vaadin ###
 admin-ui/src/main/frontend
+admin-ui/src/main/bundles
 admin-ui/target
 
 ### Claude ###
