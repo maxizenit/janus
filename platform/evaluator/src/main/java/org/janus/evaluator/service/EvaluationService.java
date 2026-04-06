@@ -10,6 +10,7 @@ import org.janus.evaluator.client.leadership.LeadershipClient;
 import org.janus.evaluator.client.signal.SignalClient;
 import org.janus.evaluator.client.statestore.StateStoreClient;
 import org.janus.evaluator.configuration.properties.EvaluatorProperties;
+import org.janus.evaluator.metrics.EvaluatorMetrics;
 import org.janus.evaluator.model.EvaluationResult;
 import org.janus.evaluator.registry.DegradationRegistry;
 import org.janus.evaluator.validation.SignalValueValidator;
@@ -28,6 +29,7 @@ public class EvaluationService {
   private final LeadershipClient leadershipClient;
   private final SignalValueValidator signalValueValidator;
   private final EvaluatorProperties properties;
+  private final EvaluatorMetrics evaluatorMetrics;
   private final Clock clock;
 
   public Optional<EvaluationResult> evaluate(String degradationId) {
@@ -66,6 +68,8 @@ public class EvaluationService {
               policy.degradationId(), properties.leadershipLeaseDuration())) {
 
         if (!leadership.acquired()) {
+          evaluatorMetrics.recordLeadershipAcquisition(policy.degradationId(), "rejected");
+
           var nextAttemptAt = Instant.now(clock).plus(properties.leadershipRetryBackoff());
           holder.setNextEvaluationAt(nextAttemptAt);
 
@@ -77,14 +81,20 @@ public class EvaluationService {
           return Optional.of(new EvaluationResult(policy.degradationId(), nextAttemptAt));
         }
 
+        evaluatorMetrics.recordLeadershipAcquisition(policy.degradationId(), "acquired");
+
         log.debug(
             "Leadership acquired: degradation={}, leaseDuration={}, instanceId={}",
             policy.degradationId(),
             properties.leadershipLeaseDuration(),
             properties.instanceId());
 
+        var signalFetchStart = Instant.now(clock);
         var rawValue =
             signalClient.getSignalValue(policy.signalSource(), policy.evaluationInterval());
+        evaluatorMetrics.recordSignalFetchDuration(
+            policy.degradationId(), Duration.between(signalFetchStart, Instant.now(clock)));
+
         log.debug(
             "Signal value received: degradation={}, rawValue={}, signalSourceType={}, signalSourceRef={}",
             policy.degradationId(),
@@ -115,11 +125,14 @@ public class EvaluationService {
             value,
             nextEvaluationAt);
 
+        evaluatorMetrics.recordEvaluation(policy.degradationId(), "success");
         return Optional.of(new EvaluationResult(policy.degradationId(), nextEvaluationAt));
       }
     } catch (RuntimeException e) {
       var retryAt = Instant.now(clock).plus(properties.evaluationFailureBackoff());
       holder.setNextEvaluationAt(retryAt);
+
+      evaluatorMetrics.recordEvaluation(degradationId, "failure");
 
       log.warn(
           "Evaluation failed: degradation={}, retryAt={}, failureBackoff={}",
