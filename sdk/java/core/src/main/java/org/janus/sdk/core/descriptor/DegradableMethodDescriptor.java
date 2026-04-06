@@ -13,4 +13,5 @@ public record DegradableMethodDescriptor(
     double criticalThreshold,
     double minFallbackRatio,
     double maxFallbackRatio,
+    double fallbackCurveExponent,
     List<ParameterDescriptor> parameters) {}

@@ -12,5 +12,6 @@ public record DegradationRuntimeState(
     double criticalThreshold,
     double minFallbackRatio,
     double maxFallbackRatio,
+    double fallbackCurveExponent,
     boolean stale,
     Instant loadedAt) {}

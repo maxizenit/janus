@@ -12,4 +12,5 @@ public record PolicySnapshot(
     @Nullable Double criticalThreshold,
     @Nullable Double minFallbackRatio,
     @Nullable Double maxFallbackRatio,
+    @Nullable Double fallbackCurveExponent,
     Instant loadedAt) {}

@@ -43,6 +43,8 @@ public class GetDegradationsHandler {
         resolveWithDefault(policy.criticalThreshold(), DefaultThresholds::criticalThreshold),
         resolveWithDefault(policy.minFallbackRatio(), DefaultThresholds::minFallbackRatio),
         resolveWithDefault(policy.maxFallbackRatio(), DefaultThresholds::maxFallbackRatio),
+        resolveWithDefault(
+            policy.fallbackCurveExponent(), DefaultThresholds::fallbackCurveExponent),
         state.loadedAt(),
         policy.loadedAt(),
         state.stale());

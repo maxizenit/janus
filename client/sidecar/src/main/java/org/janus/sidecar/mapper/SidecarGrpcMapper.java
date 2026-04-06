@@ -38,6 +38,9 @@ public class SidecarGrpcMapper {
       if (view.maxFallbackRatio() != null) {
         degradationBuilder.setMaxFallbackRatio(view.maxFallbackRatio());
       }
+      if (view.fallbackCurveExponent() != null) {
+        degradationBuilder.setFallbackCurveExponent(view.fallbackCurveExponent());
+      }
 
       builder.addDegradations(degradationBuilder);
     }

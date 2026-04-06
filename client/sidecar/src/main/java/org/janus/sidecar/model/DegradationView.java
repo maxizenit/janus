@@ -13,6 +13,7 @@ public record DegradationView(
     @Nullable Double criticalThreshold,
     @Nullable Double minFallbackRatio,
     @Nullable Double maxFallbackRatio,
+    @Nullable Double fallbackCurveExponent,
     Instant stateLoadedAt,
     Instant policyLoadedAt,
     boolean stale) {}
