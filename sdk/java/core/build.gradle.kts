@@ -24,8 +24,8 @@ dependencies {
     api("jakarta.validation:jakarta.validation-api:${libs.versions.jakartaValidation.get()}")
     api("org.hibernate.validator:hibernate-validator:${libs.versions.hibernateValidator.get()}")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
-    testImplementation("org.assertj:assertj-core:3.27.3")
+    testImplementation("org.junit.jupiter:junit-jupiter:${libs.versions.junit.get()}")
+    testImplementation("org.assertj:assertj-core:${libs.versions.assertj.get()}")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
