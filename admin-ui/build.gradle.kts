@@ -3,6 +3,7 @@ plugins {
     id("org.springframework.boot") version libs.versions.springBootPlugin.get()
     id("io.spring.dependency-management") version libs.versions.springDependencyManagementPlugin.get()
     id("io.freefair.lombok") version libs.versions.lombokPlugin.get()
+    id("com.vaadin") version libs.versions.vaadin.get()
 }
 
 group = "org.janus"
