@@ -48,8 +48,7 @@ class DegradationStateUpdateMapperTest {
     assertThatThrownBy(
             () ->
                 mapper.fromGrpcToDomain(
-                    grpcUpdate,
-                    org.janus.api.statestore.DegradationStateUpdateSource.UNRECOGNIZED))
+                    grpcUpdate, org.janus.api.statestore.DegradationStateUpdateSource.UNRECOGNIZED))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Source must be recognized");
   }
