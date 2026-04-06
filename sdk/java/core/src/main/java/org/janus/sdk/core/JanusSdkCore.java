@@ -2,6 +2,7 @@ package org.janus.sdk.core;
 
 import org.janus.sdk.core.fallback.DefaultFallbackDecisionService;
 import org.janus.sdk.core.fallback.FallbackDecisionService;
+import org.janus.sdk.core.fallback.StaleDegradationStrategy;
 import org.janus.sdk.core.registry.DegradableMethodRegistry;
 import org.janus.sdk.core.registry.InMemoryDegradableMethodRegistry;
 import org.janus.sdk.core.runtime.DegradationStateRegistry;
@@ -30,7 +31,7 @@ public class JanusSdkCore {
   }
 
   public static FallbackDecisionService fallbackDecisionService() {
-    return new DefaultFallbackDecisionService();
+    return new DefaultFallbackDecisionService(StaleDegradationStrategy.LAST_VALUE);
   }
 
   public static FallbackArgumentsTransformer fallbackArgumentsTransformer() {

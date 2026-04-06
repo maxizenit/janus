@@ -1,5 +1,6 @@
 plugins {
     id("java-library")
+    id("io.freefair.lombok") version libs.versions.lombokPlugin.get()
 }
 
 group = "org.janus"

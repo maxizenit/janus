@@ -64,8 +64,8 @@ public class JanusSdkAutoConfiguration {
   }
 
   @Bean
-  public FallbackDecisionService fallbackDecisionService() {
-    return new DefaultFallbackDecisionService();
+  public FallbackDecisionService fallbackDecisionService(JanusSdkProperties properties) {
+    return new DefaultFallbackDecisionService(properties.staleStrategy());
   }
 
   @Bean

@@ -30,3 +30,4 @@ janus:
     enabled: true
     sidecar-channel: sidecar
     refresh-interval: 5s
+    stale-strategy: last-value
