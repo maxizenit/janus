@@ -246,8 +246,7 @@ class DegradationPolicyMapperTest {
 
     var proto = mapper.fromEntityToProto(entity);
 
-    assertThat(proto.getSignalSource().getKindCase())
-        .isEqualTo(SignalSource.KindCase.PROMETHEUS);
+    assertThat(proto.getSignalSource().getKindCase()).isEqualTo(SignalSource.KindCase.PROMETHEUS);
     assertThat(proto.getSignalSource().getPrometheus().getMetricReference())
         .isEqualTo("process_cpu_seconds_total");
   }

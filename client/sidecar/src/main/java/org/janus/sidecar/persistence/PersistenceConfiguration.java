@@ -5,9 +5,9 @@ import org.janus.sidecar.registry.ActualDegradationRegistry;
 import org.janus.sidecar.registry.InMemoryActualDegradationRegistry;
 import org.janus.sidecar.registry.PersistentActualDegradationRegistry;
 import org.jspecify.annotations.NullMarked;
-import org.sqlite.SQLiteDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.sqlite.SQLiteDataSource;
 
 @Configuration
 @NullMarked

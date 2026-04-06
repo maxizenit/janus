@@ -34,16 +34,16 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableConfigurationProperties(JanusSdkProperties.class)
 @ConditionalOnProperty(prefix = "janus.sdk", name = "enabled", havingValue = "true")
 @Import({
-        DegradableAspect.class,
-        ReflectionFallbackMethodInvoker.class,
-        RegistryBackedMethodDescriptorResolver.class,
-        DegradableMethodScanner.class,
-        DegradableDescriptorFactory.class,
-        SidecarRuntimeStateMapper.class,
-        GrpcSidecarSdkClient.class,
-        DegradationRefreshService.class,
-        DegradationRefreshScheduler.class,
-        JanusSdkStartupRunner.class
+  DegradableAspect.class,
+  ReflectionFallbackMethodInvoker.class,
+  RegistryBackedMethodDescriptorResolver.class,
+  DegradableMethodScanner.class,
+  DegradableDescriptorFactory.class,
+  SidecarRuntimeStateMapper.class,
+  GrpcSidecarSdkClient.class,
+  DegradationRefreshService.class,
+  DegradationRefreshScheduler.class,
+  JanusSdkStartupRunner.class
 })
 @NullMarked
 public class JanusSdkAutoConfiguration {

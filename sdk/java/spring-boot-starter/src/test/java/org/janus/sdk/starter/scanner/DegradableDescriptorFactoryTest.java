@@ -71,10 +71,14 @@ class DegradableDescriptorFactoryTest {
     @Degradable(value = "scaled", fallback = "scaledFallback")
     public void scaledMethod(
         @AbsoluteScale(min = 10.0, max = 100.0, direction = Direction.INCREASE) int count,
-        @RelativeScale(minFactor = 0.2, maxFactor = 0.8, direction = Direction.DECREASE, min = 5.0, max = 50.0)
+        @RelativeScale(
+                minFactor = 0.2,
+                maxFactor = 0.8,
+                direction = Direction.DECREASE,
+                min = 5.0,
+                max = 50.0)
             double factor,
-        String plain) {
-    }
+        String plain) {}
 
     public void scaledFallback(int count, double factor, String plain) {}
   }
@@ -140,7 +144,8 @@ class DegradableDescriptorFactoryTest {
   @Test
   void createsParameterDescriptorsForAbsoluteScale() throws Exception {
     var method =
-        ScaledParamsService.class.getDeclaredMethod("scaledMethod", int.class, double.class, String.class);
+        ScaledParamsService.class.getDeclaredMethod(
+            "scaledMethod", int.class, double.class, String.class);
 
     var descriptor = factory.create(ScaledParamsService.class, method);
     var parameters = descriptor.parameters();
@@ -160,7 +165,8 @@ class DegradableDescriptorFactoryTest {
   @Test
   void createsParameterDescriptorsForRelativeScale() throws Exception {
     var method =
-        ScaledParamsService.class.getDeclaredMethod("scaledMethod", int.class, double.class, String.class);
+        ScaledParamsService.class.getDeclaredMethod(
+            "scaledMethod", int.class, double.class, String.class);
 
     var descriptor = factory.create(ScaledParamsService.class, method);
     var parameters = descriptor.parameters();
@@ -180,7 +186,8 @@ class DegradableDescriptorFactoryTest {
   @Test
   void createsParameterDescriptorWithoutScaleForPlainParam() throws Exception {
     var method =
-        ScaledParamsService.class.getDeclaredMethod("scaledMethod", int.class, double.class, String.class);
+        ScaledParamsService.class.getDeclaredMethod(
+            "scaledMethod", int.class, double.class, String.class);
 
     var descriptor = factory.create(ScaledParamsService.class, method);
     var plainParam = descriptor.parameters().get(2);

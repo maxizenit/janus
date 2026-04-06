@@ -75,12 +75,7 @@ class DefaultDegradableDescriptorValidatorTest {
   void blankDegradationId_fails() {
     DegradableMethodDescriptor desc =
         descriptor(
-            "  ",
-            method("doWork", int.class),
-            method("doWorkFallback", int.class),
-            0.5,
-            0.1,
-            0.9);
+            "  ", method("doWork", int.class), method("doWorkFallback", int.class), 0.5, 0.1, 0.9);
 
     assertThatThrownBy(() -> validator.validate(desc))
         .isInstanceOf(InvalidDegradableDefinitionException.class)

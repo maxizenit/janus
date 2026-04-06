@@ -7,7 +7,8 @@ import org.junit.jupiter.api.Test;
 
 class DegradationStateUpdateSourceMapperTest {
 
-  private final DegradationStateUpdateSourceMapper mapper = new DegradationStateUpdateSourceMapper();
+  private final DegradationStateUpdateSourceMapper mapper =
+      new DegradationStateUpdateSourceMapper();
 
   @Test
   void fromGrpcToDomain_adminUi() {
@@ -28,8 +29,7 @@ class DegradationStateUpdateSourceMapperTest {
   @Test
   void fromGrpcToDomain_unrecognized_returnsNull() {
     DegradationStateUpdateSource result =
-        mapper.fromGrpcToDomain(
-            org.janus.api.statestore.DegradationStateUpdateSource.UNRECOGNIZED);
+        mapper.fromGrpcToDomain(org.janus.api.statestore.DegradationStateUpdateSource.UNRECOGNIZED);
 
     assertThat(result).isNull();
   }
@@ -39,8 +39,7 @@ class DegradationStateUpdateSourceMapperTest {
     org.janus.api.statestore.DegradationStateUpdateSource result =
         mapper.fromDomainToGrpc(DegradationStateUpdateSource.ADMIN_UI);
 
-    assertThat(result)
-        .isEqualTo(org.janus.api.statestore.DegradationStateUpdateSource.ADMIN_UI);
+    assertThat(result).isEqualTo(org.janus.api.statestore.DegradationStateUpdateSource.ADMIN_UI);
   }
 
   @Test
@@ -48,7 +47,6 @@ class DegradationStateUpdateSourceMapperTest {
     org.janus.api.statestore.DegradationStateUpdateSource result =
         mapper.fromDomainToGrpc(DegradationStateUpdateSource.EVALUATOR);
 
-    assertThat(result)
-        .isEqualTo(org.janus.api.statestore.DegradationStateUpdateSource.EVALUATOR);
+    assertThat(result).isEqualTo(org.janus.api.statestore.DegradationStateUpdateSource.EVALUATOR);
   }
 }
