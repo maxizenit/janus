@@ -32,7 +32,8 @@ public class PolicyViewMapper {
         metricReference,
         policy.hasCriticalThreshold() ? policy.getCriticalThreshold() : null,
         policy.hasMinFallbackRatio() ? policy.getMinFallbackRatio() : null,
-        policy.hasMaxFallbackRatio() ? policy.getMaxFallbackRatio() : null);
+        policy.hasMaxFallbackRatio() ? policy.getMaxFallbackRatio() : null,
+        policy.hasFallbackCurveExponent() ? policy.getFallbackCurveExponent() : null);
   }
 
   public CreateDegradationPolicyRequest toCreateRequest(PolicyView view) {
@@ -52,6 +53,9 @@ public class PolicyViewMapper {
     }
     if (view.maxFallbackRatio() != null) {
       builder.setMaxFallbackRatio(view.maxFallbackRatio());
+    }
+    if (view.fallbackCurveExponent() != null) {
+      builder.setFallbackCurveExponent(view.fallbackCurveExponent());
     }
 
     return builder.build();
@@ -81,6 +85,10 @@ public class PolicyViewMapper {
     if (view.maxFallbackRatio() != null) {
       builder.setMaxFallbackRatio(view.maxFallbackRatio());
       paths.add("max_fallback_ratio");
+    }
+    if (view.fallbackCurveExponent() != null) {
+      builder.setFallbackCurveExponent(view.fallbackCurveExponent());
+      paths.add("fallback_curve_exponent");
     }
 
     builder.setUpdateMask(FieldMask.newBuilder().addAllPaths(paths).build());

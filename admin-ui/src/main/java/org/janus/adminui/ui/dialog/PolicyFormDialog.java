@@ -35,6 +35,7 @@ public class PolicyFormDialog extends Dialog {
     NumberField criticalThreshold = new NumberField("Critical threshold");
     NumberField minFallbackRatio = new NumberField("Min fallback ratio");
     NumberField maxFallbackRatio = new NumberField("Max fallback ratio");
+    NumberField fallbackCurveExponent = new NumberField("Fallback curve exponent");
 
     binder
         .forField(degradationId)
@@ -62,6 +63,9 @@ public class PolicyFormDialog extends Dialog {
     binder
         .forField(maxFallbackRatio)
         .bind(PolicyFormData::getMaxFallbackRatio, PolicyFormData::setMaxFallbackRatio);
+    binder
+        .forField(fallbackCurveExponent)
+        .bind(PolicyFormData::getFallbackCurveExponent, PolicyFormData::setFallbackCurveExponent);
 
     binder.readBean(data);
 
@@ -93,7 +97,8 @@ public class PolicyFormDialog extends Dialog {
             metricReference,
             criticalThreshold,
             minFallbackRatio,
-            maxFallbackRatio),
+            maxFallbackRatio,
+            fallbackCurveExponent),
         new HorizontalLayout(save, cancel));
   }
 
@@ -107,6 +112,7 @@ public class PolicyFormDialog extends Dialog {
     @Nullable private Double criticalThreshold;
     @Nullable private Double minFallbackRatio;
     @Nullable private Double maxFallbackRatio;
+    @Nullable private Double fallbackCurveExponent;
 
     static PolicyFormData from(@Nullable PolicyView view) {
       PolicyFormData data = new PolicyFormData();
@@ -118,6 +124,7 @@ public class PolicyFormDialog extends Dialog {
         data.criticalThreshold = view.criticalThreshold();
         data.minFallbackRatio = view.minFallbackRatio();
         data.maxFallbackRatio = view.maxFallbackRatio();
+        data.fallbackCurveExponent = view.fallbackCurveExponent();
       } else {
         data.signalSourceType = SignalSourceTypeView.MANUAL;
       }
@@ -132,7 +139,8 @@ public class PolicyFormDialog extends Dialog {
           metricReference,
           criticalThreshold,
           minFallbackRatio,
-          maxFallbackRatio);
+          maxFallbackRatio,
+          fallbackCurveExponent);
     }
   }
 }

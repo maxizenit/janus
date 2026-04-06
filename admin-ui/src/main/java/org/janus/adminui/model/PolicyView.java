@@ -12,4 +12,5 @@ public record PolicyView(
     @Nullable String metricReference,
     @Nullable Double criticalThreshold,
     @Nullable Double minFallbackRatio,
-    @Nullable Double maxFallbackRatio) {}
+    @Nullable Double maxFallbackRatio,
+    @Nullable Double fallbackCurveExponent) {}
