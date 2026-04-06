@@ -9,9 +9,11 @@ subprojects {
         if (plugins.hasPlugin("org.springframework.boot") && file("Dockerfile").exists()) {
             apply(plugin = "com.bmuschko.docker-remote-api")
 
+            val bootJarTask = tasks.named("bootJar")
+
             tasks.register<DockerBuildImage>("buildDockerImageLocal") {
                 group = "deploy"
-                dependsOn("bootJar")
+                dependsOn(bootJarTask)
                 inputDir.set(layout.projectDirectory.asFile)
                 dockerFile.set(layout.projectDirectory.file("Dockerfile"))
                 images.add("${project.name}:local")

@@ -23,6 +23,11 @@ scrape_configs:
     static_configs:
       - targets: ["sidecar:8081"]
 
+  - job_name: admin-ui
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["admin-ui:8081"]
+
   - job_name: demo-server
     metrics_path: /actuator/prometheus
     static_configs:
