@@ -7,6 +7,7 @@ import org.janus.sidecar.registry.PersistentActualDegradationRegistry;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.sqlite.SQLiteDataSource;
 
 @Configuration
@@ -34,6 +35,7 @@ public class PersistenceConfiguration {
   }
 
   @Bean
+  @Primary
   public ActualDegradationRegistry actualDegradationRegistry(
       InMemoryActualDegradationRegistry inMemory, DegradationIdStore store) {
     return new PersistentActualDegradationRegistry(inMemory, store);
