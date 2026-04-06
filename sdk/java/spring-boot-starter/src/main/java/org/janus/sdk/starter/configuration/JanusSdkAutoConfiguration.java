@@ -11,6 +11,7 @@ import org.janus.sdk.core.transform.FallbackArgumentsTransformer;
 import org.janus.sdk.core.validation.DefaultDegradableDescriptorValidator;
 import org.janus.sdk.core.validation.DegradableDescriptorValidator;
 import org.janus.sdk.starter.aop.DegradableAspect;
+import org.janus.sdk.starter.aop.DegradableMetrics;
 import org.janus.sdk.starter.aop.ReflectionFallbackMethodInvoker;
 import org.janus.sdk.starter.client.GrpcSidecarSdkClient;
 import org.janus.sdk.starter.configuration.properties.JanusSdkProperties;
@@ -35,6 +36,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ConditionalOnProperty(prefix = "janus.sdk", name = "enabled", havingValue = "true")
 @Import({
   DegradableAspect.class,
+  DegradableMetrics.class,
   ReflectionFallbackMethodInvoker.class,
   RegistryBackedMethodDescriptorResolver.class,
   DegradableMethodScanner.class,
