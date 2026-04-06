@@ -40,6 +40,10 @@ databaseChangeLog:
                   name: max_fallback_ratio
                   type: double precision
 
+              - column:
+                  name: fallback_curve_exponent
+                  type: double precision
+
         - sql:
             sql: |
               alter table degradation_policy
@@ -103,4 +107,13 @@ databaseChangeLog:
                 min_fallback_ratio is null
                 or max_fallback_ratio is null
                 or min_fallback_ratio <= max_fallback_ratio
+              );
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_fallback_curve_exponent_range
+              check (
+                fallback_curve_exponent is null
+                or fallback_curve_exponent >= 0
               );

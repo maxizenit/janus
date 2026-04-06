@@ -37,6 +37,7 @@ public class PoliciesView extends VerticalLayout {
     grid.addColumn(PolicyView::criticalThreshold).setHeader("Critical threshold");
     grid.addColumn(PolicyView::minFallbackRatio).setHeader("Min fallback ratio");
     grid.addColumn(PolicyView::maxFallbackRatio).setHeader("Max fallback ratio");
+    grid.addColumn(PolicyView::fallbackCurveExponent).setHeader("Fallback curve exponent");
 
     grid.addComponentColumn(
             policy -> {
