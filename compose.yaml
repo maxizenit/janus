@@ -147,6 +147,7 @@ services:
     ports:
       - "8091:8091"
     environment:
+      DEMO_SERVER_URL: http://demo-server:8090
       SPRING_GRPC_CLIENT_CHANNELS_SIDECAR_ADDRESS: sidecar:9090
     depends_on:
       sidecar:
