@@ -58,16 +58,16 @@ public class DegradationPolicyValidator {
   private void validateSource(DegradationPolicy policy) {
     if (policy.getSignalSourceType() == null) {
       require(
-          policy.getSourcePrometheusMetricReference() == null,
-          "sourcePrometheusMetricReference must be null");
+          policy.getSourcePrometheusQuery() == null,
+          "sourcePrometheusQuery must be null");
       return;
     }
 
     switch (policy.getSignalSourceType()) {
       case PROMETHEUS ->
           requireNotBlank(
-              policy.getSourcePrometheusMetricReference(),
-              "sourcePrometheusMetricReference required");
+              policy.getSourcePrometheusQuery(),
+              "sourcePrometheusQuery required");
     }
   }
 

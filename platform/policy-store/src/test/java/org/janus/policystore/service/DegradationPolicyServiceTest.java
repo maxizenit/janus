@@ -43,7 +43,7 @@ class DegradationPolicyServiceTest {
     entity.setDegradationId(id);
     entity.setEvaluationIntervalMs(30000L);
     entity.setSignalSourceType(SignalSourceType.PROMETHEUS);
-    entity.setSourcePrometheusMetricReference("up{job=\"test\"}");
+    entity.setSourcePrometheusQuery("up{job=\"test\"}");
     entity.setCriticalThreshold(0.7);
     entity.setMinFallbackRatio(0.1);
     entity.setMaxFallbackRatio(0.9);
@@ -105,7 +105,7 @@ class DegradationPolicyServiceTest {
                 SignalSource.newBuilder()
                     .setPrometheus(
                         PrometheusMetric.newBuilder()
-                            .setMetricReference("metric")
+                            .setQuery("metric")
                             .build())
                     .build())
             .build();

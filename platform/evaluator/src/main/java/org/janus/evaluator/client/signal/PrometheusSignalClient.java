@@ -1,7 +1,6 @@
 package org.janus.evaluator.client.signal;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,23 +22,21 @@ public class PrometheusSignalClient implements SignalClient {
   private final Clock clock;
 
   @Override
-  public double getSignalValue(SignalSourceSnapshot signalSource, Duration evaluationInterval) {
+  public double getSignalValue(SignalSourceSnapshot signalSource) {
     if (signalSource.type() != SignalSourceSnapshot.SignalSourceType.PROMETHEUS) {
       log.error(
-          "Unsupported signal source type for Prometheus client: signalSourceType={}, reference={}",
+          "Unsupported signal source type for Prometheus client: signalSourceType={}, query={}",
           signalSource.type(),
-          signalSource.reference());
+          signalSource.query());
       throw new UnsupportedOperationException(
           "Signal source type is not supported yet: " + signalSource.type());
     }
 
-    var query = resolveQuery(signalSource.reference(), evaluationInterval);
+    var query = signalSource.query();
     var queryTime = Instant.now(clock);
 
     log.debug(
-        "Prometheus query started: reference={}, evaluationInterval={}, query={}, timeout={}",
-        signalSource.reference(),
-        evaluationInterval,
+        "Prometheus query started: query={}, timeout={}",
         query,
         properties.requestTimeout());
 
@@ -63,38 +60,11 @@ public class PrometheusSignalClient implements SignalClient {
     }
 
     var resultType = body.path("data").path("resultType").asString();
-    log.debug(
-        "Prometheus query completed: reference={}, query={}, resultType={}",
-        signalSource.reference(),
-        query,
-        resultType);
+    log.debug("Prometheus query completed: query={}, resultType={}", query, resultType);
 
     var value = extractSingleValue(body, query);
-    log.debug(
-        "Prometheus value extracted: reference={}, query={}, value={}",
-        signalSource.reference(),
-        query,
-        value);
+    log.debug("Prometheus value extracted: query={}, value={}", query, value);
     return value;
-  }
-
-  private static String resolveQuery(String template, Duration evaluationInterval) {
-    return template
-        .replace("${evaluation_interval}", toPrometheusDuration(evaluationInterval))
-        .replace("${evaluation_interval_s}", Long.toString(evaluationInterval.toSeconds()))
-        .replace("${evaluation_interval_ms}", Long.toString(evaluationInterval.toMillis()));
-  }
-
-  private static String toPrometheusDuration(Duration duration) {
-    var seconds = duration.toSeconds();
-
-    if (seconds % 3600 == 0) {
-      return (seconds / 3600) + "h";
-    }
-    if (seconds % 60 == 0) {
-      return (seconds / 60) + "m";
-    }
-    return seconds + "s";
   }
 
   private static double extractSingleValue(JsonNode body, String query) {

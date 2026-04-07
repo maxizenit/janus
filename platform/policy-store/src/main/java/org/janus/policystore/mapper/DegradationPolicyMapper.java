@@ -164,7 +164,7 @@ public class DegradationPolicyMapper {
     if (SignalSourceType.PROMETHEUS.equals(entity.getSignalSourceType())) {
       builder.setPrometheus(
           PrometheusMetric.newBuilder()
-              .setMetricReference(entity.getSourcePrometheusMetricReference())
+              .setQuery(entity.getSourcePrometheusQuery())
               .build());
     } else {
       log.error(
@@ -182,8 +182,8 @@ public class DegradationPolicyMapper {
     switch (signalSource.getKindCase()) {
       case SignalSource.KindCase.PROMETHEUS -> {
         entity.setSignalSourceType(SignalSourceType.PROMETHEUS);
-        entity.setSourcePrometheusMetricReference(
-            signalSource.getPrometheus().getMetricReference());
+        entity.setSourcePrometheusQuery(
+            signalSource.getPrometheus().getQuery());
       }
       default -> {
         log.warn(
@@ -196,6 +196,6 @@ public class DegradationPolicyMapper {
 
   private void clearSignalSource(org.janus.policystore.entity.DegradationPolicy entity) {
     entity.setSignalSourceType(null);
-    entity.setSourcePrometheusMetricReference(null);
+    entity.setSourcePrometheusQuery(null);
   }
 }

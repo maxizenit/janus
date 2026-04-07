@@ -94,7 +94,7 @@ public class GrpcPolicyStoreClient implements PolicyStoreClient {
       case PROMETHEUS ->
           new SignalSourceSnapshot(
               SignalSourceSnapshot.SignalSourceType.PROMETHEUS,
-              signalSource.getPrometheus().getMetricReference());
+              signalSource.getPrometheus().getQuery());
       case KIND_NOT_SET -> throw new IllegalArgumentException("Signal source kind is not set");
     };
   }

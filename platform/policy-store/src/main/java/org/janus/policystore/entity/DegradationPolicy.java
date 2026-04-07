@@ -26,7 +26,7 @@ public class DegradationPolicy {
   @Enumerated(EnumType.STRING)
   private SignalSourceType signalSourceType;
 
-  private String sourcePrometheusMetricReference;
+  private String sourcePrometheusQuery;
 
   @DecimalMin("0.0")
   @DecimalMax("1.0")

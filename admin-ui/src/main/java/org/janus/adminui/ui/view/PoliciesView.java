@@ -33,7 +33,7 @@ public class PoliciesView extends VerticalLayout {
     grid.addColumn(PolicyView::degradationId).setHeader("Degradation ID").setAutoWidth(true);
     grid.addColumn(p -> p.evaluationInterval().toSeconds()).setHeader("Evaluation interval, sec");
     grid.addColumn(PolicyView::signalSourceType).setHeader("Source type");
-    grid.addColumn(PolicyView::metricReference).setHeader("Metric reference");
+    grid.addColumn(PolicyView::query).setHeader("Query");
     grid.addColumn(PolicyView::criticalThreshold).setHeader("Critical threshold");
     grid.addColumn(PolicyView::minFallbackRatio).setHeader("Min fallback ratio");
     grid.addColumn(PolicyView::maxFallbackRatio).setHeader("Max fallback ratio");

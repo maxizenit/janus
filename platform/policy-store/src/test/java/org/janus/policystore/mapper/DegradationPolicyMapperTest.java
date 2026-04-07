@@ -27,7 +27,7 @@ class DegradationPolicyMapperTest {
     entity.setDegradationId("test");
     entity.setEvaluationIntervalMs(30000L);
     entity.setSignalSourceType(SignalSourceType.PROMETHEUS);
-    entity.setSourcePrometheusMetricReference("up{job=\"test\"}");
+    entity.setSourcePrometheusQuery("up{job=\"test\"}");
     entity.setCriticalThreshold(0.7);
     entity.setMinFallbackRatio(0.1);
     entity.setMaxFallbackRatio(0.9);
@@ -53,7 +53,7 @@ class DegradationPolicyMapperTest {
     assertThat(proto.getDegradationId()).isEqualTo("test");
     assertThat(proto.getEvaluationInterval().getSeconds()).isEqualTo(30);
     assertThat(proto.hasSignalSource()).isTrue();
-    assertThat(proto.getSignalSource().getPrometheus().getMetricReference())
+    assertThat(proto.getSignalSource().getPrometheus().getQuery())
         .isEqualTo("up{job=\"test\"}");
     assertThat(proto.hasCriticalThreshold()).isTrue();
     assertThat(proto.getCriticalThreshold()).isEqualTo(0.7);
@@ -91,7 +91,7 @@ class DegradationPolicyMapperTest {
     assertThat(proto.getDegradationId()).isEqualTo("test");
     assertThat(proto.getEvaluationInterval().getSeconds()).isEqualTo(30);
     assertThat(proto.hasSignalSource()).isTrue();
-    assertThat(proto.getSignalSource().getPrometheus().getMetricReference())
+    assertThat(proto.getSignalSource().getPrometheus().getQuery())
         .isEqualTo("up{job=\"test\"}");
   }
 
@@ -127,7 +127,7 @@ class DegradationPolicyMapperTest {
                 SignalSource.newBuilder()
                     .setPrometheus(
                         PrometheusMetric.newBuilder()
-                            .setMetricReference("http_requests_total")
+                            .setQuery("http_requests_total")
                             .build())
                     .build())
             .setCriticalThreshold(0.8)
@@ -141,7 +141,7 @@ class DegradationPolicyMapperTest {
     assertThat(entity.getDegradationId()).isEqualTo("new-policy");
     assertThat(entity.getEvaluationIntervalMs()).isEqualTo(60000L);
     assertThat(entity.getSignalSourceType()).isEqualTo(SignalSourceType.PROMETHEUS);
-    assertThat(entity.getSourcePrometheusMetricReference()).isEqualTo("http_requests_total");
+    assertThat(entity.getSourcePrometheusQuery()).isEqualTo("http_requests_total");
     assertThat(entity.getCriticalThreshold()).isEqualTo(0.8);
     assertThat(entity.getMinFallbackRatio()).isEqualTo(0.2);
     assertThat(entity.getMaxFallbackRatio()).isEqualTo(0.95);
@@ -161,7 +161,7 @@ class DegradationPolicyMapperTest {
     assertThat(entity.getDegradationId()).isEqualTo("bare-policy");
     assertThat(entity.getEvaluationIntervalMs()).isEqualTo(15000L);
     assertThat(entity.getSignalSourceType()).isNull();
-    assertThat(entity.getSourcePrometheusMetricReference()).isNull();
+    assertThat(entity.getSourcePrometheusQuery()).isNull();
     assertThat(entity.getCriticalThreshold()).isNull();
     assertThat(entity.getMinFallbackRatio()).isNull();
     assertThat(entity.getMaxFallbackRatio()).isNull();
@@ -231,7 +231,7 @@ class DegradationPolicyMapperTest {
     mapper.updateEntityFromUpdateRequestProto(entity, request);
 
     assertThat(entity.getSignalSourceType()).isNull();
-    assertThat(entity.getSourcePrometheusMetricReference()).isNull();
+    assertThat(entity.getSourcePrometheusQuery()).isNull();
   }
 
   // --- signal source mapping ---
@@ -242,12 +242,12 @@ class DegradationPolicyMapperTest {
     entity.setDegradationId("prom-test");
     entity.setEvaluationIntervalMs(5000L);
     entity.setSignalSourceType(SignalSourceType.PROMETHEUS);
-    entity.setSourcePrometheusMetricReference("process_cpu_seconds_total");
+    entity.setSourcePrometheusQuery("process_cpu_seconds_total");
 
     var proto = mapper.fromEntityToProto(entity);
 
     assertThat(proto.getSignalSource().getKindCase()).isEqualTo(SignalSource.KindCase.PROMETHEUS);
-    assertThat(proto.getSignalSource().getPrometheus().getMetricReference())
+    assertThat(proto.getSignalSource().getPrometheus().getQuery())
         .isEqualTo("process_cpu_seconds_total");
   }
 }

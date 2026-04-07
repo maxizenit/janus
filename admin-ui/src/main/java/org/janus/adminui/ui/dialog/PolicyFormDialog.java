@@ -6,6 +6,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import java.time.Duration;
@@ -31,7 +32,11 @@ public class PolicyFormDialog extends Dialog {
     signalSourceType.setLabel("Signal source type");
     signalSourceType.setItems(SignalSourceTypeView.values());
 
-    TextField metricReference = new TextField("Metric reference");
+    TextArea query = new TextArea("Prometheus query");
+    query.setMinHeight("100px");
+    query.setWidthFull();
+    query.setPlaceholder("e.g. rate(http_errors_total[5m]) / rate(http_requests_total[5m])");
+
     NumberField criticalThreshold = new NumberField("Critical threshold");
     NumberField minFallbackRatio = new NumberField("Min fallback ratio");
     NumberField maxFallbackRatio = new NumberField("Max fallback ratio");
@@ -52,8 +57,8 @@ public class PolicyFormDialog extends Dialog {
         .asRequired()
         .bind(PolicyFormData::getSignalSourceType, PolicyFormData::setSignalSourceType);
     binder
-        .forField(metricReference)
-        .bind(PolicyFormData::getMetricReference, PolicyFormData::setMetricReference);
+        .forField(query)
+        .bind(PolicyFormData::getQuery, PolicyFormData::setQuery);
     binder
         .forField(criticalThreshold)
         .bind(PolicyFormData::getCriticalThreshold, PolicyFormData::setCriticalThreshold);
@@ -72,7 +77,7 @@ public class PolicyFormDialog extends Dialog {
     Runnable updateVisibility =
         () -> {
           boolean prometheus = SignalSourceTypeView.PROMETHEUS.equals(signalSourceType.getValue());
-          metricReference.setVisible(prometheus);
+          query.setVisible(prometheus);
         };
     signalSourceType.addValueChangeListener(e -> updateVisibility.run());
     updateVisibility.run();
@@ -94,7 +99,7 @@ public class PolicyFormDialog extends Dialog {
             degradationId,
             evaluationIntervalSeconds,
             signalSourceType,
-            metricReference,
+            query,
             criticalThreshold,
             minFallbackRatio,
             maxFallbackRatio,
@@ -108,7 +113,7 @@ public class PolicyFormDialog extends Dialog {
     private String degradationId;
     private Double evaluationIntervalSeconds;
     private SignalSourceTypeView signalSourceType;
-    @Nullable private String metricReference;
+    @Nullable private String query;
     @Nullable private Double criticalThreshold;
     @Nullable private Double minFallbackRatio;
     @Nullable private Double maxFallbackRatio;
@@ -120,7 +125,7 @@ public class PolicyFormDialog extends Dialog {
         data.degradationId = view.degradationId();
         data.evaluationIntervalSeconds = (double) view.evaluationInterval().toSeconds();
         data.signalSourceType = view.signalSourceType();
-        data.metricReference = view.metricReference();
+        data.query = view.query();
         data.criticalThreshold = view.criticalThreshold();
         data.minFallbackRatio = view.minFallbackRatio();
         data.maxFallbackRatio = view.maxFallbackRatio();
@@ -136,7 +141,7 @@ public class PolicyFormDialog extends Dialog {
           degradationId,
           Duration.ofSeconds(evaluationIntervalSeconds.longValue()),
           signalSourceType,
-          metricReference,
+          query,
           criticalThreshold,
           minFallbackRatio,
           maxFallbackRatio,

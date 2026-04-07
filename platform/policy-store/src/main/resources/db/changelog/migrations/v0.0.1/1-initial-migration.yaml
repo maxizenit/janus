@@ -25,7 +25,7 @@ databaseChangeLog:
                   type: varchar
 
               - column:
-                  name: source_prometheus_metric_reference
+                  name: source_prometheus_query
                   type: varchar
 
               - column:
@@ -63,12 +63,12 @@ databaseChangeLog:
               check (
                 (
                   signal_source_type = 'PROMETHEUS'
-                  and source_prometheus_metric_reference is not null
+                  and source_prometheus_query is not null
                 )
                 or
                 (
                   signal_source_type is null
-                  and source_prometheus_metric_reference is null
+                  and source_prometheus_query is null
                 )
               );
 
