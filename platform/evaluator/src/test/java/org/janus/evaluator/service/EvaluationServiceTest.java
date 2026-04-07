@@ -91,7 +91,7 @@ class EvaluationServiceTest {
     when(leadershipHandle.acquired()).thenReturn(true);
     when(leadershipClient.tryAcquire(DEGRADATION_ID, LEASE_DURATION)).thenReturn(leadershipHandle);
 
-    when(signalClient.getSignalValue(signalSource, EVALUATION_INTERVAL)).thenReturn(0.75);
+    when(signalClient.getSignalValue(signalSource)).thenReturn(0.75);
     when(signalValueValidator.validate(0.75, DEGRADATION_ID)).thenReturn(0.75);
 
     var result = evaluationService.evaluate(DEGRADATION_ID);
@@ -148,7 +148,7 @@ class EvaluationServiceTest {
     when(leadershipHandle.acquired()).thenReturn(true);
     when(leadershipClient.tryAcquire(DEGRADATION_ID, LEASE_DURATION)).thenReturn(leadershipHandle);
 
-    when(signalClient.getSignalValue(signalSource, EVALUATION_INTERVAL))
+    when(signalClient.getSignalValue(signalSource))
         .thenThrow(new RuntimeException("Prometheus unavailable"));
 
     var result = evaluationService.evaluate(DEGRADATION_ID);
@@ -230,7 +230,7 @@ class EvaluationServiceTest {
     when(leadershipHandle.acquired()).thenReturn(true);
     when(leadershipClient.tryAcquire(DEGRADATION_ID, LEASE_DURATION)).thenReturn(leadershipHandle);
 
-    when(signalClient.getSignalValue(signalSource, interval)).thenReturn(0.5);
+    when(signalClient.getSignalValue(signalSource)).thenReturn(0.5);
     when(signalValueValidator.validate(0.5, DEGRADATION_ID)).thenReturn(0.5);
 
     evaluationService.evaluate(DEGRADATION_ID);
@@ -252,7 +252,7 @@ class EvaluationServiceTest {
     when(leadershipHandle.acquired()).thenReturn(true);
     when(leadershipClient.tryAcquire(DEGRADATION_ID, LEASE_DURATION)).thenReturn(leadershipHandle);
 
-    when(signalClient.getSignalValue(signalSource, EVALUATION_INTERVAL)).thenReturn(-1.0);
+    when(signalClient.getSignalValue(signalSource)).thenReturn(-1.0);
     when(signalValueValidator.validate(-1.0, DEGRADATION_ID))
         .thenThrow(new IllegalArgumentException("out of range"));
 

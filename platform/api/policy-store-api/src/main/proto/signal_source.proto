@@ -12,5 +12,5 @@ message SignalSource {
 }
 
 message PrometheusMetric {
-  string metric_reference = 1;
+  string query = 1;
 }

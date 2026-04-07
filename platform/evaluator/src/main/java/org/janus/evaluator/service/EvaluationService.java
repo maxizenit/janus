@@ -61,7 +61,7 @@ public class EvaluationService {
           policy.degradationId(),
           policy.evaluationInterval(),
           policy.signalSource().type(),
-          policy.signalSource().reference());
+          policy.signalSource().query());
 
       try (var leadership =
           leadershipClient.tryAcquire(
@@ -91,7 +91,7 @@ public class EvaluationService {
 
         var signalFetchStart = Instant.now(clock);
         var rawValue =
-            signalClient.getSignalValue(policy.signalSource(), policy.evaluationInterval());
+            signalClient.getSignalValue(policy.signalSource());
         evaluatorMetrics.recordSignalFetchDuration(
             policy.degradationId(), Duration.between(signalFetchStart, Instant.now(clock)));
 
@@ -100,7 +100,7 @@ public class EvaluationService {
             policy.degradationId(),
             rawValue,
             policy.signalSource().type(),
-            policy.signalSource().reference());
+            policy.signalSource().query());
 
         var value = signalValueValidator.validate(rawValue, policy.degradationId());
         log.debug(

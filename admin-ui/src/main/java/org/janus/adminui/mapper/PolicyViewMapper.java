@@ -20,16 +20,16 @@ public class PolicyViewMapper {
     SignalSourceTypeView signalSourceType =
         policy.hasSignalSource() ? SignalSourceTypeView.PROMETHEUS : SignalSourceTypeView.MANUAL;
 
-    String metricReference =
+    String query =
         policy.hasSignalSource() && policy.getSignalSource().hasPrometheus()
-            ? policy.getSignalSource().getPrometheus().getMetricReference()
+            ? policy.getSignalSource().getPrometheus().getQuery()
             : null;
 
     return new PolicyView(
         policy.getDegradationId(),
         Duration.ofMillis(Durations.toMillis(policy.getEvaluationInterval())),
         signalSourceType,
-        metricReference,
+        query,
         policy.hasCriticalThreshold() ? policy.getCriticalThreshold() : null,
         policy.hasMinFallbackRatio() ? policy.getMinFallbackRatio() : null,
         policy.hasMaxFallbackRatio() ? policy.getMaxFallbackRatio() : null,
@@ -102,7 +102,7 @@ public class PolicyViewMapper {
           builder
               .setPrometheus(
                   org.janus.api.policystore.PrometheusMetric.newBuilder()
-                      .setMetricReference(view.metricReference())
+                      .setQuery(view.query())
                       .build())
               .build();
       case MANUAL -> throw new IllegalArgumentException("Manual policy has no signal source");
