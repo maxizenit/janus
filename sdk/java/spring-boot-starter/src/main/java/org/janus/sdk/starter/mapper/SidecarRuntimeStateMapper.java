@@ -23,7 +23,7 @@ public class SidecarRuntimeStateMapper {
         degradation.hasFallbackCurveExponent()
             ? degradation.getFallbackCurveExponent()
             : Double.NaN,
-        false,
+        degradation.getStale(),
         Instant.now());
   }
 }

@@ -46,6 +46,7 @@ class SidecarGrpcMapperTest {
     assertThat(d.getMaxFallbackRatio()).isEqualTo(0.8);
     assertThat(d.hasFallbackCurveExponent()).isTrue();
     assertThat(d.getFallbackCurveExponent()).isEqualTo(2.0);
+    assertThat(d.getStale()).isFalse();
   }
 
   @Test
@@ -71,6 +72,7 @@ class SidecarGrpcMapperTest {
     assertThat(d.hasMinFallbackRatio()).isFalse();
     assertThat(d.hasMaxFallbackRatio()).isFalse();
     assertThat(d.hasFallbackCurveExponent()).isFalse();
+    assertThat(d.getStale()).isFalse();
   }
 
   @Test
@@ -98,6 +100,7 @@ class SidecarGrpcMapperTest {
     assertThat(d.hasMaxFallbackRatio()).isTrue();
     assertThat(d.getMaxFallbackRatio()).isEqualTo(0.7);
     assertThat(d.hasFallbackCurveExponent()).isFalse();
+    assertThat(d.getStale()).isTrue();
   }
 
   @Test

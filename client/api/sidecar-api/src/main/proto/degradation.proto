@@ -15,4 +15,5 @@ message Degradation {
   optional double min_fallback_ratio = 5;
   optional double max_fallback_ratio = 6;
   optional double fallback_curve_exponent = 7;
+  bool stale = 8;
 }

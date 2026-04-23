@@ -38,8 +38,16 @@ public class JanusSdkStartupRunner implements ApplicationRunner {
       return;
     }
 
-    sidecarSdkClient.syncActualDegradations(degradationIds);
-    refreshService.refresh();
+    try {
+      sidecarSdkClient.syncActualDegradations(degradationIds);
+      refreshService.refresh();
+    } catch (Exception e) {
+      log.warn(
+          "SDK startup synchronization failed, scheduled refresh will retry: degradationIds={}",
+          degradationIds.size(),
+          e);
+      return;
+    }
 
     log.info("SDK startup synchronization completed: degradationIds={}", degradationIds.size());
   }

@@ -80,4 +80,19 @@ class SidecarRuntimeStateMapperTest {
 
     assertThat(state.evaluationInterval()).isEqualTo(Duration.ofMinutes(1));
   }
+
+  @Test
+  void mapsStaleFlagCorrectly() {
+    var degradation =
+        Degradation.newBuilder()
+            .setDegradationId("deg-stale")
+            .setValue(0.3)
+            .setEvaluationInterval(Durations.fromMillis(60000))
+            .setStale(true)
+            .build();
+
+    var state = mapper.toRuntimeState(degradation);
+
+    assertThat(state.stale()).isTrue();
+  }
 }
