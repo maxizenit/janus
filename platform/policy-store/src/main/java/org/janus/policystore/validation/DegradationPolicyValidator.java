@@ -51,8 +51,17 @@ public class DegradationPolicyValidator {
   }
 
   private void validate(DegradationPolicy policy) {
+    validateCommonFields(policy);
     validateSource(policy);
     validateFallback(policy);
+  }
+
+  private void validateCommonFields(DegradationPolicy policy) {
+    requireNotBlank(policy.getDegradationId(), "degradationId required");
+
+    require(
+        policy.getEvaluationIntervalMs() != null && policy.getEvaluationIntervalMs() > 0,
+        "evaluationIntervalMs must be positive");
   }
 
   private void validateSource(DegradationPolicy policy) {
@@ -72,6 +81,9 @@ public class DegradationPolicyValidator {
   }
 
   private void validateFallback(DegradationPolicy policy) {
+    requireInRange(policy.getCriticalThreshold(), "criticalThreshold", 0.0, 1.0);
+    requireInRange(policy.getMinFallbackRatio(), "minFallbackRatio", 0.0, 1.0);
+    requireInRange(policy.getMaxFallbackRatio(), "maxFallbackRatio", 0.0, 1.0);
 
     if (policy.getMinFallbackRatio() != null && policy.getMaxFallbackRatio() != null) {
 
@@ -79,6 +91,10 @@ public class DegradationPolicyValidator {
           policy.getMinFallbackRatio() <= policy.getMaxFallbackRatio(),
           "minFallbackRatio must be <= maxFallbackRatio");
     }
+
+    require(
+        policy.getFallbackCurveExponent() == null || policy.getFallbackCurveExponent() > 0.0,
+        "fallbackCurveExponent must be positive");
   }
 
   private static void require(boolean condition, String message) {
@@ -93,5 +109,14 @@ public class DegradationPolicyValidator {
       log.warn("Degradation policy validation failed: {}", message);
       throw new IllegalArgumentException(message);
     }
+  }
+
+  private static void requireInRange(
+      @Nullable Double value, String field, double min, double max) {
+    if (value == null) {
+      return;
+    }
+
+    require(value >= min && value <= max, field + " must be in range [" + min + ", " + max + "]");
   }
 }
