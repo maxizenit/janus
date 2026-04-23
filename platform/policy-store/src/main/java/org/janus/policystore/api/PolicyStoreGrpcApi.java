@@ -64,7 +64,10 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
         "GetEvaluatorDegradationPolicies request received: degradationCount={}",
         degradationIds.size());
 
-    var policies = policyService.getPoliciesByDegradationIds(degradationIds);
+    var policies =
+        degradationIds.isEmpty()
+            ? policyService.getAllPolicies()
+            : policyService.getPoliciesByDegradationIds(degradationIds);
     log.debug(
         "GetEvaluatorDegradationPolicies request completed: requested={}, returned={}",
         degradationIds.size(),
