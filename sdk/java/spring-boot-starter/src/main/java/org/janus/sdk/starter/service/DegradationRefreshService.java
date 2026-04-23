@@ -1,6 +1,7 @@
 package org.janus.sdk.starter.service;
 
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.janus.sdk.core.runtime.DegradationRuntimeState;
@@ -17,6 +18,16 @@ public class DegradationRefreshService {
 
   private final SidecarSdkClient sidecarSdkClient;
   private final DegradationStateRegistry stateRegistry;
+
+  public void syncAndRefresh(Set<String> degradationIds) {
+    if (degradationIds.isEmpty()) {
+      log.debug("Skipping degradation synchronization: no degradation ids");
+      return;
+    }
+
+    sidecarSdkClient.syncActualDegradations(degradationIds);
+    refresh();
+  }
 
   public void refresh() {
     var states =

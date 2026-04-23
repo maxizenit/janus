@@ -2,12 +2,10 @@ package org.janus.sdk.starter.lifecycle;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
 import org.janus.sdk.core.registry.DegradableMethodRegistry;
-import org.janus.sdk.starter.client.SidecarSdkClient;
 import org.janus.sdk.starter.scanner.DegradableMethodScanner;
 import org.janus.sdk.starter.service.DegradationRefreshService;
 import org.junit.jupiter.api.Test;
@@ -20,22 +18,21 @@ class JanusSdkStartupRunnerTest {
 
   @Mock private DegradableMethodScanner scanner;
   @Mock private DegradableMethodRegistry registry;
-  @Mock private SidecarSdkClient sidecarSdkClient;
   @Mock private DegradationRefreshService refreshService;
 
   @Test
   void run_sidecarUnavailable_doesNotFailApplicationStartup() {
-    var runner = new JanusSdkStartupRunner(scanner, registry, sidecarSdkClient, refreshService);
+    var runner = new JanusSdkStartupRunner(scanner, registry, refreshService);
 
     when(registry.getAllDegradationIds()).thenReturn(Set.of("deg-1"));
     when(registry.getAll()).thenReturn(Set.of());
     org.mockito.Mockito.doThrow(new RuntimeException("sidecar down"))
-        .when(sidecarSdkClient)
-        .syncActualDegradations(Set.of("deg-1"));
+        .when(refreshService)
+        .syncAndRefresh(Set.of("deg-1"));
 
     assertThatCode(() -> runner.run(null)).doesNotThrowAnyException();
 
     verify(scanner).scanAndRegister();
-    verifyNoInteractions(refreshService);
+    verify(refreshService).syncAndRefresh(Set.of("deg-1"));
   }
 }
