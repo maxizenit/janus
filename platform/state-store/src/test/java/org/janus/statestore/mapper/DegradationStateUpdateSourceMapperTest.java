@@ -35,6 +35,16 @@ class DegradationStateUpdateSourceMapperTest {
   }
 
   @Test
+  void fromGrpcToDomain_unspecified_returnsNull() {
+    DegradationStateUpdateSource result =
+        mapper.fromGrpcToDomain(
+            org.janus.api.statestore.DegradationStateUpdateSource
+                .DEGRADATION_STATE_UPDATE_SOURCE_UNSPECIFIED);
+
+    assertThat(result).isNull();
+  }
+
+  @Test
   void fromDomainToGrpc_adminUi() {
     org.janus.api.statestore.DegradationStateUpdateSource result =
         mapper.fromDomainToGrpc(DegradationStateUpdateSource.ADMIN_UI);
