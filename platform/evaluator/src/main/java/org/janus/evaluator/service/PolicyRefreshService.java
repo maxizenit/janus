@@ -89,8 +89,8 @@ public class PolicyRefreshService {
     log.info(
         "Refreshing evaluator policies completed: total={}, registered={}, updated={}, unchanged={}",
         policies.size(),
+        registeredCount,
         updatedCount.get(),
-        unchangedCount.get(),
         unchangedCount.get());
   }
 }
