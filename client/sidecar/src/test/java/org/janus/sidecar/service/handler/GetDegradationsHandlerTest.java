@@ -48,6 +48,23 @@ class GetDegradationsHandlerTest {
     assertThat(view.minFallbackRatio()).isEqualTo(0.1);
     assertThat(view.maxFallbackRatio()).isEqualTo(0.8);
     assertThat(view.fallbackCurveExponent()).isEqualTo(2.0);
+    assertThat(view.stale()).isFalse();
+  }
+
+  @Test
+  void handle_staleState_propagatesStaleFlag() {
+    var degradation = new RegisteredDegradation("deg-1");
+    var now = Instant.now();
+    degradation.replacePolicy(
+        new PolicySnapshot("deg-1", Duration.ofSeconds(10), 0.9, 0.1, 0.8, 2.0, now));
+    degradation.setState(new StateSnapshot("deg-1", 0.75, now, true));
+
+    when(registry.findAllActive()).thenReturn(List.of(degradation));
+
+    List<DegradationView> result = handler.handle();
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).stale()).isTrue();
   }
 
   @Test

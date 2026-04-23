@@ -59,6 +59,15 @@ public class PolicyRefreshService {
         policies.size());
 
     if (!missingIds.isEmpty()) {
+      missingIds.forEach(
+          missingId ->
+              registry
+                  .find(missingId)
+                  .ifPresent(
+                      holder -> {
+                        holder.clearPolicy();
+                        holder.clearState();
+                      }));
       log.warn(
           "Policies missing in policy store response: missingCount={}, missingIds={}",
           missingIds.size(),

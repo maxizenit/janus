@@ -27,7 +27,8 @@ public class SidecarGrpcMapper {
           Degradation.newBuilder()
               .setDegradationId(view.degradationId())
               .setValue(view.value())
-              .setEvaluationInterval(Durations.fromMillis(view.evaluationInterval().toMillis()));
+              .setEvaluationInterval(Durations.fromMillis(view.evaluationInterval().toMillis()))
+              .setStale(view.stale());
 
       if (view.criticalThreshold() != null) {
         degradationBuilder.setCriticalThreshold(view.criticalThreshold());

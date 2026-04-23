@@ -79,6 +79,7 @@ public class StateRefreshService {
             updatedCount.incrementAndGet();
           } else {
             missingCount.incrementAndGet();
+            holder.markStateStale(now);
             log.debug("State not found in state store: degradation={}", holder.getDegradationId());
           }
 
@@ -113,26 +114,37 @@ public class StateRefreshService {
     } catch (Exception e) {
       var now = Instant.now(clock);
       int staleMarked = 0;
+      var results = new ArrayList<StateRefreshResult>(eligible.size());
 
       for (var holder : eligible) {
         try {
-          holder.getState().ifPresent(previous -> holder.setState(previous.staleCopy(now)));
-          staleMarked++;
+          if (holder.markStateStale(now)) {
+            staleMarked++;
+          }
           log.warn(
               "State refresh failed, marking stale: degradation={}", holder.getDegradationId());
+          holder
+              .getPolicy()
+              .ifPresent(
+                  policy -> {
+                    var nextRefreshAt = now.plus(policy.evaluationInterval());
+                    holder.setNextStateRefreshAt(nextRefreshAt);
+                    results.add(new StateRefreshResult(holder.getDegradationId(), nextRefreshAt));
+                  });
         } finally {
           holder.finishStateRefresh();
         }
       }
 
       log.warn(
-          "Refreshing states failed: requested={}, eligible={}, staleMarked={}",
+          "Refreshing states failed: requested={}, eligible={}, staleMarked={}, rescheduled={}",
           degradationIds.size(),
           eligible.size(),
           staleMarked,
+          results.size(),
           e);
 
-      throw e;
+      return List.copyOf(results);
     }
   }
 }

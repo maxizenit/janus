@@ -48,6 +48,18 @@ class RegisteredDegradationTest {
   }
 
   @Test
+  void clearPolicy_removesExistingValue() {
+    var degradation = new RegisteredDegradation("deg-1");
+    var snapshot =
+        new PolicySnapshot("deg-1", Duration.ofSeconds(5), 0.9, null, null, null, Instant.now());
+
+    degradation.replacePolicy(snapshot);
+    degradation.clearPolicy();
+
+    assertThat(degradation.getPolicy()).isEmpty();
+  }
+
+  @Test
   void setState_updatesValue() {
     var degradation = new RegisteredDegradation("deg-1");
     var snapshot = new StateSnapshot("deg-1", 0.5, Instant.now(), false);
@@ -55,6 +67,40 @@ class RegisteredDegradationTest {
     degradation.setState(snapshot);
 
     assertThat(degradation.getState()).hasValue(snapshot);
+  }
+
+  @Test
+  void clearState_removesExistingValue() {
+    var degradation = new RegisteredDegradation("deg-1");
+    var snapshot = new StateSnapshot("deg-1", 0.5, Instant.now(), false);
+
+    degradation.setState(snapshot);
+    degradation.clearState();
+
+    assertThat(degradation.getState()).isEmpty();
+  }
+
+  @Test
+  void markStateStale_marksExistingState() {
+    var degradation = new RegisteredDegradation("deg-1");
+    var loadedAt = Instant.parse("2026-04-24T10:00:00Z");
+    var staleLoadedAt = Instant.parse("2026-04-24T10:01:00Z");
+    degradation.setState(new StateSnapshot("deg-1", 0.5, loadedAt, false));
+
+    boolean marked = degradation.markStateStale(staleLoadedAt);
+
+    assertThat(marked).isTrue();
+    assertThat(degradation.getState())
+        .hasValue(new StateSnapshot("deg-1", 0.5, staleLoadedAt, true));
+  }
+
+  @Test
+  void markStateStale_withoutState_returnsFalse() {
+    var degradation = new RegisteredDegradation("deg-1");
+
+    boolean marked = degradation.markStateStale(Instant.now());
+
+    assertThat(marked).isFalse();
   }
 
   @Test

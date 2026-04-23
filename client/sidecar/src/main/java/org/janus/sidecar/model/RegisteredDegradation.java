@@ -46,8 +46,29 @@ public class RegisteredDegradation {
     policyRef.set(snapshot);
   }
 
+  public void clearPolicy() {
+    policyRef.set(null);
+  }
+
   public void setState(StateSnapshot snapshot) {
     stateRef.set(snapshot);
+  }
+
+  public void clearState() {
+    stateRef.set(null);
+  }
+
+  public boolean markStateStale(Instant loadedAt) {
+    while (true) {
+      var current = stateRef.get();
+      if (current == null) {
+        return false;
+      }
+
+      if (stateRef.compareAndSet(current, current.staleCopy(loadedAt))) {
+        return true;
+      }
+    }
   }
 
   public boolean tryStartStateRefresh() {
