@@ -234,6 +234,43 @@ class DegradationPolicyMapperTest {
     assertThat(entity.getSourcePrometheusQuery()).isNull();
   }
 
+  @Test
+  void updateEntityFromUpdateRequestProto_valuePresentButFieldNotInMask_unchanged() {
+    var entity = fullEntity();
+
+    var request =
+        UpdateDegradationPolicyRequest.newBuilder()
+            .setDegradationId("test")
+            .setEvaluationInterval(Duration.newBuilder().setSeconds(99).build())
+            .setSignalSource(
+                SignalSource.newBuilder()
+                    .setPrometheus(PrometheusMetric.newBuilder().setQuery("new_metric").build())
+                    .build())
+            .setUpdateMask(FieldMask.newBuilder().addPaths("critical_threshold").build())
+            .build();
+
+    mapper.updateEntityFromUpdateRequestProto(entity, request);
+
+    assertThat(entity.getEvaluationIntervalMs()).isEqualTo(30000L);
+    assertThat(entity.getSignalSourceType()).isEqualTo(SignalSourceType.PROMETHEUS);
+    assertThat(entity.getSourcePrometheusQuery()).isEqualTo("up{job=\"test\"}");
+  }
+
+  @Test
+  void updateEntityFromUpdateRequestProto_evaluationIntervalInMaskAbsent_setToNull() {
+    var entity = fullEntity();
+
+    var request =
+        UpdateDegradationPolicyRequest.newBuilder()
+            .setDegradationId("test")
+            .setUpdateMask(FieldMask.newBuilder().addPaths("evaluation_interval").build())
+            .build();
+
+    mapper.updateEntityFromUpdateRequestProto(entity, request);
+
+    assertThat(entity.getEvaluationIntervalMs()).isNull();
+  }
+
   // --- signal source mapping ---
 
   @Test
