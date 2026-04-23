@@ -156,6 +156,7 @@ public class DegradationPolicyMapper {
             entity.setFallbackCurveExponent(null);
           }
         }
+        default -> throw new IllegalArgumentException("Unsupported update mask path: " + path);
       }
     }
   }

@@ -5,6 +5,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
@@ -27,7 +28,8 @@ public class PolicyFormDialog extends Dialog {
     PolicyFormData data = PolicyFormData.from(existing);
 
     TextField degradationId = new TextField("Degradation ID");
-    NumberField evaluationIntervalSeconds = new NumberField("Evaluation interval, sec");
+    IntegerField evaluationIntervalSeconds = new IntegerField("Evaluation interval, sec");
+    evaluationIntervalSeconds.setMin(1);
     Select<SignalSourceTypeView> signalSourceType = new Select<>();
     signalSourceType.setLabel("Signal source type");
     signalSourceType.setItems(SignalSourceTypeView.values());
@@ -49,6 +51,7 @@ public class PolicyFormDialog extends Dialog {
     binder
         .forField(evaluationIntervalSeconds)
         .asRequired()
+        .withValidator(value -> value != null && value > 0, "Evaluation interval must be positive")
         .bind(
             PolicyFormData::getEvaluationIntervalSeconds,
             PolicyFormData::setEvaluationIntervalSeconds);
@@ -111,7 +114,7 @@ public class PolicyFormDialog extends Dialog {
   @Setter
   public static class PolicyFormData {
     private String degradationId;
-    private Double evaluationIntervalSeconds;
+    private Integer evaluationIntervalSeconds;
     private SignalSourceTypeView signalSourceType;
     @Nullable private String query;
     @Nullable private Double criticalThreshold;
@@ -123,7 +126,7 @@ public class PolicyFormDialog extends Dialog {
       PolicyFormData data = new PolicyFormData();
       if (view != null) {
         data.degradationId = view.degradationId();
-        data.evaluationIntervalSeconds = (double) view.evaluationInterval().toSeconds();
+        data.evaluationIntervalSeconds = Math.toIntExact(view.evaluationInterval().toSeconds());
         data.signalSourceType = view.signalSourceType();
         data.query = view.query();
         data.criticalThreshold = view.criticalThreshold();

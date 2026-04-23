@@ -28,7 +28,14 @@ public class DegradationRestorationRunner implements ApplicationRunner {
     }
 
     log.info("Restoring {} persisted degradation IDs", ids.size());
-    syncHandler.handle(new SyncActualDegradationsCommand(ids));
-    log.info("Degradation restoration completed");
+    try {
+      syncHandler.handle(new SyncActualDegradationsCommand(ids));
+      log.info("Degradation restoration completed");
+    } catch (Exception e) {
+      log.warn(
+          "Degradation restoration policy initialization failed, scheduled refresh will retry: count={}",
+          ids.size(),
+          e);
+    }
   }
 }

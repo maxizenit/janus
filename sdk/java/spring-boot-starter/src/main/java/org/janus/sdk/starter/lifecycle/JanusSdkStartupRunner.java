@@ -4,7 +4,6 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.janus.sdk.core.registry.DegradableMethodRegistry;
-import org.janus.sdk.starter.client.SidecarSdkClient;
 import org.janus.sdk.starter.scanner.DegradableMethodScanner;
 import org.janus.sdk.starter.service.DegradationRefreshService;
 import org.jspecify.annotations.NullMarked;
@@ -20,7 +19,6 @@ public class JanusSdkStartupRunner implements ApplicationRunner {
 
   private final DegradableMethodScanner scanner;
   private final DegradableMethodRegistry registry;
-  private final SidecarSdkClient sidecarSdkClient;
   private final DegradationRefreshService refreshService;
 
   @Override
@@ -39,8 +37,7 @@ public class JanusSdkStartupRunner implements ApplicationRunner {
     }
 
     try {
-      sidecarSdkClient.syncActualDegradations(degradationIds);
-      refreshService.refresh();
+      refreshService.syncAndRefresh(degradationIds);
     } catch (Exception e) {
       log.warn(
           "SDK startup synchronization failed, scheduled refresh will retry: degradationIds={}",

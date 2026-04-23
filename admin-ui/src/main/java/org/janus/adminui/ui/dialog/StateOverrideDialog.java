@@ -3,6 +3,7 @@ package org.janus.adminui.ui.dialog;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -33,11 +34,20 @@ public class StateOverrideDialog extends Dialog {
         new Button(
             "Apply",
             e -> {
+              var stateValue = value.getValue();
+              var ttlValue = ttlMinutes.getValue();
+              if (stateValue == null || stateValue < 0.0 || stateValue > 1.0) {
+                Notification.show("Value must be in range [0.0, 1.0]");
+                return;
+              }
+              if (ttlValue == null || ttlValue < 1) {
+                Notification.show("TTL must be positive");
+                return;
+              }
+
               onApply.accept(
                   new OverrideStateCommand(
-                      degradationId,
-                      value.getValue(),
-                      Duration.ofMinutes(ttlMinutes.getValue().longValue())));
+                      degradationId, stateValue, Duration.ofMinutes(ttlValue.longValue())));
               close();
             });
 

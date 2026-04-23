@@ -1,6 +1,7 @@
 package org.janus.policystore.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.protobuf.Duration;
 import com.google.protobuf.FieldMask;
@@ -269,6 +270,21 @@ class DegradationPolicyMapperTest {
     mapper.updateEntityFromUpdateRequestProto(entity, request);
 
     assertThat(entity.getEvaluationIntervalMs()).isNull();
+  }
+
+  @Test
+  void updateEntityFromUpdateRequestProto_unknownPath_rejected() {
+    var entity = fullEntity();
+
+    var request =
+        UpdateDegradationPolicyRequest.newBuilder()
+            .setDegradationId("test")
+            .setUpdateMask(FieldMask.newBuilder().addPaths("unknown_field").build())
+            .build();
+
+    assertThatThrownBy(() -> mapper.updateEntityFromUpdateRequestProto(entity, request))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Unsupported update mask path: unknown_field");
   }
 
   // --- signal source mapping ---
