@@ -76,20 +76,20 @@ public class PolicyViewMapper {
 
     if (view.criticalThreshold() != null) {
       builder.setCriticalThreshold(view.criticalThreshold());
-      paths.add("critical_threshold");
     }
+    paths.add("critical_threshold");
     if (view.minFallbackRatio() != null) {
       builder.setMinFallbackRatio(view.minFallbackRatio());
-      paths.add("min_fallback_ratio");
     }
+    paths.add("min_fallback_ratio");
     if (view.maxFallbackRatio() != null) {
       builder.setMaxFallbackRatio(view.maxFallbackRatio());
-      paths.add("max_fallback_ratio");
     }
+    paths.add("max_fallback_ratio");
     if (view.fallbackCurveExponent() != null) {
       builder.setFallbackCurveExponent(view.fallbackCurveExponent());
-      paths.add("fallback_curve_exponent");
     }
+    paths.add("fallback_curve_exponent");
 
     builder.setUpdateMask(FieldMask.newBuilder().addAllPaths(paths).build());
     return builder.build();
