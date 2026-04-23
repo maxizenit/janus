@@ -88,6 +88,19 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
         request.getSource(),
         request.getUpdatesCount());
 
+    DegradationStateUpdateSource source = sourceMapper.fromGrpcToDomain(request.getSource());
+    if (source == null) {
+      log.warn(
+          "UpdateDegradationStates request rejected: invalid source={}, updatesCount={}",
+          request.getSource(),
+          request.getUpdatesCount());
+      responseObserver.onError(
+          Status.INVALID_ARGUMENT
+              .withDescription("Source must be specified and recognized")
+              .asRuntimeException());
+      return;
+    }
+
     List<DegradationStateUpdate> updates =
         request.getUpdatesList().stream()
             .map(update -> updateMapper.fromGrpcToDomain(update, request.getSource()))

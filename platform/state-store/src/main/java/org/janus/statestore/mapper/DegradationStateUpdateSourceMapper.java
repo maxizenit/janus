@@ -12,6 +12,7 @@ public class DegradationStateUpdateSourceMapper {
   public @Nullable DegradationStateUpdateSource fromGrpcToDomain(
       org.janus.api.statestore.DegradationStateUpdateSource sourceGrpc) {
     return switch (sourceGrpc) {
+      case DEGRADATION_STATE_UPDATE_SOURCE_UNSPECIFIED -> null;
       case ADMIN_UI -> DegradationStateUpdateSource.ADMIN_UI;
       case EVALUATOR -> DegradationStateUpdateSource.EVALUATOR;
       case UNRECOGNIZED -> null;
