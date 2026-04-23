@@ -111,18 +111,20 @@ public class DegradationPolicyMapper {
       org.janus.policystore.entity.DegradationPolicy entity,
       UpdateDegradationPolicyRequest updateRequestProto) {
 
-    if (updateRequestProto.hasEvaluationInterval()) {
-      entity.setEvaluationIntervalMs(
-          Durations.toMillis(updateRequestProto.getEvaluationInterval()));
-    }
-    if (updateRequestProto.hasSignalSource()) {
-      enrichEntityOfSignalSource(entity, updateRequestProto.getSignalSource());
-    }
-
     for (String path : updateRequestProto.getUpdateMask().getPathsList()) {
       switch (path) {
+        case "evaluation_interval" -> {
+          if (updateRequestProto.hasEvaluationInterval()) {
+            entity.setEvaluationIntervalMs(
+                Durations.toMillis(updateRequestProto.getEvaluationInterval()));
+          } else {
+            entity.setEvaluationIntervalMs(null);
+          }
+        }
         case "signal_source" -> {
-          if (!updateRequestProto.hasSignalSource()) {
+          if (updateRequestProto.hasSignalSource()) {
+            enrichEntityOfSignalSource(entity, updateRequestProto.getSignalSource());
+          } else {
             clearSignalSource(entity);
           }
         }
