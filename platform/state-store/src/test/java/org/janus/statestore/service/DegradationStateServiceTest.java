@@ -466,7 +466,7 @@ class DegradationStateServiceTest {
     }
 
     @Test
-    void ttlReturnsMinusTwo_keyDisappeared_usesZeroDuration() {
+    void ttlReturnsMinusTwo_keyDisappeared_skipsState() {
       String adminJson = "{\"degradationId\":\"deg-1\",\"value\":0.5}";
 
       when(valueOperations.multiGet(anyList()))
@@ -481,9 +481,7 @@ class DegradationStateServiceTest {
       List<AdminDegradationState> result =
           service.getAdminDegradationStates(List.of("deg-1"));
 
-      assertThat(result).hasSize(1);
-      assertThat(result.getFirst().sourceStates().getFirst().remainingTtl())
-          .isEqualTo(Duration.ZERO);
+      assertThat(result).isEmpty();
     }
   }
 }
