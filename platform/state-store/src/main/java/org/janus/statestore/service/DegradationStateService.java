@@ -176,6 +176,8 @@ public class DegradationStateService {
       return;
     }
 
+    validateDegradationIds(degradationIds);
+
     List<String> keys = degradationIds.stream().map(id -> createStateKey(id, source)).toList();
 
     log.info(
@@ -337,9 +339,7 @@ public class DegradationStateService {
   }
 
   private static void validateUpdate(DegradationStateUpdate update, String key) {
-    if (update.degradationId().isBlank()) {
-      throw new IllegalArgumentException("Degradation id must not be blank");
-    }
+    validateDegradationId(update.degradationId());
     Duration ttl = update.ttl();
     if (ttl.isZero() || ttl.isNegative()) {
       throw new IllegalArgumentException("TTL must be positive for key " + key);
@@ -347,6 +347,18 @@ public class DegradationStateService {
     if (update.value() < 0.0 || update.value() > 1.0) {
       throw new IllegalArgumentException(
           "Value must be in range [0.0, 1.0] for degradationId=" + update.degradationId());
+    }
+  }
+
+  private static void validateDegradationIds(List<String> degradationIds) {
+    for (String degradationId : degradationIds) {
+      validateDegradationId(degradationId);
+    }
+  }
+
+  private static void validateDegradationId(String degradationId) {
+    if (degradationId.isBlank()) {
+      throw new IllegalArgumentException("Degradation id must not be blank");
     }
   }
 

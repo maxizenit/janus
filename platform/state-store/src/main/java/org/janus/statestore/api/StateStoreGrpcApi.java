@@ -101,25 +101,20 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
       return;
     }
 
-    List<DegradationStateUpdate> updates =
-        request.getUpdatesList().stream()
-            .map(update -> updateMapper.fromGrpcToDomain(update, request.getSource()))
-            .toList();
-
     try {
+      List<DegradationStateUpdate> updates =
+          request.getUpdatesList().stream()
+              .map(update -> updateMapper.fromGrpcToDomain(update, request.getSource()))
+              .toList();
       stateService.updateDegradationStates(updates);
+      log.info(
+          "UpdateDegradationStates request completed: source={}, updatesCount={}",
+          request.getSource(),
+          updates.size());
     } catch (IllegalArgumentException e) {
-      responseObserver.onError(
-          Status.INVALID_ARGUMENT
-              .withDescription(e.getMessage())
-              .asRuntimeException());
+      responseObserver.onError(invalidArgument(e));
       return;
     }
-
-    log.info(
-        "UpdateDegradationStates request completed: source={}, updatesCount={}",
-        request.getSource(),
-        updates.size());
 
     responseObserver.onNext(UpdateDegradationStatesResponse.getDefaultInstance());
     responseObserver.onCompleted();
@@ -149,7 +144,12 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
         source,
         degradationIds.size());
 
-    stateService.clearDegradationStates(degradationIds, source);
+    try {
+      stateService.clearDegradationStates(degradationIds, source);
+    } catch (IllegalArgumentException e) {
+      responseObserver.onError(invalidArgument(e));
+      return;
+    }
 
     log.info(
         "ClearDegradationStateOverride request completed: source={}, degradationCount={}",
@@ -158,5 +158,12 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
 
     responseObserver.onNext(ClearDegradationStateOverrideResponse.getDefaultInstance());
     responseObserver.onCompleted();
+  }
+
+  private static io.grpc.StatusRuntimeException invalidArgument(IllegalArgumentException e) {
+    String message = e.getMessage();
+    return Status.INVALID_ARGUMENT
+        .withDescription(message == null || message.isBlank() ? "Invalid request" : message)
+        .asRuntimeException();
   }
 }
