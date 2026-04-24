@@ -18,7 +18,13 @@ public class InitialLoadService {
   @EventListener(ApplicationReadyEvent.class)
   public void onApplicationReady() {
     log.info("Initial evaluator policy load started");
-    policyRefreshService.refreshAllPolicies();
-    log.info("Initial evaluator policy load completed");
+    try {
+      policyRefreshService.refreshAllPolicies();
+      log.info("Initial evaluator policy load completed");
+    } catch (RuntimeException exception) {
+      log.warn(
+          "Initial evaluator policy load failed, scheduled refresh will retry",
+          exception);
+    }
   }
 }

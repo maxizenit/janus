@@ -6,6 +6,8 @@ import static org.mockito.Mockito.when;
 
 import org.janus.policystore.entity.DegradationPolicy;
 import org.janus.policystore.entity.SignalSourceType;
+import org.janus.policystore.exception.PolicyAlreadyExistsException;
+import org.janus.policystore.exception.PolicyNotFoundException;
 import org.janus.policystore.repository.DegradationPolicyRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,25 @@ class DegradationPolicyValidatorTest {
     when(policyRepository.existsById(policy.getDegradationId())).thenReturn(false);
 
     assertThatCode(() -> validator.validateForCreate(policy)).doesNotThrowAnyException();
+  }
+
+  @Test
+  void validateForCreate_rejectsExistingPolicy() {
+    var policy = validPolicy();
+    when(policyRepository.existsById(policy.getDegradationId())).thenReturn(true);
+
+    assertThatThrownBy(() -> validator.validateForCreate(policy))
+        .isInstanceOf(PolicyAlreadyExistsException.class)
+        .hasMessageContaining(policy.getDegradationId());
+  }
+
+  @Test
+  void validateForDelete_rejectsMissingPolicy() {
+    when(policyRepository.existsById("missing-policy")).thenReturn(false);
+
+    assertThatThrownBy(() -> validator.validateForDelete("missing-policy"))
+        .isInstanceOf(PolicyNotFoundException.class)
+        .hasMessageContaining("missing-policy");
   }
 
   @Test

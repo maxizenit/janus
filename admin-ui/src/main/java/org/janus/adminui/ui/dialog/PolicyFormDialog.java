@@ -61,18 +61,43 @@ public class PolicyFormDialog extends Dialog {
         .bind(PolicyFormData::getSignalSourceType, PolicyFormData::setSignalSourceType);
     binder
         .forField(query)
+        .withValidator(
+            value ->
+                !SignalSourceTypeView.PROMETHEUS.equals(signalSourceType.getValue())
+                    || hasText(value),
+            "Prometheus query is required")
         .bind(PolicyFormData::getQuery, PolicyFormData::setQuery);
     binder
         .forField(criticalThreshold)
+        .withValidator(
+            PolicyFormDialog::isNullOrRatio,
+            "Critical threshold must be in range [0.0, 1.0]")
         .bind(PolicyFormData::getCriticalThreshold, PolicyFormData::setCriticalThreshold);
     binder
         .forField(minFallbackRatio)
+        .withValidator(
+            PolicyFormDialog::isNullOrRatio,
+            "Min fallback ratio must be in range [0.0, 1.0]")
+        .withValidator(
+            value -> value == null || maxFallbackRatio.getValue() == null
+                || value <= maxFallbackRatio.getValue(),
+            "Min fallback ratio must be less than or equal to max fallback ratio")
         .bind(PolicyFormData::getMinFallbackRatio, PolicyFormData::setMinFallbackRatio);
     binder
         .forField(maxFallbackRatio)
+        .withValidator(
+            PolicyFormDialog::isNullOrRatio,
+            "Max fallback ratio must be in range [0.0, 1.0]")
+        .withValidator(
+            value -> value == null || minFallbackRatio.getValue() == null
+                || minFallbackRatio.getValue() <= value,
+            "Max fallback ratio must be greater than or equal to min fallback ratio")
         .bind(PolicyFormData::getMaxFallbackRatio, PolicyFormData::setMaxFallbackRatio);
     binder
         .forField(fallbackCurveExponent)
+        .withValidator(
+            value -> value == null || value > 0.0,
+            "Fallback curve exponent must be positive")
         .bind(PolicyFormData::getFallbackCurveExponent, PolicyFormData::setFallbackCurveExponent);
 
     binder.readBean(data);
@@ -81,8 +106,17 @@ public class PolicyFormDialog extends Dialog {
         () -> {
           boolean prometheus = SignalSourceTypeView.PROMETHEUS.equals(signalSourceType.getValue());
           query.setVisible(prometheus);
+          if (!prometheus) {
+            query.clear();
+          }
         };
-    signalSourceType.addValueChangeListener(e -> updateVisibility.run());
+    signalSourceType.addValueChangeListener(
+        e -> {
+          updateVisibility.run();
+          binder.validate();
+        });
+    minFallbackRatio.addValueChangeListener(e -> binder.validate());
+    maxFallbackRatio.addValueChangeListener(e -> binder.validate());
     updateVisibility.run();
 
     Button save =
@@ -108,6 +142,14 @@ public class PolicyFormDialog extends Dialog {
             maxFallbackRatio,
             fallbackCurveExponent),
         new HorizontalLayout(save, cancel));
+  }
+
+  private static boolean hasText(@Nullable String value) {
+    return value != null && !value.isBlank();
+  }
+
+  private static boolean isNullOrRatio(@Nullable Double value) {
+    return value == null || (value >= 0.0 && value <= 1.0);
   }
 
   @Getter

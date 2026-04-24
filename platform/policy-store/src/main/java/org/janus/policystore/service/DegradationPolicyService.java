@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.janus.api.policystore.CreateDegradationPolicyRequest;
 import org.janus.api.policystore.UpdateDegradationPolicyRequest;
 import org.janus.policystore.entity.DegradationPolicy;
+import org.janus.policystore.exception.PolicyNotFoundException;
 import org.janus.policystore.mapper.DegradationPolicyMapper;
 import org.janus.policystore.repository.DegradationPolicyRepository;
 import org.janus.policystore.validation.DegradationPolicyValidator;
@@ -80,7 +81,7 @@ public class DegradationPolicyService {
                   log.warn(
                       "Updating degradation policy failed: policy not found, degradationId={}",
                       degradationId);
-                  return new IllegalArgumentException("Policy not found: " + degradationId);
+                  return new PolicyNotFoundException(degradationId);
                 });
 
     var oldEvaluationIntervalMs = policy.getEvaluationIntervalMs();

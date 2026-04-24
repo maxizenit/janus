@@ -3,6 +3,8 @@ package org.janus.policystore.validation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.janus.policystore.entity.DegradationPolicy;
+import org.janus.policystore.exception.PolicyAlreadyExistsException;
+import org.janus.policystore.exception.PolicyNotFoundException;
 import org.janus.policystore.repository.DegradationPolicyRepository;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -20,9 +22,12 @@ public class DegradationPolicyValidator {
     log.debug(
         "Validating degradation policy for create: degradationId={}", policy.getDegradationId());
 
-    require(
-        !policyRepository.existsById(policy.getDegradationId()),
-        "Policy already exists: " + policy.getDegradationId());
+    if (policyRepository.existsById(policy.getDegradationId())) {
+      log.warn(
+          "Degradation policy validation failed: policy already exists, degradationId={}",
+          policy.getDegradationId());
+      throw new PolicyAlreadyExistsException(policy.getDegradationId());
+    }
     validate(policy);
 
     log.debug(
@@ -34,9 +39,12 @@ public class DegradationPolicyValidator {
     log.debug(
         "Validating degradation policy for update: degradationId={}", policy.getDegradationId());
 
-    require(
-        policyRepository.existsById(policy.getDegradationId()),
-        "Policy not found: " + policy.getDegradationId());
+    if (!policyRepository.existsById(policy.getDegradationId())) {
+      log.warn(
+          "Degradation policy validation failed: policy not found, degradationId={}",
+          policy.getDegradationId());
+      throw new PolicyNotFoundException(policy.getDegradationId());
+    }
     validate(policy);
 
     log.debug(
@@ -45,7 +53,12 @@ public class DegradationPolicyValidator {
   }
 
   public void validateForDelete(String degradationId) {
-    require(policyRepository.existsById(degradationId), "Policy not found: " + degradationId);
+    if (!policyRepository.existsById(degradationId)) {
+      log.warn(
+          "Degradation policy validation failed: policy not found, degradationId={}",
+          degradationId);
+      throw new PolicyNotFoundException(degradationId);
+    }
     log.debug(
         "Degradation policy validation for delete completed: degradationId={}", degradationId);
   }
