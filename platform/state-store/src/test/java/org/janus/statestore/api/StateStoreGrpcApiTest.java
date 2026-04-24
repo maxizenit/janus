@@ -3,6 +3,7 @@ package org.janus.statestore.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -12,6 +13,8 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import java.time.Duration;
+import org.janus.api.statestore.ClearDegradationStateOverrideRequest;
+import org.janus.api.statestore.ClearDegradationStateOverrideResponse;
 import org.janus.api.statestore.DegradationStateUpdate;
 import org.janus.api.statestore.UpdateDegradationStatesRequest;
 import org.janus.api.statestore.UpdateDegradationStatesResponse;
@@ -34,6 +37,7 @@ class StateStoreGrpcApiTest {
   @Mock private DegradationStateMapper stateMapper;
   @Mock private DegradationStateUpdateMapper updateMapper;
   @Mock private StreamObserver<UpdateDegradationStatesResponse> responseObserver;
+  @Mock private StreamObserver<ClearDegradationStateOverrideResponse> clearResponseObserver;
 
   private StateStoreGrpcApi api;
 
@@ -95,5 +99,61 @@ class StateStoreGrpcApiTest {
     var error = (StatusRuntimeException) errorCaptor.getValue();
     assertThat(error.getStatus().getCode()).isEqualTo(Status.Code.INVALID_ARGUMENT);
     assertThat(error.getStatus().getDescription()).isEqualTo("Value must be in range [0.0, 1.0]");
+  }
+
+  @Test
+  void updateDegradationStates_mappingError_returnsInvalidArgument() {
+    var grpcUpdate =
+        DegradationStateUpdate.newBuilder()
+            .setDegradationId("deg-1")
+            .setValue(0.5)
+            .build();
+    var request =
+        UpdateDegradationStatesRequest.newBuilder()
+            .setSource(org.janus.api.statestore.DegradationStateUpdateSource.ADMIN_UI)
+            .addUpdates(grpcUpdate)
+            .build();
+
+    when(updateMapper.fromGrpcToDomain(
+            any(DegradationStateUpdate.class),
+            any(org.janus.api.statestore.DegradationStateUpdateSource.class)))
+        .thenThrow(new IllegalArgumentException("Duration is not valid"));
+
+    api.updateDegradationStates(request, responseObserver);
+
+    var errorCaptor = ArgumentCaptor.forClass(Throwable.class);
+    verify(responseObserver).onError(errorCaptor.capture());
+    verify(responseObserver, never()).onNext(UpdateDegradationStatesResponse.getDefaultInstance());
+    verify(responseObserver, never()).onCompleted();
+    verify(stateService, never()).updateDegradationStates(anyList());
+
+    var error = (StatusRuntimeException) errorCaptor.getValue();
+    assertThat(error.getStatus().getCode()).isEqualTo(Status.Code.INVALID_ARGUMENT);
+    assertThat(error.getStatus().getDescription()).isEqualTo("Duration is not valid");
+  }
+
+  @Test
+  void clearDegradationStateOverride_validationError_returnsInvalidArgument() {
+    var request =
+        ClearDegradationStateOverrideRequest.newBuilder()
+            .setSource(org.janus.api.statestore.DegradationStateUpdateSource.ADMIN_UI)
+            .addDegradationIds("")
+            .build();
+
+    doThrow(new IllegalArgumentException("Degradation id must not be blank"))
+        .when(stateService)
+        .clearDegradationStates(anyList(), any(DegradationStateUpdateSource.class));
+
+    api.clearDegradationStateOverride(request, clearResponseObserver);
+
+    var errorCaptor = ArgumentCaptor.forClass(Throwable.class);
+    verify(clearResponseObserver).onError(errorCaptor.capture());
+    verify(clearResponseObserver, never())
+        .onNext(ClearDegradationStateOverrideResponse.getDefaultInstance());
+    verify(clearResponseObserver, never()).onCompleted();
+
+    var error = (StatusRuntimeException) errorCaptor.getValue();
+    assertThat(error.getStatus().getCode()).isEqualTo(Status.Code.INVALID_ARGUMENT);
+    assertThat(error.getStatus().getDescription()).isEqualTo("Degradation id must not be blank");
   }
 }

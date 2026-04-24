@@ -321,6 +321,18 @@ class DegradationStateServiceTest {
 
       verify(redisTemplate, never()).delete(anyList());
     }
+
+    @Test
+    void blankDegradationId_throws() {
+      assertThatThrownBy(
+              () ->
+                  service.clearDegradationStates(
+                      List.of(" "), DegradationStateUpdateSource.ADMIN_UI))
+          .isInstanceOf(IllegalArgumentException.class)
+          .hasMessageContaining("Degradation id must not be blank");
+
+      verify(redisTemplate, never()).delete(anyList());
+    }
   }
 
   @Nested
