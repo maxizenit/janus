@@ -108,7 +108,7 @@ public class StatesView extends VerticalLayout {
 
   private static String formatSources(StateView state) {
     if (state.sourceStates().isEmpty()) {
-      return "—";
+      return "-";
     }
     return state.sourceStates().stream()
         .map(StatesView::formatSource)
@@ -117,11 +117,11 @@ public class StatesView extends VerticalLayout {
   }
 
   private static String formatEffectiveValue(StateView state) {
-    return state.effectiveValue() == null ? "—" : state.effectiveValue().toString();
+    return state.effectiveValue() == null ? "-" : state.effectiveValue().toString();
   }
 
   private static String formatEffectiveSource(StateView state) {
-    return state.effectiveSource() == null ? "—" : state.effectiveSource();
+    return state.effectiveSource() == null ? "-" : state.effectiveSource();
   }
 
   private static String formatRefreshedAt(StateView state) {

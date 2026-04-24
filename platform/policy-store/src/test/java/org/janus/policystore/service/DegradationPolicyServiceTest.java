@@ -15,6 +15,7 @@ import org.janus.api.policystore.SignalSource;
 import org.janus.api.policystore.UpdateDegradationPolicyRequest;
 import org.janus.policystore.entity.DegradationPolicy;
 import org.janus.policystore.entity.SignalSourceType;
+import org.janus.policystore.exception.PolicyNotFoundException;
 import org.janus.policystore.mapper.DegradationPolicyMapper;
 import org.janus.policystore.repository.DegradationPolicyRepository;
 import org.janus.policystore.validation.DegradationPolicyValidator;
@@ -157,7 +158,7 @@ class DegradationPolicyServiceTest {
             .build();
 
     assertThatThrownBy(() -> service.updatePolicy(request))
-        .isInstanceOf(IllegalArgumentException.class)
+        .isInstanceOf(PolicyNotFoundException.class)
         .hasMessageContaining("missing");
   }
 

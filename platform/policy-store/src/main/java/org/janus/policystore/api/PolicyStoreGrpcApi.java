@@ -1,5 +1,7 @@
 package org.janus.policystore.api;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,8 @@ import org.janus.api.policystore.GetSidecarDegradationPoliciesRequest;
 import org.janus.api.policystore.GetSidecarDegradationPoliciesResponse;
 import org.janus.api.policystore.PolicyStoreServiceGrpc;
 import org.janus.api.policystore.UpdateDegradationPolicyRequest;
+import org.janus.policystore.exception.PolicyAlreadyExistsException;
+import org.janus.policystore.exception.PolicyNotFoundException;
 import org.janus.policystore.mapper.DegradationPolicyMapper;
 import org.janus.policystore.service.DegradationPolicyService;
 import org.jspecify.annotations.NullMarked;
@@ -116,11 +120,17 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
     log.info(
         "CreateDegradationPolicy request received: degradationId={}", request.getDegradationId());
 
-    var policy = policyService.createPolicy(request);
-    log.info(
-        "CreateDegradationPolicy request completed: degradationId={}", policy.getDegradationId());
-
-    var mappedPolicy = policyMapper.fromEntityToProto(policy);
+    DegradationPolicy mappedPolicy;
+    try {
+      var policy = policyService.createPolicy(request);
+      mappedPolicy = policyMapper.fromEntityToProto(policy);
+      log.info(
+          "CreateDegradationPolicy request completed: degradationId={}", policy.getDegradationId());
+    } catch (PolicyAlreadyExistsException | PolicyNotFoundException | IllegalArgumentException
+        exception) {
+      responseObserver.onError(toStatusRuntimeException(exception));
+      return;
+    }
 
     responseObserver.onNext(mappedPolicy);
     responseObserver.onCompleted();
@@ -134,11 +144,18 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
         request.getDegradationId(),
         request.getUpdateMask().getPathsList());
 
-    var policy = policyService.updatePolicy(request);
-    log.info(
-        "UpdateDegradationPolicy request completed: degradationId={}", policy.getDegradationId());
-
-    var mappedPolicy = policyMapper.fromEntityToProto(policy);
+    DegradationPolicy mappedPolicy;
+    try {
+      var policy = policyService.updatePolicy(request);
+      mappedPolicy = policyMapper.fromEntityToProto(policy);
+      log.info(
+          "UpdateDegradationPolicy request completed: degradationId={}",
+          policy.getDegradationId());
+    } catch (PolicyAlreadyExistsException | PolicyNotFoundException | IllegalArgumentException
+        exception) {
+      responseObserver.onError(toStatusRuntimeException(exception));
+      return;
+    }
 
     responseObserver.onNext(mappedPolicy);
     responseObserver.onCompleted();
@@ -151,11 +168,31 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
     log.info(
         "DeleteDegradationPolicy request received: degradationId={}", request.getDegradationId());
 
-    policyService.deletePolicyByDegradationId(request.getDegradationId());
-    log.info(
-        "DeleteDegradationPolicy request completed: degradationId={}", request.getDegradationId());
+    try {
+      policyService.deletePolicyByDegradationId(request.getDegradationId());
+      log.info(
+          "DeleteDegradationPolicy request completed: degradationId={}",
+          request.getDegradationId());
+    } catch (PolicyAlreadyExistsException | PolicyNotFoundException | IllegalArgumentException
+        exception) {
+      responseObserver.onError(toStatusRuntimeException(exception));
+      return;
+    }
 
     responseObserver.onNext(DeleteDegradationPolicyResponse.getDefaultInstance());
     responseObserver.onCompleted();
+  }
+
+  private StatusRuntimeException toStatusRuntimeException(RuntimeException exception) {
+    var message = exception.getMessage() == null ? "Invalid policy request" : exception.getMessage();
+    Status status;
+    if (exception instanceof PolicyAlreadyExistsException) {
+      status = Status.ALREADY_EXISTS;
+    } else if (exception instanceof PolicyNotFoundException) {
+      status = Status.NOT_FOUND;
+    } else {
+      status = Status.INVALID_ARGUMENT;
+    }
+    return status.withDescription(message).asRuntimeException();
   }
 }
