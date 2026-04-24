@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -253,11 +254,15 @@ public class DegradationStateService {
       RedisLookupEntry entry = lookupEntries.get(i);
       try {
         DegradationState state = objectMapper.readValue(json, DegradationState.class);
-        Duration remainingTtl =
+        var remainingTtl =
             readRemainingTtl(entry.key(), entry.degradationId(), entry.source());
+        if (remainingTtl.isEmpty()) {
+          continue;
+        }
+        Duration resolvedRemainingTtl = remainingTtl.get();
 
         SourceDegradationState sourceState =
-            new SourceDegradationState(entry.source(), state.value(), remainingTtl);
+            new SourceDegradationState(entry.source(), state.value(), resolvedRemainingTtl);
 
         result
             .computeIfAbsent(
@@ -269,7 +274,7 @@ public class DegradationStateService {
             entry.degradationId(),
             entry.source(),
             state.value(),
-            remainingTtl);
+            resolvedRemainingTtl);
       } catch (RuntimeException e) {
         log.error(
             "Failed to deserialize degradation state: degradationId={}, source={}",
@@ -299,7 +304,7 @@ public class DegradationStateService {
     return null;
   }
 
-  private Duration readRemainingTtl(
+  private Optional<Duration> readRemainingTtl(
       String key, String degradationId, DegradationStateUpdateSource source) {
     Long ttlMillis = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
     if (ttlMillis == null) {
@@ -308,7 +313,7 @@ public class DegradationStateService {
           degradationId,
           source,
           key);
-      return Duration.ZERO;
+      return Optional.of(Duration.ZERO);
     }
     if (ttlMillis == -2) {
       log.warn(
@@ -316,7 +321,7 @@ public class DegradationStateService {
           degradationId,
           source,
           key);
-      return Duration.ZERO;
+      return Optional.empty();
     }
     if (ttlMillis == -1) {
       log.warn(
@@ -324,7 +329,7 @@ public class DegradationStateService {
           degradationId,
           source,
           key);
-      return Duration.ZERO;
+      return Optional.of(Duration.ZERO);
     }
     if (ttlMillis < 0) {
       log.warn(
@@ -333,9 +338,9 @@ public class DegradationStateService {
           source,
           key,
           ttlMillis);
-      return Duration.ZERO;
+      return Optional.of(Duration.ZERO);
     }
-    return Duration.ofMillis(ttlMillis);
+    return Optional.of(Duration.ofMillis(ttlMillis));
   }
 
   private static void validateUpdate(DegradationStateUpdate update, String key) {
