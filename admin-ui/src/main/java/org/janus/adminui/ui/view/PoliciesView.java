@@ -11,6 +11,7 @@ import com.vaadin.flow.router.Route;
 import lombok.extern.slf4j.Slf4j;
 import org.janus.adminui.model.PolicyView;
 import org.janus.adminui.service.PolicyAdminService;
+import org.janus.adminui.ui.ErrorNotifications;
 import org.janus.adminui.ui.MainLayout;
 import org.janus.adminui.ui.dialog.PolicyFormDialog;
 import org.jspecify.annotations.NullMarked;
@@ -58,9 +59,13 @@ public class PoliciesView extends VerticalLayout {
     new PolicyFormDialog(
             null,
             policy -> {
-              service.createPolicy(policy);
-              Notification.show("Policy created");
-              refresh();
+              try {
+                service.createPolicy(policy);
+                Notification.show("Policy created");
+                refresh();
+              } catch (RuntimeException exception) {
+                ErrorNotifications.show("Policy creation", exception);
+              }
             })
         .open();
   }
@@ -69,9 +74,13 @@ public class PoliciesView extends VerticalLayout {
     new PolicyFormDialog(
             policy,
             updated -> {
-              service.updatePolicy(updated);
-              Notification.show("Policy updated");
-              refresh();
+              try {
+                service.updatePolicy(updated);
+                Notification.show("Policy updated");
+                refresh();
+              } catch (RuntimeException exception) {
+                ErrorNotifications.show("Policy update", exception);
+              }
             })
         .open();
   }
@@ -83,15 +92,23 @@ public class PoliciesView extends VerticalLayout {
     dialog.setConfirmText("Delete");
     dialog.addConfirmListener(
         e -> {
-          service.deletePolicy(policy.degradationId());
-          Notification.show("Policy deleted");
-          refresh();
+          try {
+            service.deletePolicy(policy.degradationId());
+            Notification.show("Policy deleted");
+            refresh();
+          } catch (RuntimeException exception) {
+            ErrorNotifications.show("Policy deletion", exception);
+          }
         });
     dialog.open();
   }
 
   private void refresh() {
     log.debug("Refreshing policies grid");
-    grid.setItems(service.getPolicies());
+    try {
+      grid.setItems(service.getPolicies());
+    } catch (RuntimeException exception) {
+      ErrorNotifications.show("Policy refresh", exception);
+    }
   }
 }

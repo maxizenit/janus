@@ -17,6 +17,7 @@ import org.janus.adminui.configuration.properties.AdminUiProperties;
 import org.janus.adminui.model.SourceStateView;
 import org.janus.adminui.model.StateView;
 import org.janus.adminui.service.StateAdminService;
+import org.janus.adminui.ui.ErrorNotifications;
 import org.janus.adminui.ui.MainLayout;
 import org.janus.adminui.ui.dialog.StateOverrideDialog;
 import org.jspecify.annotations.NullMarked;
@@ -53,9 +54,13 @@ public class StatesView extends VerticalLayout {
                   new Button(
                       "Clear override",
                       e -> {
-                        service.clearOverride(state.degradationId());
-                        Notification.show("Override cleared");
-                        refresh();
+                        try {
+                          service.clearOverride(state.degradationId());
+                          Notification.show("Override cleared");
+                          refresh();
+                        } catch (RuntimeException exception) {
+                          ErrorNotifications.show("Override clear", exception);
+                        }
                       });
               clear.setEnabled(
                   state.sourceStates().stream()
@@ -94,16 +99,24 @@ public class StatesView extends VerticalLayout {
     new StateOverrideDialog(
             state.degradationId(),
             command -> {
-              service.applyOverride(command);
-              Notification.show("Override applied");
-              refresh();
+              try {
+                service.applyOverride(command);
+                Notification.show("Override applied");
+                refresh();
+              } catch (RuntimeException exception) {
+                ErrorNotifications.show("Override apply", exception);
+              }
             })
         .open();
   }
 
   private void refresh() {
     log.debug("Refreshing states grid");
-    grid.setItems(service.getStatesForAllPolicies());
+    try {
+      grid.setItems(service.getStatesForAllPolicies());
+    } catch (RuntimeException exception) {
+      ErrorNotifications.show("State refresh", exception);
+    }
   }
 
   private static String formatSources(StateView state) {
