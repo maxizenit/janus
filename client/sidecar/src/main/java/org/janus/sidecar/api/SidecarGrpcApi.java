@@ -1,5 +1,6 @@
 package org.janus.sidecar.api;
 
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import org.janus.api.sidecar.GetDegradationsRequest;
@@ -28,7 +29,13 @@ public class SidecarGrpcApi extends SidecarServiceGrpc.SidecarServiceImplBase {
   public void syncActualDegradations(
       SyncActualDegradationsRequest request,
       StreamObserver<SyncActualDegradationsResponse> responseObserver) {
-    actualDegradationIdsValidator.validate(request.getDegradationIdsList());
+    try {
+      actualDegradationIdsValidator.validate(request.getDegradationIdsList());
+    } catch (IllegalArgumentException e) {
+      responseObserver.onError(
+          Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+      return;
+    }
 
     var command = grpcMapper.fromSyncActualDegradationsRequestToResponse(request);
     syncHandler.handle(command);

@@ -106,7 +106,15 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
             .map(update -> updateMapper.fromGrpcToDomain(update, request.getSource()))
             .toList();
 
-    stateService.updateDegradationStates(updates);
+    try {
+      stateService.updateDegradationStates(updates);
+    } catch (IllegalArgumentException e) {
+      responseObserver.onError(
+          Status.INVALID_ARGUMENT
+              .withDescription(e.getMessage())
+              .asRuntimeException());
+      return;
+    }
 
     log.info(
         "UpdateDegradationStates request completed: source={}, updatesCount={}",

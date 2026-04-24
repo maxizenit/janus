@@ -337,6 +337,9 @@ public class DegradationStateService {
   }
 
   private static void validateUpdate(DegradationStateUpdate update, String key) {
+    if (update.degradationId().isBlank()) {
+      throw new IllegalArgumentException("Degradation id must not be blank");
+    }
     Duration ttl = update.ttl();
     if (ttl.isZero() || ttl.isNegative()) {
       throw new IllegalArgumentException("TTL must be positive for key " + key);

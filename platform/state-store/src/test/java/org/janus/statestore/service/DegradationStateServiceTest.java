@@ -160,6 +160,27 @@ class DegradationStateServiceTest {
 
     @SuppressWarnings("unchecked")
     @Test
+    void blankDegradationId_throws() {
+      DegradationStateUpdate update =
+          new DegradationStateUpdate(
+              " ", 0.5, DegradationStateUpdateSource.ADMIN_UI, Duration.ofSeconds(60));
+
+      when(redisTemplate.execute(any(SessionCallback.class)))
+          .thenAnswer(
+              invocation -> {
+                SessionCallback<?> callback = invocation.getArgument(0);
+                return callback.execute(redisTemplate);
+              });
+
+      assertThatThrownBy(() -> service.updateDegradationStates(List.of(update)))
+          .isInstanceOf(IllegalArgumentException.class)
+          .hasMessageContaining("Degradation id must not be blank");
+
+      verify(valueOperations, never()).set(any(), any(), any(Duration.class));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     void serializationFailure_discardsTransaction() {
       DegradationStateUpdate update =
           new DegradationStateUpdate(
