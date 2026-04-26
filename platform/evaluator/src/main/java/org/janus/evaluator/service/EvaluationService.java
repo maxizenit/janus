@@ -63,21 +63,32 @@ public class EvaluationService {
           policy.signalSource().type(),
           policy.signalSource().query());
 
+      Duration leadershipLeaseDuration =
+          policy.evaluationInterval().compareTo(properties.leadershipLeaseDuration()) > 0
+              ? policy.evaluationInterval()
+              : properties.leadershipLeaseDuration();
+
       try (var leadership =
-          leadershipClient.tryAcquire(
-              policy.degradationId(), properties.leadershipLeaseDuration())) {
+          leadershipClient.tryAcquire(policy.degradationId(), leadershipLeaseDuration)) {
 
         if (!leadership.acquired()) {
           evaluatorMetrics.recordLeadershipAcquisition(policy.degradationId(), "rejected");
 
-          var nextAttemptAt = Instant.now(clock).plus(properties.leadershipRetryBackoff());
+          var retryDelay =
+              policy.evaluationInterval().compareTo(properties.leadershipRetryBackoff()) > 0
+                  ? policy.evaluationInterval()
+                  : properties.leadershipRetryBackoff();
+          var nextAttemptAt = Instant.now(clock).plus(retryDelay);
           holder.setNextEvaluationAt(nextAttemptAt);
 
           log.debug(
-              "Leadership not acquired: degradation={}, nextAttemptAt={}, leaseDuration={}",
+              "Leadership not acquired: degradation={}, nextAttemptAt={}, retryDelay={}, evaluationInterval={}, leadershipRetryBackoff={}, leaseDuration={}",
               policy.degradationId(),
               nextAttemptAt,
-              properties.leadershipLeaseDuration());
+              retryDelay,
+              policy.evaluationInterval(),
+              properties.leadershipRetryBackoff(),
+              leadershipLeaseDuration);
           return Optional.of(new EvaluationResult(policy.degradationId(), nextAttemptAt));
         }
 
@@ -86,7 +97,7 @@ public class EvaluationService {
         log.debug(
             "Leadership acquired: degradation={}, leaseDuration={}, instanceId={}",
             policy.degradationId(),
-            properties.leadershipLeaseDuration(),
+            leadershipLeaseDuration,
             properties.instanceId());
 
         var signalFetchStart = Instant.now(clock);

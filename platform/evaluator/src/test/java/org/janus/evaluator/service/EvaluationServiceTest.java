@@ -39,6 +39,7 @@ class EvaluationServiceTest {
   private static final Instant NOW = Instant.parse("2025-01-01T00:00:00Z");
   private static final Duration EVALUATION_INTERVAL = Duration.ofSeconds(30);
   private static final Duration LEASE_DURATION = Duration.ofSeconds(10);
+  private static final Duration EFFECTIVE_LEASE_DURATION = EVALUATION_INTERVAL;
   private static final Duration LEADERSHIP_RETRY_BACKOFF = Duration.ofSeconds(5);
   private static final Duration FAILURE_BACKOFF = Duration.ofSeconds(15);
 
@@ -89,7 +90,8 @@ class EvaluationServiceTest {
 
     var leadershipHandle = mock(LeadershipHandle.class);
     when(leadershipHandle.acquired()).thenReturn(true);
-    when(leadershipClient.tryAcquire(DEGRADATION_ID, LEASE_DURATION)).thenReturn(leadershipHandle);
+    when(leadershipClient.tryAcquire(DEGRADATION_ID, EFFECTIVE_LEASE_DURATION))
+        .thenReturn(leadershipHandle);
 
     when(signalClient.getSignalValue(signalSource)).thenReturn(0.75);
     when(signalValueValidator.validate(0.75, DEGRADATION_ID)).thenReturn(0.75);
@@ -119,12 +121,41 @@ class EvaluationServiceTest {
 
     var leadershipHandle = mock(LeadershipHandle.class);
     when(leadershipHandle.acquired()).thenReturn(false);
-    when(leadershipClient.tryAcquire(DEGRADATION_ID, LEASE_DURATION)).thenReturn(leadershipHandle);
+    when(leadershipClient.tryAcquire(DEGRADATION_ID, EFFECTIVE_LEASE_DURATION))
+        .thenReturn(leadershipHandle);
 
     var result = evaluationService.evaluate(DEGRADATION_ID);
 
     assertThat(result).isPresent();
     assertThat(result.get().degradationId()).isEqualTo(DEGRADATION_ID);
+    assertThat(result.get().nextEvaluationAt()).isEqualTo(NOW.plus(EVALUATION_INTERVAL));
+
+    verifyNoInteractions(signalClient);
+    verifyNoInteractions(stateStoreClient);
+    verify(evaluatorMetrics).recordLeadershipAcquisition(DEGRADATION_ID, "rejected");
+    verify(evaluatorMetrics, never()).recordEvaluation(anyString(), anyString());
+    verify(leadershipHandle).close();
+  }
+
+  @Test
+  void evaluate_leadershipNotAcquired_usesRetryBackoffWhenItExceedsEvaluationInterval() {
+    var holder = new RegisteredDegradation(DEGRADATION_ID);
+    var signalSource =
+        new SignalSourceSnapshot(SignalSourceSnapshot.SignalSourceType.PROMETHEUS, "up");
+    var policy =
+        new PolicySnapshot(
+            DEGRADATION_ID, LEADERSHIP_RETRY_BACKOFF.minusSeconds(1), signalSource, NOW);
+    holder.replacePolicy(policy);
+
+    when(registry.find(DEGRADATION_ID)).thenReturn(Optional.of(holder));
+
+    var leadershipHandle = mock(LeadershipHandle.class);
+    when(leadershipHandle.acquired()).thenReturn(false);
+    when(leadershipClient.tryAcquire(DEGRADATION_ID, LEASE_DURATION)).thenReturn(leadershipHandle);
+
+    var result = evaluationService.evaluate(DEGRADATION_ID);
+
+    assertThat(result).isPresent();
     assertThat(result.get().nextEvaluationAt()).isEqualTo(NOW.plus(LEADERSHIP_RETRY_BACKOFF));
 
     verifyNoInteractions(signalClient);
@@ -146,7 +177,8 @@ class EvaluationServiceTest {
 
     var leadershipHandle = mock(LeadershipHandle.class);
     when(leadershipHandle.acquired()).thenReturn(true);
-    when(leadershipClient.tryAcquire(DEGRADATION_ID, LEASE_DURATION)).thenReturn(leadershipHandle);
+    when(leadershipClient.tryAcquire(DEGRADATION_ID, EFFECTIVE_LEASE_DURATION))
+        .thenReturn(leadershipHandle);
 
     when(signalClient.getSignalValue(signalSource))
         .thenThrow(new RuntimeException("Prometheus unavailable"));
@@ -228,7 +260,7 @@ class EvaluationServiceTest {
 
     var leadershipHandle = mock(LeadershipHandle.class);
     when(leadershipHandle.acquired()).thenReturn(true);
-    when(leadershipClient.tryAcquire(DEGRADATION_ID, LEASE_DURATION)).thenReturn(leadershipHandle);
+    when(leadershipClient.tryAcquire(DEGRADATION_ID, interval)).thenReturn(leadershipHandle);
 
     when(signalClient.getSignalValue(signalSource)).thenReturn(0.5);
     when(signalValueValidator.validate(0.5, DEGRADATION_ID)).thenReturn(0.5);
