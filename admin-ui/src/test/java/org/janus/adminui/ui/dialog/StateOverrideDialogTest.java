@@ -1,5 +1,7 @@
 package org.janus.adminui.ui.dialog;
 
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.vaadin.flow.component.Component;
@@ -40,6 +42,25 @@ class StateOverrideDialogTest {
     findApplyButton(dialog).click();
 
     verifyNoInteractions(onApply);
+  }
+
+  @Test
+  void apply_subMinuteMaxTtl_submitsSeconds() {
+    @SuppressWarnings("unchecked")
+    Consumer<OverrideStateCommand> onApply = Mockito.mock(Consumer.class);
+    UI.setCurrent(new UI());
+    var dialog = new StateOverrideDialog("deg-1", Duration.ofSeconds(30), onApply);
+
+    find(dialog, IntegerField.class).setValue(30);
+    findApplyButton(dialog).click();
+
+    verify(onApply)
+        .accept(
+            argThat(
+                command ->
+                    command != null
+                        && "deg-1".equals(command.degradationId())
+                        && command.ttl().equals(Duration.ofSeconds(30))));
   }
 
   private static Button findApplyButton(Component root) {
