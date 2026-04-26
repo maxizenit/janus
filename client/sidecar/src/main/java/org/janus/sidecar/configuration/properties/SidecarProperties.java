@@ -1,6 +1,7 @@
 package org.janus.sidecar.configuration.properties;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -25,5 +26,13 @@ public record SidecarProperties(
       @DecimalMin("0.0") @DecimalMax("1.0") @Nullable Double criticalThreshold,
       @DecimalMin("0.0") @DecimalMax("1.0") @Nullable Double minFallbackRatio,
       @DecimalMin("0.0") @DecimalMax("1.0") @Nullable Double maxFallbackRatio,
-      @DecimalMin(value = "0.0", inclusive = false) @Nullable Double fallbackCurveExponent) {}
+      @DecimalMin(value = "0.0", inclusive = false) @Nullable Double fallbackCurveExponent) {
+
+    @AssertTrue(message = "minFallbackRatio must be less than or equal to maxFallbackRatio")
+    public boolean isFallbackRatioOrderValid() {
+      return minFallbackRatio == null
+          || maxFallbackRatio == null
+          || minFallbackRatio <= maxFallbackRatio;
+    }
+  }
 }
