@@ -15,7 +15,8 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public class StateOverrideDialog extends Dialog {
 
-  public StateOverrideDialog(String degradationId, Consumer<OverrideStateCommand> onApply) {
+  public StateOverrideDialog(
+      String degradationId, Duration maxOverrideTtl, Consumer<OverrideStateCommand> onApply) {
     TextField id = new TextField("Degradation ID");
     id.setValue(degradationId);
     id.setReadOnly(true);
@@ -28,7 +29,14 @@ public class StateOverrideDialog extends Dialog {
 
     IntegerField ttlMinutes = new IntegerField("TTL, minutes");
     ttlMinutes.setMin(1);
-    ttlMinutes.setValue(10);
+    long maxOverrideTtlMinutes = maxOverrideTtl.toMinutes();
+    int defaultTtlMinutes = 10;
+    if (maxOverrideTtlMinutes >= 1) {
+      int maxTtlMinutes = Math.toIntExact(maxOverrideTtlMinutes);
+      ttlMinutes.setMax(maxTtlMinutes);
+      defaultTtlMinutes = Math.min(defaultTtlMinutes, maxTtlMinutes);
+    }
+    ttlMinutes.setValue(defaultTtlMinutes);
 
     Button apply =
         new Button(
@@ -44,10 +52,14 @@ public class StateOverrideDialog extends Dialog {
                 Notification.show("TTL must be positive");
                 return;
               }
+              Duration ttl = Duration.ofMinutes(ttlValue.longValue());
+              if (ttl.compareTo(maxOverrideTtl) > 0) {
+                Notification.show("TTL must not exceed " + maxOverrideTtl.toMinutes() + " minutes");
+                return;
+              }
 
               onApply.accept(
-                  new OverrideStateCommand(
-                      degradationId, stateValue, Duration.ofMinutes(ttlValue.longValue())));
+                  new OverrideStateCommand(degradationId, stateValue, ttl));
               close();
             });
 

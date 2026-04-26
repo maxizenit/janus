@@ -98,6 +98,7 @@ public class StatesView extends VerticalLayout {
   private void openOverrideDialog(StateView state) {
     new StateOverrideDialog(
             state.degradationId(),
+            properties.maxOverrideTtl(),
             command -> {
               try {
                 service.applyOverride(command);

@@ -7,6 +7,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
+import java.time.Duration;
 import java.util.function.Consumer;
 import org.janus.adminui.model.OverrideStateCommand;
 import org.junit.jupiter.api.Test;
@@ -19,10 +20,23 @@ class StateOverrideDialogTest {
     @SuppressWarnings("unchecked")
     Consumer<OverrideStateCommand> onApply = Mockito.mock(Consumer.class);
     UI.setCurrent(new UI());
-    var dialog = new StateOverrideDialog("deg-1", onApply);
+    var dialog = new StateOverrideDialog("deg-1", Duration.ofHours(24), onApply);
 
     find(dialog, NumberField.class).clear();
     find(dialog, IntegerField.class).clear();
+    findApplyButton(dialog).click();
+
+    verifyNoInteractions(onApply);
+  }
+
+  @Test
+  void apply_ttlAboveMax_doesNotSubmitCommand() {
+    @SuppressWarnings("unchecked")
+    Consumer<OverrideStateCommand> onApply = Mockito.mock(Consumer.class);
+    UI.setCurrent(new UI());
+    var dialog = new StateOverrideDialog("deg-1", Duration.ofMinutes(5), onApply);
+
+    find(dialog, IntegerField.class).setValue(6);
     findApplyButton(dialog).click();
 
     verifyNoInteractions(onApply);
