@@ -92,52 +92,60 @@ public class EvaluationService {
           return Optional.of(new EvaluationResult(policy.degradationId(), nextAttemptAt));
         }
 
-        evaluatorMetrics.recordLeadershipAcquisition(policy.degradationId(), "acquired");
+        try {
+          evaluatorMetrics.recordLeadershipAcquisition(policy.degradationId(), "acquired");
 
-        log.debug(
-            "Leadership acquired: degradation={}, leaseDuration={}, instanceId={}",
-            policy.degradationId(),
-            leadershipLeaseDuration,
-            properties.instanceId());
+          log.debug(
+              "Leadership acquired: degradation={}, leaseDuration={}, instanceId={}",
+              policy.degradationId(),
+              leadershipLeaseDuration,
+              properties.instanceId());
 
-        var signalFetchStart = Instant.now(clock);
-        var rawValue =
-            signalClient.getSignalValue(policy.signalSource());
-        evaluatorMetrics.recordSignalFetchDuration(
-            policy.degradationId(), Duration.between(signalFetchStart, Instant.now(clock)));
+          var signalFetchStart = Instant.now(clock);
+          var rawValue = signalClient.getSignalValue(policy.signalSource());
+          evaluatorMetrics.recordSignalFetchDuration(
+              policy.degradationId(), Duration.between(signalFetchStart, Instant.now(clock)));
 
-        log.debug(
-            "Signal value received: degradation={}, rawValue={}, signalSourceType={}, signalSourceRef={}",
-            policy.degradationId(),
-            rawValue,
-            policy.signalSource().type(),
-            policy.signalSource().query());
+          log.debug(
+              "Signal value received: degradation={}, rawValue={}, signalSourceType={}, signalSourceRef={}",
+              policy.degradationId(),
+              rawValue,
+              policy.signalSource().type(),
+              policy.signalSource().query());
 
-        var value = signalValueValidator.validate(rawValue, policy.degradationId());
-        log.debug(
-            "Signal value validated: degradation={}, rawValue={}, validatedValue={}",
-            policy.degradationId(),
-            rawValue,
-            value);
+          var value = signalValueValidator.validate(rawValue, policy.degradationId());
+          log.debug(
+              "Signal value validated: degradation={}, rawValue={}, validatedValue={}",
+              policy.degradationId(),
+              rawValue,
+              value);
 
-        Duration ttl = policy.evaluationInterval().multipliedBy(2);
-        stateStoreClient.updateState(policy.degradationId(), value, ttl);
-        log.debug(
-            "State store updated: degradation={}, value={}, ttl={}",
-            policy.degradationId(),
-            value,
-            ttl);
+          Duration ttl = policy.evaluationInterval().multipliedBy(2);
+          stateStoreClient.updateState(policy.degradationId(), value, ttl);
+          log.debug(
+              "State store updated: degradation={}, value={}, ttl={}",
+              policy.degradationId(),
+              value,
+              ttl);
 
-        var nextEvaluationAt = Instant.now(clock).plus(policy.evaluationInterval());
-        holder.setNextEvaluationAt(nextEvaluationAt);
-        log.debug(
-            "Degradation evaluated: degradation={}, value={}, nextEvaluationAt={}",
-            policy.degradationId(),
-            value,
-            nextEvaluationAt);
+          var nextEvaluationAt = Instant.now(clock).plus(policy.evaluationInterval());
+          holder.setNextEvaluationAt(nextEvaluationAt);
+          log.debug(
+              "Degradation evaluated: degradation={}, value={}, nextEvaluationAt={}",
+              policy.degradationId(),
+              value,
+              nextEvaluationAt);
 
-        evaluatorMetrics.recordEvaluation(policy.degradationId(), "success");
-        return Optional.of(new EvaluationResult(policy.degradationId(), nextEvaluationAt));
+          evaluatorMetrics.recordEvaluation(policy.degradationId(), "success");
+          return Optional.of(new EvaluationResult(policy.degradationId(), nextEvaluationAt));
+        } catch (RuntimeException e) {
+          try {
+            leadership.release();
+          } catch (RuntimeException releaseFailure) {
+            e.addSuppressed(releaseFailure);
+          }
+          throw e;
+        }
       }
     } catch (RuntimeException e) {
       var retryAt = Instant.now(clock).plus(properties.evaluationFailureBackoff());

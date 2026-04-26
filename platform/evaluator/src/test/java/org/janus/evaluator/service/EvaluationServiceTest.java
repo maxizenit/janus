@@ -106,6 +106,7 @@ class EvaluationServiceTest {
     verify(stateStoreClient).updateState(DEGRADATION_ID, 0.75, expectedTtl);
     verify(evaluatorMetrics).recordLeadershipAcquisition(DEGRADATION_ID, "acquired");
     verify(evaluatorMetrics).recordEvaluation(DEGRADATION_ID, "success");
+    verify(leadershipHandle, never()).release();
     verify(leadershipHandle).close();
   }
 
@@ -134,6 +135,7 @@ class EvaluationServiceTest {
     verifyNoInteractions(stateStoreClient);
     verify(evaluatorMetrics).recordLeadershipAcquisition(DEGRADATION_ID, "rejected");
     verify(evaluatorMetrics, never()).recordEvaluation(anyString(), anyString());
+    verify(leadershipHandle, never()).release();
     verify(leadershipHandle).close();
   }
 
@@ -162,6 +164,7 @@ class EvaluationServiceTest {
     verifyNoInteractions(stateStoreClient);
     verify(evaluatorMetrics).recordLeadershipAcquisition(DEGRADATION_ID, "rejected");
     verify(evaluatorMetrics, never()).recordEvaluation(anyString(), anyString());
+    verify(leadershipHandle, never()).release();
     verify(leadershipHandle).close();
   }
 
@@ -191,6 +194,7 @@ class EvaluationServiceTest {
 
     verify(stateStoreClient, never()).updateState(anyString(), anyDouble(), any());
     verify(evaluatorMetrics).recordEvaluation(DEGRADATION_ID, "failure");
+    verify(leadershipHandle).release();
     verify(leadershipHandle).close();
   }
 
@@ -282,7 +286,8 @@ class EvaluationServiceTest {
 
     var leadershipHandle = mock(LeadershipHandle.class);
     when(leadershipHandle.acquired()).thenReturn(true);
-    when(leadershipClient.tryAcquire(DEGRADATION_ID, LEASE_DURATION)).thenReturn(leadershipHandle);
+    when(leadershipClient.tryAcquire(DEGRADATION_ID, EFFECTIVE_LEASE_DURATION))
+        .thenReturn(leadershipHandle);
 
     when(signalClient.getSignalValue(signalSource)).thenReturn(-1.0);
     when(signalValueValidator.validate(-1.0, DEGRADATION_ID))
@@ -294,5 +299,6 @@ class EvaluationServiceTest {
     assertThat(result.get().nextEvaluationAt()).isEqualTo(NOW.plus(FAILURE_BACKOFF));
     verify(stateStoreClient, never()).updateState(anyString(), anyDouble(), any());
     verify(evaluatorMetrics).recordEvaluation(DEGRADATION_ID, "failure");
+    verify(leadershipHandle).release();
   }
 }

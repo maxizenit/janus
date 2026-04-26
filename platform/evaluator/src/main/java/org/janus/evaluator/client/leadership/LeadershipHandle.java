@@ -7,6 +7,8 @@ public interface LeadershipHandle extends AutoCloseable {
 
   boolean acquired();
 
+  void release();
+
   @Override
   void close();
 }
