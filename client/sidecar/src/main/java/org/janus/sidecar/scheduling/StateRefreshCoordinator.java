@@ -113,7 +113,7 @@ public class StateRefreshCoordinator implements StateRefreshScheduler, SmartLife
 
   @Override
   public void scheduleAt(String degradationId, Instant instant) {
-    queue.offer(new StateRefreshTask(degradationId, instant));
+    queue.offer(StateRefreshTask.scheduledAt(degradationId, instant));
     log.trace(
         "State refresh scheduled at: degradation={}, scheduledAt={}, queueSize={}",
         degradationId,
