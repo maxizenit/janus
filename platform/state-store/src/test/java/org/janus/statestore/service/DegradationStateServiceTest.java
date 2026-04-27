@@ -445,7 +445,7 @@ class DegradationStateServiceTest {
     }
 
     @Test
-    void ttlReturnsNull_usesZeroDuration() {
+    void ttlReturnsNull_skipsState() {
       String adminJson = "{\"degradationId\":\"deg-1\",\"value\":0.5}";
 
       when(valueOperations.multiGet(anyList()))
@@ -460,9 +460,7 @@ class DegradationStateServiceTest {
       List<AdminDegradationState> result =
           service.getAdminDegradationStates(List.of("deg-1"));
 
-      assertThat(result).hasSize(1);
-      assertThat(result.getFirst().sourceStates().getFirst().remainingTtl())
-          .isEqualTo(Duration.ZERO);
+      assertThat(result).isEmpty();
     }
 
     @Test
