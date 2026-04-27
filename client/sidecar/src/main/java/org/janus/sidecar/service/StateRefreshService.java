@@ -88,7 +88,6 @@ public class StateRefreshService {
               .ifPresent(
                   policy -> {
                     var nextRefreshAt = now.plus(policy.evaluationInterval());
-                    holder.setNextStateRefreshAt(nextRefreshAt);
                     results.add(new StateRefreshResult(holder.getDegradationId(), nextRefreshAt));
                     log.debug(
                         "State refreshed: degradation={}, value={}, nextRefreshAt={}",
@@ -128,7 +127,6 @@ public class StateRefreshService {
               .ifPresent(
                   policy -> {
                     var nextRefreshAt = now.plus(policy.evaluationInterval());
-                    holder.setNextStateRefreshAt(nextRefreshAt);
                     results.add(new StateRefreshResult(holder.getDegradationId(), nextRefreshAt));
                   });
         } finally {

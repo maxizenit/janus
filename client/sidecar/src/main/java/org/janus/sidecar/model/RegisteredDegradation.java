@@ -3,7 +3,6 @@ package org.janus.sidecar.model;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +22,6 @@ public class RegisteredDegradation {
 
   private final AtomicReference<@Nullable PolicySnapshot> policyRef = new AtomicReference<>();
   private final AtomicReference<@Nullable StateSnapshot> stateRef = new AtomicReference<>();
-
-  private final AtomicLong nextStateRefreshAtMillis = new AtomicLong(0);
 
   public boolean isActive() {
     return active.get();
@@ -77,9 +74,5 @@ public class RegisteredDegradation {
 
   public void finishStateRefresh() {
     stateRefreshInFlight.set(false);
-  }
-
-  public void setNextStateRefreshAt(Instant instant) {
-    nextStateRefreshAtMillis.set(instant.toEpochMilli());
   }
 }
