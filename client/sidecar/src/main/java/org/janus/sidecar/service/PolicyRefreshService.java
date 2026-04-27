@@ -99,7 +99,6 @@ public class PolicyRefreshService {
 
                       if (evaluationChanged) {
                         updatedCount.incrementAndGet();
-                        holder.setNextStateRefreshAt(now);
                         stateRefreshScheduler.scheduleNow(holder.getDegradationId());
                         log.info(
                             "Policy refreshed: degradation={}, oldEvaluationInterval={}, newEvaluationInterval={}, scheduledAt={}",
