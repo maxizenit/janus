@@ -13,6 +13,7 @@ import org.janus.sdk.core.descriptor.ParameterDescriptor;
 import org.janus.sdk.core.descriptor.RelativeScaleDescriptor;
 import org.janus.sdk.core.validation.InvalidDegradableDefinitionException;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.stereotype.Component;
 
@@ -38,10 +39,10 @@ public class DegradableDescriptorFactory {
         List.copyOf(parameters));
   }
 
-  private Method resolveFallbackMethod(Class<?> targetClass, Method method, String fallbackName) {
+  private @Nullable Method resolveFallbackMethod(
+      Class<?> targetClass, Method method, String fallbackName) {
     if (fallbackName == null || fallbackName.isBlank()) {
-      throw new InvalidDegradableDefinitionException(
-          "Fallback method name must not be blank: " + method.toGenericString());
+      return null;
     }
 
     try {

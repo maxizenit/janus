@@ -92,21 +92,21 @@ class DegradableDescriptorFactoryTest {
   }
 
   @Test
-  void throwsWhenFallbackNameIsBlank() throws Exception {
+  void createsDescriptorWithoutFallbackWhenNameIsBlank() throws Exception {
     var method = BlankFallbackService.class.getDeclaredMethod("primary");
 
-    assertThatThrownBy(() -> factory.create(BlankFallbackService.class, method))
-        .isInstanceOf(InvalidDegradableDefinitionException.class)
-        .hasMessageContaining("must not be blank");
+    var descriptor = factory.create(BlankFallbackService.class, method);
+
+    assertThat(descriptor.fallbackMethod()).isNull();
   }
 
   @Test
-  void throwsWhenFallbackNameIsEmpty() throws Exception {
+  void createsDescriptorWithoutFallbackWhenNotSpecified() throws Exception {
     var method = EmptyFallbackService.class.getDeclaredMethod("primary");
 
-    assertThatThrownBy(() -> factory.create(EmptyFallbackService.class, method))
-        .isInstanceOf(InvalidDegradableDefinitionException.class)
-        .hasMessageContaining("must not be blank");
+    var descriptor = factory.create(EmptyFallbackService.class, method);
+
+    assertThat(descriptor.fallbackMethod()).isNull();
   }
 
   @Test
