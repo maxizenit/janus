@@ -18,6 +18,22 @@ public class RedisLeadershipClient implements LeadershipClient {
 
   private static final String KEY_PREFIX = "janus:evaluator:leader:";
 
+  private static final DefaultRedisScript<Long> ACQUIRE_OR_RENEW_SCRIPT =
+      new DefaultRedisScript<>(
+          """
+                    local currentOwner = redis.call('get', KEYS[1])
+                    if not currentOwner then
+                      redis.call('set', KEYS[1], ARGV[1], 'PX', ARGV[2])
+                      return 1
+                    end
+                    if currentOwner == ARGV[1] then
+                      redis.call('pexpire', KEYS[1], ARGV[2])
+                      return 1
+                    end
+                    return 0
+                    """,
+          Long.class);
+
   private static final DefaultRedisScript<Long> RELEASE_SCRIPT =
       new DefaultRedisScript<>(
           """
@@ -44,7 +60,13 @@ public class RedisLeadershipClient implements LeadershipClient {
         leaseDuration);
 
     var acquired =
-        Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(key, owner, leaseDuration));
+        Long.valueOf(1L)
+            .equals(
+                redisTemplate.execute(
+                    ACQUIRE_OR_RENEW_SCRIPT,
+                    List.of(key),
+                    owner,
+                    String.valueOf(leaseDuration.toMillis())));
 
     log.debug(
         "Leadership acquire result: degradation={}, key={}, owner={}, acquired={}",
