@@ -100,7 +100,7 @@ public class EvaluationCoordinator implements EvaluationScheduler, SmartLifecycl
 
   @Override
   public void scheduleAt(String degradationId, Instant instant) {
-    queue.offer(new EvaluationTask(degradationId, instant));
+    queue.offer(EvaluationTask.scheduledAt(degradationId, instant));
     log.debug(
         "Evaluation scheduled at: degradation={}, scheduledAt={}, queueSize={}",
         degradationId,
