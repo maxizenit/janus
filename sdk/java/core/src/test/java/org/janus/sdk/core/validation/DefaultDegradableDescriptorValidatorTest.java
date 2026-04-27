@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.lang.reflect.Method;
 import java.util.List;
 import org.janus.sdk.core.descriptor.DegradableMethodDescriptor;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 class DefaultDegradableDescriptorValidatorTest {
@@ -39,13 +40,21 @@ class DefaultDegradableDescriptorValidatorTest {
   }
 
   private DegradableMethodDescriptor descriptor(
-      String degradationId, Method method, Method fallbackMethod) {
+      String degradationId, Method method, @Nullable Method fallbackMethod) {
     return new DegradableMethodDescriptor(
         degradationId,
         method,
         fallbackMethod,
         SampleService.class,
         List.of());
+  }
+
+  @Test
+  void validDescriptorWithoutFallback_passes() {
+    DegradableMethodDescriptor desc =
+        descriptor("my-degradation", method("doWork", int.class), null);
+
+    assertThatCode(() -> validator.validate(desc)).doesNotThrowAnyException();
   }
 
   @Test

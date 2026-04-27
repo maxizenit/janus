@@ -29,6 +29,9 @@ public class DefaultDegradableDescriptorValidator implements DegradableDescripto
   private void validateFallbackMethod(DegradableMethodDescriptor descriptor) {
     Method method = descriptor.method();
     Method fallbackMethod = descriptor.fallbackMethod();
+    if (fallbackMethod == null) {
+      return;
+    }
 
     if (method.equals(fallbackMethod)) {
       throw new InvalidDegradableDefinitionException(

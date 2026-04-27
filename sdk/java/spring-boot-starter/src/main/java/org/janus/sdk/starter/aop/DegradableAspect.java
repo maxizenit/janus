@@ -12,6 +12,7 @@ import org.janus.sdk.core.runtime.DegradationStateRegistry;
 import org.janus.sdk.core.transform.FallbackArgumentsTransformer;
 import org.janus.sdk.starter.registry.MethodDescriptorResolver;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.stereotype.Component;
 
@@ -54,6 +55,17 @@ public class DegradableAspect {
 
     metrics.recordInvocation(descriptor.degradationId(), true);
 
+    var fallbackMethod = descriptor.fallbackMethod();
+    if (fallbackMethod == null) {
+      log.debug(
+          "Fallback selected without fallback method, skipping invocation: degradationId={}, method={}, degradationValue={}, threshold={}",
+          descriptor.degradationId(),
+          descriptor.method().toGenericString(),
+          decision.degradationValue(),
+          decision.effectiveCriticalThreshold());
+      return defaultReturnValue(method.getReturnType());
+    }
+
     var fallbackArguments =
         argumentsTransformer.transform(descriptor, decision, joinPoint.getArgs());
 
@@ -64,6 +76,37 @@ public class DegradableAspect {
         decision.degradationValue(),
         decision.effectiveCriticalThreshold());
 
-    return fallbackMethodInvoker.invoke(target, descriptor.fallbackMethod(), fallbackArguments);
+    return fallbackMethodInvoker.invoke(target, fallbackMethod, fallbackArguments);
+  }
+
+  private static @Nullable Object defaultReturnValue(Class<?> returnType) {
+    if (!returnType.isPrimitive() || void.class.equals(returnType)) {
+      return null;
+    }
+    if (boolean.class.equals(returnType)) {
+      return false;
+    }
+    if (char.class.equals(returnType)) {
+      return '\0';
+    }
+    if (byte.class.equals(returnType)) {
+      return (byte) 0;
+    }
+    if (short.class.equals(returnType)) {
+      return (short) 0;
+    }
+    if (int.class.equals(returnType)) {
+      return 0;
+    }
+    if (long.class.equals(returnType)) {
+      return 0L;
+    }
+    if (float.class.equals(returnType)) {
+      return 0.0f;
+    }
+    if (double.class.equals(returnType)) {
+      return 0.0d;
+    }
+    throw new IllegalArgumentException("Unsupported primitive return type: " + returnType);
   }
 }
