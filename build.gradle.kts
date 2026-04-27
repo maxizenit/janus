@@ -9,6 +9,8 @@ subprojects {
         if (plugins.hasPlugin("org.springframework.boot") && file("Dockerfile").exists()) {
             apply(plugin = "com.bmuschko.docker-remote-api")
 
+            tasks.named<Jar>("jar") { enabled = false }
+
             val bootJarTask = tasks.named("bootJar")
 
             tasks.register<DockerBuildImage>("buildDockerImageLocal") {
