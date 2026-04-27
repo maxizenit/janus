@@ -28,20 +28,11 @@ public class SidecarGrpcMapper {
               .setDegradationId(view.degradationId())
               .setValue(view.value())
               .setEvaluationInterval(Durations.fromMillis(view.evaluationInterval().toMillis()))
+              .setCriticalThreshold(view.criticalThreshold())
+              .setMinFallbackRatio(view.minFallbackRatio())
+              .setMaxFallbackRatio(view.maxFallbackRatio())
+              .setFallbackCurveExponent(view.fallbackCurveExponent())
               .setStale(view.stale());
-
-      if (view.criticalThreshold() != null) {
-        degradationBuilder.setCriticalThreshold(view.criticalThreshold());
-      }
-      if (view.minFallbackRatio() != null) {
-        degradationBuilder.setMinFallbackRatio(view.minFallbackRatio());
-      }
-      if (view.maxFallbackRatio() != null) {
-        degradationBuilder.setMaxFallbackRatio(view.maxFallbackRatio());
-      }
-      if (view.fallbackCurveExponent() != null) {
-        degradationBuilder.setFallbackCurveExponent(view.fallbackCurveExponent());
-      }
 
       builder.addDegradations(degradationBuilder);
     }

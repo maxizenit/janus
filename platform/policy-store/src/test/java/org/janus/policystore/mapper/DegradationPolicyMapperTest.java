@@ -36,13 +36,6 @@ class DegradationPolicyMapperTest {
     return entity;
   }
 
-  private DegradationPolicy minimalEntity() {
-    var entity = new DegradationPolicy();
-    entity.setDegradationId("minimal");
-    entity.setEvaluationIntervalMs(10000L);
-    return entity;
-  }
-
   // --- fromEntityToProto ---
 
   @Test
@@ -56,29 +49,20 @@ class DegradationPolicyMapperTest {
     assertThat(proto.hasSignalSource()).isTrue();
     assertThat(proto.getSignalSource().getPrometheus().getQuery())
         .isEqualTo("up{job=\"test\"}");
-    assertThat(proto.hasCriticalThreshold()).isTrue();
     assertThat(proto.getCriticalThreshold()).isEqualTo(0.7);
-    assertThat(proto.hasMinFallbackRatio()).isTrue();
     assertThat(proto.getMinFallbackRatio()).isEqualTo(0.1);
-    assertThat(proto.hasMaxFallbackRatio()).isTrue();
     assertThat(proto.getMaxFallbackRatio()).isEqualTo(0.9);
-    assertThat(proto.hasFallbackCurveExponent()).isTrue();
     assertThat(proto.getFallbackCurveExponent()).isEqualTo(2.0);
   }
 
   @Test
-  void fromEntityToProto_optionalFieldsNull() {
-    var entity = minimalEntity();
+  void fromEntityToProto_missingPolicyParametersFailsFast() {
+    var entity = fullEntity();
+    entity.setCriticalThreshold(null);
 
-    var proto = mapper.fromEntityToProto(entity);
-
-    assertThat(proto.getDegradationId()).isEqualTo("minimal");
-    assertThat(proto.getEvaluationInterval().getSeconds()).isEqualTo(10);
-    assertThat(proto.hasSignalSource()).isFalse();
-    assertThat(proto.hasCriticalThreshold()).isFalse();
-    assertThat(proto.hasMinFallbackRatio()).isFalse();
-    assertThat(proto.hasMaxFallbackRatio()).isFalse();
-    assertThat(proto.hasFallbackCurveExponent()).isFalse();
+    assertThatThrownBy(() -> mapper.fromEntityToProto(entity))
+        .isInstanceOf(NullPointerException.class)
+        .hasMessageContaining("criticalThreshold must be set");
   }
 
   // --- fromEntityToEvaluatorProto ---
@@ -106,13 +90,9 @@ class DegradationPolicyMapperTest {
 
     assertThat(proto.getDegradationId()).isEqualTo("test");
     assertThat(proto.getEvaluationInterval().getSeconds()).isEqualTo(30);
-    assertThat(proto.hasCriticalThreshold()).isTrue();
     assertThat(proto.getCriticalThreshold()).isEqualTo(0.7);
-    assertThat(proto.hasMinFallbackRatio()).isTrue();
     assertThat(proto.getMinFallbackRatio()).isEqualTo(0.1);
-    assertThat(proto.hasMaxFallbackRatio()).isTrue();
     assertThat(proto.getMaxFallbackRatio()).isEqualTo(0.9);
-    assertThat(proto.hasFallbackCurveExponent()).isTrue();
     assertThat(proto.getFallbackCurveExponent()).isEqualTo(2.0);
   }
 
@@ -150,7 +130,7 @@ class DegradationPolicyMapperTest {
   }
 
   @Test
-  void fromCreateRequestProtoToEntity_optionalFieldsAbsent() {
+  void fromCreateRequestProtoToEntity_missingPolicyParametersRemainNullForValidation() {
     var request =
         CreateDegradationPolicyRequest.newBuilder()
             .setDegradationId("bare-policy")
@@ -296,6 +276,10 @@ class DegradationPolicyMapperTest {
     entity.setEvaluationIntervalMs(5000L);
     entity.setSignalSourceType(SignalSourceType.PROMETHEUS);
     entity.setSourcePrometheusQuery("process_cpu_seconds_total");
+    entity.setCriticalThreshold(0.7);
+    entity.setMinFallbackRatio(0.1);
+    entity.setMaxFallbackRatio(0.9);
+    entity.setFallbackCurveExponent(2.0);
 
     var proto = mapper.fromEntityToProto(entity);
 

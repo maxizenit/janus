@@ -37,7 +37,7 @@ class RegisteredDegradationTest {
   void replacePolicy_replacesExistingValue() {
     var degradation = new RegisteredDegradation("deg-1");
     var first =
-        new PolicySnapshot("deg-1", Duration.ofSeconds(5), 0.9, null, null, null, Instant.now());
+        new PolicySnapshot("deg-1", Duration.ofSeconds(5), 0.9, 0.1, 0.8, 2.0, Instant.now());
     var second =
         new PolicySnapshot("deg-1", Duration.ofSeconds(10), 0.7, 0.2, 0.6, 3.0, Instant.now());
 
@@ -51,7 +51,7 @@ class RegisteredDegradationTest {
   void clearPolicy_removesExistingValue() {
     var degradation = new RegisteredDegradation("deg-1");
     var snapshot =
-        new PolicySnapshot("deg-1", Duration.ofSeconds(5), 0.9, null, null, null, Instant.now());
+        new PolicySnapshot("deg-1", Duration.ofSeconds(5), 0.9, 0.1, 0.8, 2.0, Instant.now());
 
     degradation.replacePolicy(snapshot);
     degradation.clearPolicy();

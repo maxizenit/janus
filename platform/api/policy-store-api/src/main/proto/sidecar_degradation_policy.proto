@@ -10,8 +10,8 @@ import "google/protobuf/duration.proto";
 message SidecarDegradationPolicy {
   string degradation_id = 1;
   google.protobuf.Duration evaluation_interval = 2;
-  optional double critical_threshold = 3;
-  optional double min_fallback_ratio = 4;
-  optional double max_fallback_ratio = 5;
-  optional double fallback_curve_exponent = 6;
+  double critical_threshold = 3;
+  double min_fallback_ratio = 4;
+  double max_fallback_ratio = 5;
+  double fallback_curve_exponent = 6;
 }

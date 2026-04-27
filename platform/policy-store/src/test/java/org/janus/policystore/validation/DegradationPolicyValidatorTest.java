@@ -144,15 +144,47 @@ class DegradationPolicyValidatorTest {
   }
 
   @Test
-  void validateForUpdate_allowsOptionalFallbackFieldsToBeUnset() {
+  void validateForUpdate_rejectsMissingCriticalThreshold() {
     var policy = validPolicy();
     policy.setCriticalThreshold(null);
+    when(policyRepository.existsById(policy.getDegradationId())).thenReturn(true);
+
+    assertThatThrownBy(() -> validator.validateForUpdate(policy))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("criticalThreshold required");
+  }
+
+  @Test
+  void validateForUpdate_rejectsMissingMinFallbackRatio() {
+    var policy = validPolicy();
     policy.setMinFallbackRatio(null);
+    when(policyRepository.existsById(policy.getDegradationId())).thenReturn(true);
+
+    assertThatThrownBy(() -> validator.validateForUpdate(policy))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("minFallbackRatio required");
+  }
+
+  @Test
+  void validateForUpdate_rejectsMissingMaxFallbackRatio() {
+    var policy = validPolicy();
     policy.setMaxFallbackRatio(null);
+    when(policyRepository.existsById(policy.getDegradationId())).thenReturn(true);
+
+    assertThatThrownBy(() -> validator.validateForUpdate(policy))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("maxFallbackRatio required");
+  }
+
+  @Test
+  void validateForUpdate_rejectsMissingFallbackCurveExponent() {
+    var policy = validPolicy();
     policy.setFallbackCurveExponent(null);
     when(policyRepository.existsById(policy.getDegradationId())).thenReturn(true);
 
-    assertThatCode(() -> validator.validateForUpdate(policy)).doesNotThrowAnyException();
+    assertThatThrownBy(() -> validator.validateForUpdate(policy))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("fallbackCurveExponent required");
   }
 
   private DegradationPolicy validPolicy() {

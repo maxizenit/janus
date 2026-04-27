@@ -19,13 +19,7 @@ class DegradableDescriptorFactoryTest {
   @SuppressWarnings("unused")
   static class ValidService {
 
-    @Degradable(
-        value = "test-degradation",
-        fallback = "fallbackMethod",
-        criticalThreshold = 0.8,
-        minFallbackRatio = 0.1,
-        maxFallbackRatio = 0.9,
-        fallbackCurveExponent = 2.0)
+    @Degradable(value = "test-degradation", fallback = "fallbackMethod")
     public String primaryMethod(String input) {
       return input;
     }
@@ -33,15 +27,6 @@ class DegradableDescriptorFactoryTest {
     public String fallbackMethod(String input) {
       return "fallback:" + input;
     }
-  }
-
-  @SuppressWarnings("unused")
-  static class DefaultsService {
-
-    @Degradable(value = "defaults-degradation", fallback = "fallbackDefaults")
-    public void primaryDefaults() {}
-
-    public void fallbackDefaults() {}
   }
 
   @SuppressWarnings("unused")
@@ -86,7 +71,7 @@ class DegradableDescriptorFactoryTest {
   // --- tests ---
 
   @Test
-  void createsDescriptorWithAllAnnotationValues() throws Exception {
+  void createsDescriptorWithAnnotationValues() throws Exception {
     var method = ValidService.class.getDeclaredMethod("primaryMethod", String.class);
 
     var descriptor = factory.create(ValidService.class, method);
@@ -95,23 +80,6 @@ class DegradableDescriptorFactoryTest {
     assertThat(descriptor.method()).isEqualTo(method);
     assertThat(descriptor.fallbackMethod().getName()).isEqualTo("fallbackMethod");
     assertThat(descriptor.beanClass()).isEqualTo(ValidService.class);
-    assertThat(descriptor.criticalThreshold()).isEqualTo(0.8);
-    assertThat(descriptor.minFallbackRatio()).isEqualTo(0.1);
-    assertThat(descriptor.maxFallbackRatio()).isEqualTo(0.9);
-    assertThat(descriptor.fallbackCurveExponent()).isEqualTo(2.0);
-  }
-
-  @Test
-  void preservesNaNDefaultsWhenNotSpecified() throws Exception {
-    var method = DefaultsService.class.getDeclaredMethod("primaryDefaults");
-
-    var descriptor = factory.create(DefaultsService.class, method);
-
-    assertThat(descriptor.degradationId()).isEqualTo("defaults-degradation");
-    assertThat(descriptor.criticalThreshold()).isNaN();
-    assertThat(descriptor.minFallbackRatio()).isNaN();
-    assertThat(descriptor.maxFallbackRatio()).isNaN();
-    assertThat(descriptor.fallbackCurveExponent()).isNaN();
   }
 
   @Test

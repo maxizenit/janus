@@ -30,10 +30,10 @@ public class PolicyViewMapper {
         Duration.ofMillis(Durations.toMillis(policy.getEvaluationInterval())),
         signalSourceType,
         query,
-        policy.hasCriticalThreshold() ? policy.getCriticalThreshold() : null,
-        policy.hasMinFallbackRatio() ? policy.getMinFallbackRatio() : null,
-        policy.hasMaxFallbackRatio() ? policy.getMaxFallbackRatio() : null,
-        policy.hasFallbackCurveExponent() ? policy.getFallbackCurveExponent() : null);
+        policy.getCriticalThreshold(),
+        policy.getMinFallbackRatio(),
+        policy.getMaxFallbackRatio(),
+        policy.getFallbackCurveExponent());
   }
 
   public CreateDegradationPolicyRequest toCreateRequest(PolicyView view) {
@@ -45,18 +45,10 @@ public class PolicyViewMapper {
     if (!SignalSourceTypeView.MANUAL.equals(view.signalSourceType())) {
       builder.setSignalSource(toSignalSource(view));
     }
-    if (view.criticalThreshold() != null) {
-      builder.setCriticalThreshold(view.criticalThreshold());
-    }
-    if (view.minFallbackRatio() != null) {
-      builder.setMinFallbackRatio(view.minFallbackRatio());
-    }
-    if (view.maxFallbackRatio() != null) {
-      builder.setMaxFallbackRatio(view.maxFallbackRatio());
-    }
-    if (view.fallbackCurveExponent() != null) {
-      builder.setFallbackCurveExponent(view.fallbackCurveExponent());
-    }
+    builder.setCriticalThreshold(view.criticalThreshold());
+    builder.setMinFallbackRatio(view.minFallbackRatio());
+    builder.setMaxFallbackRatio(view.maxFallbackRatio());
+    builder.setFallbackCurveExponent(view.fallbackCurveExponent());
 
     return builder.build();
   }
@@ -74,21 +66,13 @@ public class PolicyViewMapper {
       builder.setSignalSource(toSignalSource(view));
     }
 
-    if (view.criticalThreshold() != null) {
-      builder.setCriticalThreshold(view.criticalThreshold());
-    }
+    builder.setCriticalThreshold(view.criticalThreshold());
     paths.add("critical_threshold");
-    if (view.minFallbackRatio() != null) {
-      builder.setMinFallbackRatio(view.minFallbackRatio());
-    }
+    builder.setMinFallbackRatio(view.minFallbackRatio());
     paths.add("min_fallback_ratio");
-    if (view.maxFallbackRatio() != null) {
-      builder.setMaxFallbackRatio(view.maxFallbackRatio());
-    }
+    builder.setMaxFallbackRatio(view.maxFallbackRatio());
     paths.add("max_fallback_ratio");
-    if (view.fallbackCurveExponent() != null) {
-      builder.setFallbackCurveExponent(view.fallbackCurveExponent());
-    }
+    builder.setFallbackCurveExponent(view.fallbackCurveExponent());
     paths.add("fallback_curve_exponent");
 
     builder.setUpdateMask(FieldMask.newBuilder().addAllPaths(paths).build());

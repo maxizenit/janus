@@ -16,12 +16,7 @@ public class RecommendationService {
 
   private final DemoServerClient demoServerClient;
 
-  @Degradable(
-      value = "recommendations.fetch",
-      fallback = "getRecommendationsFallback",
-      criticalThreshold = 0.7,
-      minFallbackRatio = 0.3,
-      maxFallbackRatio = 1.0)
+  @Degradable(value = "recommendations.fetch", fallback = "getRecommendationsFallback")
   public List<String> getRecommendations(
       @RelativeScale(minFactor = 0.2, maxFactor = 1.0, min = 1, max = 20) int limit) {
 

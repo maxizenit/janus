@@ -1,6 +1,7 @@
 package org.janus.policystore.mapper;
 
 import com.google.protobuf.util.Durations;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.janus.api.policystore.CreateDegradationPolicyRequest;
 import org.janus.api.policystore.DegradationPolicy;
@@ -11,6 +12,7 @@ import org.janus.api.policystore.SignalSource;
 import org.janus.api.policystore.UpdateDegradationPolicyRequest;
 import org.janus.policystore.entity.SignalSourceType;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -28,18 +30,11 @@ public class DegradationPolicyMapper {
       builder.setSignalSource(extractSignalSource(entity));
     }
 
-    if (entity.getCriticalThreshold() != null) {
-      builder.setCriticalThreshold(entity.getCriticalThreshold());
-    }
-    if (entity.getMinFallbackRatio() != null) {
-      builder.setMinFallbackRatio(entity.getMinFallbackRatio());
-    }
-    if (entity.getMaxFallbackRatio() != null) {
-      builder.setMaxFallbackRatio(entity.getMaxFallbackRatio());
-    }
-    if (entity.getFallbackCurveExponent() != null) {
-      builder.setFallbackCurveExponent(entity.getFallbackCurveExponent());
-    }
+    builder.setCriticalThreshold(required(entity.getCriticalThreshold(), "criticalThreshold"));
+    builder.setMinFallbackRatio(required(entity.getMinFallbackRatio(), "minFallbackRatio"));
+    builder.setMaxFallbackRatio(required(entity.getMaxFallbackRatio(), "maxFallbackRatio"));
+    builder.setFallbackCurveExponent(
+        required(entity.getFallbackCurveExponent(), "fallbackCurveExponent"));
 
     return builder.build();
   }
@@ -63,19 +58,11 @@ public class DegradationPolicyMapper {
 
     builder.setDegradationId(entity.getDegradationId());
     builder.setEvaluationInterval(Durations.fromMillis(entity.getEvaluationIntervalMs()));
-
-    if (entity.getCriticalThreshold() != null) {
-      builder.setCriticalThreshold(entity.getCriticalThreshold());
-    }
-    if (entity.getMinFallbackRatio() != null) {
-      builder.setMinFallbackRatio(entity.getMinFallbackRatio());
-    }
-    if (entity.getMaxFallbackRatio() != null) {
-      builder.setMaxFallbackRatio(entity.getMaxFallbackRatio());
-    }
-    if (entity.getFallbackCurveExponent() != null) {
-      builder.setFallbackCurveExponent(entity.getFallbackCurveExponent());
-    }
+    builder.setCriticalThreshold(required(entity.getCriticalThreshold(), "criticalThreshold"));
+    builder.setMinFallbackRatio(required(entity.getMinFallbackRatio(), "minFallbackRatio"));
+    builder.setMaxFallbackRatio(required(entity.getMaxFallbackRatio(), "maxFallbackRatio"));
+    builder.setFallbackCurveExponent(
+        required(entity.getFallbackCurveExponent(), "fallbackCurveExponent"));
 
     return builder.build();
   }
@@ -200,5 +187,9 @@ public class DegradationPolicyMapper {
   private void clearSignalSource(org.janus.policystore.entity.DegradationPolicy entity) {
     entity.setSignalSourceType(null);
     entity.setSourcePrometheusQuery(null);
+  }
+
+  private static double required(@Nullable Double value, String field) {
+    return Objects.requireNonNull(value, field + " must be set");
   }
 }

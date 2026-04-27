@@ -10,8 +10,4 @@ public record DegradableMethodDescriptor(
     Method method,
     Method fallbackMethod,
     Class<?> beanClass,
-    double criticalThreshold,
-    double minFallbackRatio,
-    double maxFallbackRatio,
-    double fallbackCurveExponent,
     List<ParameterDescriptor> parameters) {}

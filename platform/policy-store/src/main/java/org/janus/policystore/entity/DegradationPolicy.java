@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,18 +29,26 @@ public class DegradationPolicy {
 
   private String sourcePrometheusQuery;
 
+  @Column(nullable = false)
+  @NotNull
   @DecimalMin("0.0")
   @DecimalMax("1.0")
   private Double criticalThreshold;
 
+  @Column(nullable = false)
+  @NotNull
   @DecimalMin("0.0")
   @DecimalMax("1.0")
   private Double minFallbackRatio;
 
+  @Column(nullable = false)
+  @NotNull
   @DecimalMin("0.0")
   @DecimalMax("1.0")
   private Double maxFallbackRatio;
 
-  @DecimalMin("0.0")
+  @Column(nullable = false)
+  @NotNull
+  @DecimalMin(value = "0.0", inclusive = false)
   private Double fallbackCurveExponent;
 }

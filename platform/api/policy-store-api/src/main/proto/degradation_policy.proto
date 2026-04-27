@@ -12,8 +12,8 @@ message DegradationPolicy {
   string degradation_id = 1;
   google.protobuf.Duration evaluation_interval = 2;
   optional SignalSource signal_source = 3;
-  optional double critical_threshold = 4;
-  optional double min_fallback_ratio = 5;
-  optional double max_fallback_ratio = 6;
-  optional double fallback_curve_exponent = 7;
+  double critical_threshold = 4;
+  double min_fallback_ratio = 5;
+  double max_fallback_ratio = 6;
+  double fallback_curve_exponent = 7;
 }
