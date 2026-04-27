@@ -1,6 +1,7 @@
 package org.janus.sidecar.client.policystore;
 
 import com.google.protobuf.util.Durations;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Component;
 public class GrpcPolicyStoreClient implements PolicyStoreClient {
 
   private final PolicyStoreServiceGrpc.PolicyStoreServiceBlockingStub policyStoreStub;
+  private final Clock clock;
 
   @Override
   public Map<String, PolicySnapshot> getPolicies(Set<String> degradationIds) {
@@ -69,6 +71,6 @@ public class GrpcPolicyStoreClient implements PolicyStoreClient {
         policy.getMinFallbackRatio(),
         policy.getMaxFallbackRatio(),
         policy.getFallbackCurveExponent(),
-        Instant.now());
+        Instant.now(clock));
   }
 }

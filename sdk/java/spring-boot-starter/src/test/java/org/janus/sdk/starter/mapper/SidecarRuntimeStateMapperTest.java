@@ -3,13 +3,18 @@ package org.janus.sdk.starter.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.protobuf.util.Durations;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import org.janus.api.sidecar.Degradation;
 import org.junit.jupiter.api.Test;
 
 class SidecarRuntimeStateMapperTest {
 
-  private final SidecarRuntimeStateMapper mapper = new SidecarRuntimeStateMapper();
+  private static final Instant NOW = Instant.parse("2026-04-24T10:00:00Z");
+  private final SidecarRuntimeStateMapper mapper =
+      new SidecarRuntimeStateMapper(Clock.fixed(NOW, ZoneOffset.UTC));
 
   @Test
   void mapsRequiredFieldsCorrectly() {
@@ -34,7 +39,7 @@ class SidecarRuntimeStateMapperTest {
     assertThat(state.maxFallbackRatio()).isEqualTo(0.8);
     assertThat(state.fallbackCurveExponent()).isEqualTo(2.5);
     assertThat(state.stale()).isFalse();
-    assertThat(state.loadedAt()).isNotNull();
+    assertThat(state.loadedAt()).isEqualTo(NOW);
   }
 
   @Test

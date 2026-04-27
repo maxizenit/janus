@@ -1,5 +1,6 @@
 package org.janus.sidecar.client.statestore;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component;
 public class GrpcStateStoreClient implements StateStoreClient {
 
   private final StateStoreServiceGrpc.StateStoreServiceBlockingStub stateStoreStub;
+  private final Clock clock;
 
   @Override
   public Map<String, StateSnapshot> getStates(Set<String> degradationIds) {
@@ -57,6 +59,6 @@ public class GrpcStateStoreClient implements StateStoreClient {
   }
 
   private StateSnapshot toSnapshot(DegradationState state) {
-    return new StateSnapshot(state.getDegradationId(), state.getValue(), Instant.now(), false);
+    return new StateSnapshot(state.getDegradationId(), state.getValue(), Instant.now(clock), false);
   }
 }
