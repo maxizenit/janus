@@ -36,13 +36,16 @@ public class GetDegradationsHandler {
       return null;
     }
 
+    var fallbackRatios =
+        resolveFallbackRatios(policy.minFallbackRatio(), policy.maxFallbackRatio());
+
     return new DegradationView(
         holder.getDegradationId(),
         state.value(),
         policy.evaluationInterval(),
         resolveWithDefault(policy.criticalThreshold(), DefaultThresholds::criticalThreshold),
-        resolveWithDefault(policy.minFallbackRatio(), DefaultThresholds::minFallbackRatio),
-        resolveWithDefault(policy.maxFallbackRatio(), DefaultThresholds::maxFallbackRatio),
+        fallbackRatios.minFallbackRatio(),
+        fallbackRatios.maxFallbackRatio(),
         resolveWithDefault(
             policy.fallbackCurveExponent(), DefaultThresholds::fallbackCurveExponent),
         state.loadedAt(),
@@ -59,4 +62,20 @@ public class GetDegradationsHandler {
     var defaults = properties.defaultThresholds();
     return defaults != null ? defaultExtractor.apply(defaults) : null;
   }
+
+  private ResolvedFallbackRatios resolveFallbackRatios(
+      @Nullable Double policyMinFallbackRatio, @Nullable Double policyMaxFallbackRatio) {
+    if (policyMinFallbackRatio != null || policyMaxFallbackRatio != null) {
+      return new ResolvedFallbackRatios(policyMinFallbackRatio, policyMaxFallbackRatio);
+    }
+
+    var defaults = properties.defaultThresholds();
+    return defaults == null
+        ? new ResolvedFallbackRatios(null, null)
+        : new ResolvedFallbackRatios(
+            defaults.minFallbackRatio(), defaults.maxFallbackRatio());
+  }
+
+  private record ResolvedFallbackRatios(
+      @Nullable Double minFallbackRatio, @Nullable Double maxFallbackRatio) {}
 }
