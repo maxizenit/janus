@@ -18,10 +18,10 @@ class PolicyFormDialogTest {
                 Duration.ofSeconds(15),
                 SignalSourceTypeView.MANUAL,
                 null,
-                null,
-                null,
-                null,
-                null));
+                0.7,
+                0.1,
+                0.9,
+                2.0));
 
     PolicyView view = data.toView();
 

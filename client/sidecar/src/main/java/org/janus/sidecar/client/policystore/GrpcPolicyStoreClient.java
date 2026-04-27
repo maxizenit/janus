@@ -65,10 +65,10 @@ public class GrpcPolicyStoreClient implements PolicyStoreClient {
     return new PolicySnapshot(
         policy.getDegradationId(),
         Duration.ofMillis(Durations.toMillis(policy.getEvaluationInterval())),
-        policy.hasCriticalThreshold() ? policy.getCriticalThreshold() : null,
-        policy.hasMinFallbackRatio() ? policy.getMinFallbackRatio() : null,
-        policy.hasMaxFallbackRatio() ? policy.getMaxFallbackRatio() : null,
-        policy.hasFallbackCurveExponent() ? policy.getFallbackCurveExponent() : null,
+        policy.getCriticalThreshold(),
+        policy.getMinFallbackRatio(),
+        policy.getMaxFallbackRatio(),
+        policy.getFallbackCurveExponent(),
         Instant.now());
   }
 }

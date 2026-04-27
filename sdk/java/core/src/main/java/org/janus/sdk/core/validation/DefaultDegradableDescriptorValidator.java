@@ -15,7 +15,6 @@ public class DefaultDegradableDescriptorValidator implements DegradableDescripto
   public void validate(DegradableMethodDescriptor descriptor) {
     validateMethod(descriptor);
     validateFallbackMethod(descriptor);
-    validateThresholds(descriptor);
     validateParameters(descriptor);
   }
 
@@ -58,32 +57,6 @@ public class DefaultDegradableDescriptorValidator implements DegradableDescripto
       throw new InvalidDegradableDefinitionException(
           "Fallback method return type must be assignable to degradable method return type: method=%s, fallback=%s"
               .formatted(method.toGenericString(), fallbackMethod.toGenericString()));
-    }
-  }
-
-  private void validateThresholds(DegradableMethodDescriptor descriptor) {
-    validateNonNanOrRange(
-        descriptor.criticalThreshold(), "criticalThreshold", descriptor.method(), 0.0, 1.0);
-
-    validateNonNanOrRange(
-        descriptor.minFallbackRatio(), "minFallbackRatio", descriptor.method(), 0.0, 1.0);
-
-    validateNonNanOrRange(
-        descriptor.maxFallbackRatio(), "maxFallbackRatio", descriptor.method(), 0.0, 1.0);
-
-    if (!Double.isNaN(descriptor.fallbackCurveExponent())
-        && descriptor.fallbackCurveExponent() <= 0.0) {
-      throw new InvalidDegradableDefinitionException(
-          "fallbackCurveExponent must be positive for method %s"
-              .formatted(descriptor.method().toGenericString()));
-    }
-
-    if (!Double.isNaN(descriptor.minFallbackRatio())
-        && !Double.isNaN(descriptor.maxFallbackRatio())
-        && descriptor.minFallbackRatio() > descriptor.maxFallbackRatio()) {
-      throw new InvalidDegradableDefinitionException(
-          "minFallbackRatio must be less than or equal to maxFallbackRatio for method %s"
-              .formatted(descriptor.method().toGenericString()));
     }
   }
 
@@ -143,15 +116,4 @@ public class DefaultDegradableDescriptorValidator implements DegradableDescripto
     }
   }
 
-  private void validateNonNanOrRange(
-      double value, String field, Method method, double min, double max) {
-    if (Double.isNaN(value)) {
-      return;
-    }
-    if (value < min || value > max) {
-      throw new InvalidDegradableDefinitionException(
-          "%s must be in range [%s, %s] for method %s"
-              .formatted(field, min, max, method.toGenericString()));
-    }
-  }
 }

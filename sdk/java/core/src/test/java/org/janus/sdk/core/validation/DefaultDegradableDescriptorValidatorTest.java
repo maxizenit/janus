@@ -39,21 +39,12 @@ class DefaultDegradableDescriptorValidatorTest {
   }
 
   private DegradableMethodDescriptor descriptor(
-      String degradationId,
-      Method method,
-      Method fallbackMethod,
-      double criticalThreshold,
-      double minRatio,
-      double maxRatio) {
+      String degradationId, Method method, Method fallbackMethod) {
     return new DegradableMethodDescriptor(
         degradationId,
         method,
         fallbackMethod,
         SampleService.class,
-        criticalThreshold,
-        minRatio,
-        maxRatio,
-        Double.NaN,
         List.of());
   }
 
@@ -63,10 +54,7 @@ class DefaultDegradableDescriptorValidatorTest {
         descriptor(
             "my-degradation",
             method("doWork", int.class),
-            method("doWorkFallback", int.class),
-            0.5,
-            0.1,
-            0.9);
+            method("doWorkFallback", int.class));
 
     assertThatCode(() -> validator.validate(desc)).doesNotThrowAnyException();
   }
@@ -74,8 +62,7 @@ class DefaultDegradableDescriptorValidatorTest {
   @Test
   void blankDegradationId_fails() {
     DegradableMethodDescriptor desc =
-        descriptor(
-            "  ", method("doWork", int.class), method("doWorkFallback", int.class), 0.5, 0.1, 0.9);
+        descriptor("  ", method("doWork", int.class), method("doWorkFallback", int.class));
 
     assertThatThrownBy(() -> validator.validate(desc))
         .isInstanceOf(InvalidDegradableDefinitionException.class)
@@ -85,7 +72,7 @@ class DefaultDegradableDescriptorValidatorTest {
   @Test
   void sameMethodAsFallback_fails() {
     Method m = method("doWork", int.class);
-    DegradableMethodDescriptor desc = descriptor("test", m, m, 0.5, 0.1, 0.9);
+    DegradableMethodDescriptor desc = descriptor("test", m, m);
 
     assertThatThrownBy(() -> validator.validate(desc))
         .isInstanceOf(InvalidDegradableDefinitionException.class)
@@ -98,59 +85,10 @@ class DefaultDegradableDescriptorValidatorTest {
         descriptor(
             "test",
             method("doWork", int.class),
-            method("doWorkDifferentParams", int.class, String.class),
-            0.5,
-            0.1,
-            0.9);
+            method("doWorkDifferentParams", int.class, String.class));
 
     assertThatThrownBy(() -> validator.validate(desc))
         .isInstanceOf(InvalidDegradableDefinitionException.class)
         .hasMessageContaining("same number of parameters");
-  }
-
-  @Test
-  void criticalThresholdOutOfRange_fails() {
-    DegradableMethodDescriptor desc =
-        descriptor(
-            "test",
-            method("doWork", int.class),
-            method("doWorkFallback", int.class),
-            1.5,
-            0.1,
-            0.9);
-
-    assertThatThrownBy(() -> validator.validate(desc))
-        .isInstanceOf(InvalidDegradableDefinitionException.class)
-        .hasMessageContaining("criticalThreshold must be in range");
-  }
-
-  @Test
-  void minFallbackRatioGreaterThanMax_fails() {
-    DegradableMethodDescriptor desc =
-        descriptor(
-            "test",
-            method("doWork", int.class),
-            method("doWorkFallback", int.class),
-            0.5,
-            0.9,
-            0.1);
-
-    assertThatThrownBy(() -> validator.validate(desc))
-        .isInstanceOf(InvalidDegradableDefinitionException.class)
-        .hasMessageContaining("minFallbackRatio must be less than or equal to maxFallbackRatio");
-  }
-
-  @Test
-  void nanValues_pass() {
-    DegradableMethodDescriptor desc =
-        descriptor(
-            "test",
-            method("doWork", int.class),
-            method("doWorkFallback", int.class),
-            Double.NaN,
-            Double.NaN,
-            Double.NaN);
-
-    assertThatCode(() -> validator.validate(desc)).doesNotThrowAnyException();
   }
 }

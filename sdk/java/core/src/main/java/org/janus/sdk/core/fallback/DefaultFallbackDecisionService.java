@@ -20,27 +20,11 @@ public class DefaultFallbackDecisionService implements FallbackDecisionService {
       return new FallbackDecision(false, 0.0, Double.NaN, Double.NaN, Double.NaN, 0.0);
     }
 
-    double criticalThreshold =
-        !Double.isNaN(descriptor.criticalThreshold())
-            ? descriptor.criticalThreshold()
-            : runtimeState.criticalThreshold();
-
+    double criticalThreshold = runtimeState.criticalThreshold();
     double degradationValue = resolveValue(runtimeState);
-
-    double minFallbackRatio =
-        !Double.isNaN(descriptor.minFallbackRatio())
-            ? descriptor.minFallbackRatio()
-            : runtimeState.minFallbackRatio();
-
-    double maxFallbackRatio =
-        !Double.isNaN(descriptor.maxFallbackRatio())
-            ? descriptor.maxFallbackRatio()
-            : runtimeState.maxFallbackRatio();
-
-    double fallbackCurveExponent =
-        !Double.isNaN(descriptor.fallbackCurveExponent())
-            ? descriptor.fallbackCurveExponent()
-            : runtimeState.fallbackCurveExponent();
+    double minFallbackRatio = runtimeState.minFallbackRatio();
+    double maxFallbackRatio = runtimeState.maxFallbackRatio();
+    double fallbackCurveExponent = runtimeState.fallbackCurveExponent();
 
     double fallbackRatio =
         calculateFallbackRatio(

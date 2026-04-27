@@ -17,12 +17,10 @@ public class SidecarRuntimeStateMapper {
         degradation.getDegradationId(),
         degradation.getValue(),
         Duration.ofMillis(Durations.toMillis(degradation.getEvaluationInterval())),
-        degradation.hasCriticalThreshold() ? degradation.getCriticalThreshold() : Double.NaN,
-        degradation.hasMinFallbackRatio() ? degradation.getMinFallbackRatio() : Double.NaN,
-        degradation.hasMaxFallbackRatio() ? degradation.getMaxFallbackRatio() : Double.NaN,
-        degradation.hasFallbackCurveExponent()
-            ? degradation.getFallbackCurveExponent()
-            : Double.NaN,
+        degradation.getCriticalThreshold(),
+        degradation.getMinFallbackRatio(),
+        degradation.getMaxFallbackRatio(),
+        degradation.getFallbackCurveExponent(),
         degradation.getStale(),
         Instant.now());
   }

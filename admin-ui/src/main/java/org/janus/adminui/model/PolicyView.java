@@ -10,7 +10,7 @@ public record PolicyView(
     Duration evaluationInterval,
     SignalSourceTypeView signalSourceType,
     @Nullable String query,
-    @Nullable Double criticalThreshold,
-    @Nullable Double minFallbackRatio,
-    @Nullable Double maxFallbackRatio,
-    @Nullable Double fallbackCurveExponent) {}
+    double criticalThreshold,
+    double minFallbackRatio,
+    double maxFallbackRatio,
+    double fallbackCurveExponent) {}

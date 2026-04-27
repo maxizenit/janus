@@ -12,33 +12,6 @@ class PolicyViewMapperTest {
   private final PolicyViewMapper mapper = new PolicyViewMapper();
 
   @Test
-  void toUpdateRequest_nullFallbackFields_addsPathsWithoutValues() {
-    var view =
-        new PolicyView(
-            "recommendations",
-            Duration.ofSeconds(30),
-            SignalSourceTypeView.MANUAL,
-            null,
-            null,
-            null,
-            null,
-            null);
-
-    var request = mapper.toUpdateRequest(view);
-
-    assertThat(request.getUpdateMask().getPathsList())
-        .contains(
-            "critical_threshold",
-            "min_fallback_ratio",
-            "max_fallback_ratio",
-            "fallback_curve_exponent");
-    assertThat(request.hasCriticalThreshold()).isFalse();
-    assertThat(request.hasMinFallbackRatio()).isFalse();
-    assertThat(request.hasMaxFallbackRatio()).isFalse();
-    assertThat(request.hasFallbackCurveExponent()).isFalse();
-  }
-
-  @Test
   void toUpdateRequest_nonNullFallbackFields_addsPathsAndValues() {
     var view =
         new PolicyView(

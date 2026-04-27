@@ -1,14 +1,9 @@
 package org.janus.sidecar.configuration.properties;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.Duration;
 import org.hibernate.validator.constraints.time.DurationMin;
-import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -19,20 +14,4 @@ public record SidecarProperties(
     @Positive int stateRefreshThreads,
     @Positive int stateRefreshQueueCapacity,
     @Positive int maxSyncDegradationIds,
-    @NotNull String sqlitePath,
-    @Valid @Nullable DefaultThresholds defaultThresholds) {
-
-  public record DefaultThresholds(
-      @DecimalMin("0.0") @DecimalMax("1.0") @Nullable Double criticalThreshold,
-      @DecimalMin("0.0") @DecimalMax("1.0") @Nullable Double minFallbackRatio,
-      @DecimalMin("0.0") @DecimalMax("1.0") @Nullable Double maxFallbackRatio,
-      @DecimalMin(value = "0.0", inclusive = false) @Nullable Double fallbackCurveExponent) {
-
-    @AssertTrue(message = "minFallbackRatio must be less than or equal to maxFallbackRatio")
-    public boolean isFallbackRatioOrderValid() {
-      return minFallbackRatio == null
-          || maxFallbackRatio == null
-          || minFallbackRatio <= maxFallbackRatio;
-    }
-  }
-}
+    @NotNull String sqlitePath) {}

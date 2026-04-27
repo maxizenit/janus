@@ -11,6 +11,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
@@ -69,14 +70,16 @@ public class PolicyFormDialog extends Dialog {
         .bind(PolicyFormData::getQuery, PolicyFormData::setQuery);
     binder
         .forField(criticalThreshold)
+        .asRequired()
         .withValidator(
-            PolicyFormDialog::isNullOrRatio,
+            PolicyFormDialog::isRatio,
             "Critical threshold must be in range [0.0, 1.0]")
         .bind(PolicyFormData::getCriticalThreshold, PolicyFormData::setCriticalThreshold);
     binder
         .forField(minFallbackRatio)
+        .asRequired()
         .withValidator(
-            PolicyFormDialog::isNullOrRatio,
+            PolicyFormDialog::isRatio,
             "Min fallback ratio must be in range [0.0, 1.0]")
         .withValidator(
             value -> value == null || maxFallbackRatio.getValue() == null
@@ -85,8 +88,9 @@ public class PolicyFormDialog extends Dialog {
         .bind(PolicyFormData::getMinFallbackRatio, PolicyFormData::setMinFallbackRatio);
     binder
         .forField(maxFallbackRatio)
+        .asRequired()
         .withValidator(
-            PolicyFormDialog::isNullOrRatio,
+            PolicyFormDialog::isRatio,
             "Max fallback ratio must be in range [0.0, 1.0]")
         .withValidator(
             value -> value == null || minFallbackRatio.getValue() == null
@@ -95,8 +99,9 @@ public class PolicyFormDialog extends Dialog {
         .bind(PolicyFormData::getMaxFallbackRatio, PolicyFormData::setMaxFallbackRatio);
     binder
         .forField(fallbackCurveExponent)
+        .asRequired()
         .withValidator(
-            value -> value == null || value > 0.0,
+            value -> value != null && value > 0.0,
             "Fallback curve exponent must be positive")
         .bind(PolicyFormData::getFallbackCurveExponent, PolicyFormData::setFallbackCurveExponent);
 
@@ -148,8 +153,8 @@ public class PolicyFormDialog extends Dialog {
     return value != null && !value.isBlank();
   }
 
-  private static boolean isNullOrRatio(@Nullable Double value) {
-    return value == null || (value >= 0.0 && value <= 1.0);
+  private static boolean isRatio(@Nullable Double value) {
+    return value != null && value >= 0.0 && value <= 1.0;
   }
 
   @Getter
@@ -187,10 +192,10 @@ public class PolicyFormDialog extends Dialog {
           Duration.ofSeconds(evaluationIntervalSeconds.longValue()),
           signalSourceType,
           query,
-          criticalThreshold,
-          minFallbackRatio,
-          maxFallbackRatio,
-          fallbackCurveExponent);
+          Objects.requireNonNull(criticalThreshold, "criticalThreshold"),
+          Objects.requireNonNull(minFallbackRatio, "minFallbackRatio"),
+          Objects.requireNonNull(maxFallbackRatio, "maxFallbackRatio"),
+          Objects.requireNonNull(fallbackCurveExponent, "fallbackCurveExponent"));
     }
   }
 }

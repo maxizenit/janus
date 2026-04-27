@@ -94,19 +94,22 @@ public class DegradationPolicyValidator {
   }
 
   private void validateFallback(DegradationPolicy policy) {
-    requireInRange(policy.getCriticalThreshold(), "criticalThreshold", 0.0, 1.0);
-    requireInRange(policy.getMinFallbackRatio(), "minFallbackRatio", 0.0, 1.0);
-    requireInRange(policy.getMaxFallbackRatio(), "maxFallbackRatio", 0.0, 1.0);
-
-    if (policy.getMinFallbackRatio() != null && policy.getMaxFallbackRatio() != null) {
-
-      require(
-          policy.getMinFallbackRatio() <= policy.getMaxFallbackRatio(),
-          "minFallbackRatio must be <= maxFallbackRatio");
-    }
+    requireInRange(
+        required(policy.getCriticalThreshold(), "criticalThreshold"),
+        "criticalThreshold",
+        0.0,
+        1.0);
+    var minFallbackRatio = required(policy.getMinFallbackRatio(), "minFallbackRatio");
+    var maxFallbackRatio = required(policy.getMaxFallbackRatio(), "maxFallbackRatio");
+    requireInRange(minFallbackRatio, "minFallbackRatio", 0.0, 1.0);
+    requireInRange(maxFallbackRatio, "maxFallbackRatio", 0.0, 1.0);
 
     require(
-        policy.getFallbackCurveExponent() == null || policy.getFallbackCurveExponent() > 0.0,
+        minFallbackRatio <= maxFallbackRatio,
+        "minFallbackRatio must be <= maxFallbackRatio");
+
+    require(
+        required(policy.getFallbackCurveExponent(), "fallbackCurveExponent") > 0.0,
         "fallbackCurveExponent must be positive");
   }
 
@@ -124,12 +127,14 @@ public class DegradationPolicyValidator {
     }
   }
 
-  private static void requireInRange(
-      @Nullable Double value, String field, double min, double max) {
+  private static double required(@Nullable Double value, String field) {
     if (value == null) {
-      return;
+      require(false, field + " required");
     }
+    return value;
+  }
 
+  private static void requireInRange(double value, String field, double min, double max) {
     require(value >= min && value <= max, field + " must be in range [" + min + ", " + max + "]");
   }
 }

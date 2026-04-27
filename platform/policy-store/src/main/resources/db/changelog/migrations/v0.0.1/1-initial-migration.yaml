@@ -31,18 +31,26 @@ databaseChangeLog:
               - column:
                   name: critical_threshold
                   type: double precision
+                  constraints:
+                    nullable: false
 
               - column:
                   name: min_fallback_ratio
                   type: double precision
+                  constraints:
+                    nullable: false
 
               - column:
                   name: max_fallback_ratio
                   type: double precision
+                  constraints:
+                    nullable: false
 
               - column:
                   name: fallback_curve_exponent
                   type: double precision
+                  constraints:
+                    nullable: false
 
         - sql:
             sql: |
@@ -77,8 +85,7 @@ databaseChangeLog:
               alter table degradation_policy
               add constraint chk_degradation_policy_critical_threshold_range
               check (
-                critical_threshold is null
-                or critical_threshold between 0 and 1
+                critical_threshold between 0 and 1
               );
 
         - sql:
@@ -86,8 +93,7 @@ databaseChangeLog:
               alter table degradation_policy
               add constraint chk_degradation_policy_min_fallback_ratio_range
               check (
-                min_fallback_ratio is null
-                or min_fallback_ratio between 0 and 1
+                min_fallback_ratio between 0 and 1
               );
 
         - sql:
@@ -95,8 +101,7 @@ databaseChangeLog:
               alter table degradation_policy
               add constraint chk_degradation_policy_max_fallback_ratio_range
               check (
-                max_fallback_ratio is null
-                or max_fallback_ratio between 0 and 1
+                max_fallback_ratio between 0 and 1
               );
 
         - sql:
@@ -104,9 +109,7 @@ databaseChangeLog:
               alter table degradation_policy
               add constraint chk_degradation_policy_fallback_ratio_order
               check (
-                min_fallback_ratio is null
-                or max_fallback_ratio is null
-                or min_fallback_ratio <= max_fallback_ratio
+                min_fallback_ratio <= max_fallback_ratio
               );
 
         - sql:
@@ -114,6 +117,5 @@ databaseChangeLog:
               alter table degradation_policy
               add constraint chk_degradation_policy_fallback_curve_exponent_range
               check (
-                fallback_curve_exponent is null
-                or fallback_curve_exponent >= 0
+                fallback_curve_exponent > 0
               );

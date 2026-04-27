@@ -26,8 +26,7 @@ class DefaultFallbackDecisionServiceTest {
   private final DefaultFallbackDecisionService service =
       new DefaultFallbackDecisionService(StaleDegradationStrategy.LAST_VALUE);
 
-  private DegradableMethodDescriptor descriptor(
-      double criticalThreshold, double minRatio, double maxRatio) {
+  private DegradableMethodDescriptor descriptor() {
     try {
       Method method = SampleService.class.getDeclaredMethod("doWork", int.class);
       Method fallback = SampleService.class.getDeclaredMethod("doWorkFallback", int.class);
@@ -36,30 +35,6 @@ class DefaultFallbackDecisionServiceTest {
           method,
           fallback,
           SampleService.class,
-          criticalThreshold,
-          minRatio,
-          maxRatio,
-          Double.NaN,
-          List.of());
-    } catch (NoSuchMethodException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private DegradableMethodDescriptor descriptorWithExponent(
-      double criticalThreshold, double minRatio, double maxRatio, double exponent) {
-    try {
-      Method method = SampleService.class.getDeclaredMethod("doWork", int.class);
-      Method fallback = SampleService.class.getDeclaredMethod("doWorkFallback", int.class);
-      return new DegradableMethodDescriptor(
-          "test-degradation",
-          method,
-          fallback,
-          SampleService.class,
-          criticalThreshold,
-          minRatio,
-          maxRatio,
-          exponent,
           List.of());
     } catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
@@ -87,7 +62,7 @@ class DefaultFallbackDecisionServiceTest {
 
   @Test
   void nullRuntimeState_returnsNoFallback() {
-    DegradableMethodDescriptor desc = descriptor(Double.NaN, Double.NaN, Double.NaN);
+    DegradableMethodDescriptor desc = descriptor();
     FallbackDecision decision = service.decide(desc, null);
 
     assertThat(decision.fallbackRequired()).isFalse();
@@ -96,7 +71,7 @@ class DefaultFallbackDecisionServiceTest {
 
   @Test
   void degradationValueBelowCriticalThreshold_returnsNoFallback() {
-    DegradableMethodDescriptor desc = descriptor(Double.NaN, Double.NaN, Double.NaN);
+    DegradableMethodDescriptor desc = descriptor();
     DegradationRuntimeState rts = state(0.3, 0.5, 0.1, 1.0, 1.0, false);
 
     FallbackDecision decision = service.decide(desc, rts);
@@ -107,7 +82,7 @@ class DefaultFallbackDecisionServiceTest {
 
   @Test
   void degradationValueAt1WithMaxRatio1_alwaysTriggersFallback() {
-    DegradableMethodDescriptor desc = descriptor(Double.NaN, Double.NaN, Double.NaN);
+    DegradableMethodDescriptor desc = descriptor();
     DegradationRuntimeState rts = state(1.0, 0.5, 0.0, 1.0, 1.0, false);
 
     // With value=1.0, threshold=0.5, exponent=1.0: normalized = (1.0-0.5)/(1.0-0.5) = 1.0
@@ -121,22 +96,8 @@ class DefaultFallbackDecisionServiceTest {
   }
 
   @Test
-  void descriptorValuesOverrideRuntimeStateValues() {
-    DegradableMethodDescriptor desc = descriptorWithExponent(0.3, 0.2, 0.8, 1.0);
-    DegradationRuntimeState rts = state(0.5, 0.5, 0.1, 1.0, 2.0, false);
-
-    FallbackDecision decision = service.decide(desc, rts);
-
-    // descriptor criticalThreshold=0.3 takes priority over rts=0.5
-    // value=0.5 >= 0.3, so fallback is possible
-    assertThat(decision.effectiveCriticalThreshold()).isEqualTo(0.3);
-    assertThat(decision.effectiveMinFallbackRatio()).isEqualTo(0.2);
-    assertThat(decision.effectiveMaxFallbackRatio()).isEqualTo(0.8);
-  }
-
-  @Test
-  void nanDescriptorValues_usesRuntimeStateValues() {
-    DegradableMethodDescriptor desc = descriptor(Double.NaN, Double.NaN, Double.NaN);
+  void runtimeStateValuesAreUsed() {
+    DegradableMethodDescriptor desc = descriptor();
     DegradationRuntimeState rts = state(0.8, 0.5, 0.1, 0.9, 1.0, false);
 
     FallbackDecision decision = service.decide(desc, rts);
@@ -149,7 +110,7 @@ class DefaultFallbackDecisionServiceTest {
   @Test
   void linearInterpolation_atThreshold_minRatio() {
     // When value == criticalThreshold, normalized=0, so ratio = minRatio
-    DegradableMethodDescriptor desc = descriptor(Double.NaN, Double.NaN, Double.NaN);
+    DegradableMethodDescriptor desc = descriptor();
     DegradationRuntimeState rts = state(0.5, 0.5, 0.2, 1.0, 1.0, false);
 
     FallbackDecision decision = service.decide(desc, rts);
@@ -160,7 +121,7 @@ class DefaultFallbackDecisionServiceTest {
   @Test
   void linearInterpolation_atOne_maxRatio() {
     // When value=1.0, normalized=1.0, so ratio = maxRatio
-    DegradableMethodDescriptor desc = descriptor(Double.NaN, Double.NaN, Double.NaN);
+    DegradableMethodDescriptor desc = descriptor();
     DegradationRuntimeState rts = state(1.0, 0.5, 0.2, 0.8, 1.0, false);
 
     FallbackDecision decision = service.decide(desc, rts);
@@ -170,7 +131,7 @@ class DefaultFallbackDecisionServiceTest {
 
   @Test
   void criticalThresholdAtOrAboveOne_returnsMaxRatio() {
-    DegradableMethodDescriptor desc = descriptor(Double.NaN, Double.NaN, Double.NaN);
+    DegradableMethodDescriptor desc = descriptor();
     DegradationRuntimeState rts = state(1.0, 1.0, 0.2, 0.8, 1.0, false);
 
     FallbackDecision decision = service.decide(desc, rts);
@@ -182,7 +143,7 @@ class DefaultFallbackDecisionServiceTest {
   void staleStrategy_failSafe_overridesValueToOne() {
     DefaultFallbackDecisionService failSafeService =
         new DefaultFallbackDecisionService(StaleDegradationStrategy.FAIL_SAFE);
-    DegradableMethodDescriptor desc = descriptor(Double.NaN, Double.NaN, Double.NaN);
+    DegradableMethodDescriptor desc = descriptor();
     // value=0.1 is below threshold but stale + FAIL_SAFE overrides to 1.0
     DegradationRuntimeState rts = state(0.1, 0.5, 0.0, 1.0, 1.0, true);
 
@@ -197,7 +158,7 @@ class DefaultFallbackDecisionServiceTest {
   void staleStrategy_failOpen_overridesValueToZero() {
     DefaultFallbackDecisionService failOpenService =
         new DefaultFallbackDecisionService(StaleDegradationStrategy.FAIL_OPEN);
-    DegradableMethodDescriptor desc = descriptor(Double.NaN, Double.NaN, Double.NaN);
+    DegradableMethodDescriptor desc = descriptor();
     // value=0.9 is above threshold but stale + FAIL_OPEN overrides to 0.0
     DegradationRuntimeState rts = state(0.9, 0.5, 0.0, 1.0, 1.0, true);
 
@@ -212,7 +173,7 @@ class DefaultFallbackDecisionServiceTest {
   void staleStrategy_lastValue_usesActualValue() {
     DefaultFallbackDecisionService lastValueService =
         new DefaultFallbackDecisionService(StaleDegradationStrategy.LAST_VALUE);
-    DegradableMethodDescriptor desc = descriptor(Double.NaN, Double.NaN, Double.NaN);
+    DegradableMethodDescriptor desc = descriptor();
     DegradationRuntimeState rts = state(0.8, 0.5, 0.0, 1.0, 1.0, true);
 
     FallbackDecision decision = lastValueService.decide(desc, rts);

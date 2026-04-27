@@ -42,10 +42,6 @@ class DefaultFallbackArgumentsTransformerTest {
         method("doWork", int.class),
         method("doWorkFallback", int.class),
         SampleService.class,
-        Double.NaN,
-        Double.NaN,
-        Double.NaN,
-        Double.NaN,
         parameters);
   }
 
