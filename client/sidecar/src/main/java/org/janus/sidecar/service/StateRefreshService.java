@@ -1,6 +1,7 @@
 package org.janus.sidecar.service;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,8 +13,10 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.janus.sidecar.client.statestore.StateStoreClient;
+import org.janus.sidecar.configuration.properties.SidecarProperties;
 import org.janus.sidecar.model.RegisteredDegradation;
 import org.janus.sidecar.model.StateRefreshResult;
+import org.janus.sidecar.model.snapshot.PolicySnapshot;
 import org.janus.sidecar.registry.ActualDegradationRegistry;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Service;
@@ -26,6 +29,7 @@ public class StateRefreshService {
 
   private final ActualDegradationRegistry registry;
   private final StateStoreClient stateStoreClient;
+  private final SidecarProperties properties;
   private final Clock clock;
 
   public List<StateRefreshResult> refresh(Set<String> degradationIds) {
@@ -83,18 +87,13 @@ public class StateRefreshService {
             log.debug("State not found in state store: degradation={}", holder.getDegradationId());
           }
 
-          holder
-              .getPolicy()
-              .ifPresent(
-                  policy -> {
-                    var nextRefreshAt = now.plus(policy.evaluationInterval());
-                    results.add(new StateRefreshResult(holder.getDegradationId(), nextRefreshAt));
-                    log.debug(
-                        "State refreshed: degradation={}, value={}, nextRefreshAt={}",
-                        holder.getDegradationId(),
-                        state != null ? state.value() : null,
-                        nextRefreshAt);
-                  });
+          var nextRefreshAt = now.plus(nextRefreshInterval(holder));
+          results.add(new StateRefreshResult(holder.getDegradationId(), nextRefreshAt));
+          log.debug(
+              "State refreshed: degradation={}, value={}, nextRefreshAt={}",
+              holder.getDegradationId(),
+              state != null ? state.value() : null,
+              nextRefreshAt);
 
         } finally {
           holder.finishStateRefresh();
@@ -122,13 +121,8 @@ public class StateRefreshService {
           }
           log.warn(
               "State refresh failed, marking stale: degradation={}", holder.getDegradationId());
-          holder
-              .getPolicy()
-              .ifPresent(
-                  policy -> {
-                    var nextRefreshAt = now.plus(policy.evaluationInterval());
-                    results.add(new StateRefreshResult(holder.getDegradationId(), nextRefreshAt));
-                  });
+          var nextRefreshAt = now.plus(nextRefreshInterval(holder));
+          results.add(new StateRefreshResult(holder.getDegradationId(), nextRefreshAt));
         } finally {
           holder.finishStateRefresh();
         }
@@ -144,5 +138,12 @@ public class StateRefreshService {
 
       return List.copyOf(results);
     }
+  }
+
+  private Duration nextRefreshInterval(RegisteredDegradation holder) {
+    return holder
+        .getPolicy()
+        .map(PolicySnapshot::evaluationInterval)
+        .orElseGet(properties::policyRefreshInterval);
   }
 }
