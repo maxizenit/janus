@@ -329,7 +329,7 @@ public class DegradationStateService {
           degradationId,
           source,
           key);
-      return Optional.of(Duration.ZERO);
+      return Optional.empty();
     }
     if (ttlMillis < 0) {
       log.warn(

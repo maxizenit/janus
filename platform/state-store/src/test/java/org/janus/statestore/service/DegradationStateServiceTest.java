@@ -466,6 +466,25 @@ class DegradationStateServiceTest {
     }
 
     @Test
+    void ttlReturnsMinusOne_noTtl_skipsState() {
+      String adminJson = "{\"degradationId\":\"deg-1\",\"value\":0.5}";
+
+      when(valueOperations.multiGet(anyList()))
+          .thenReturn(java.util.Arrays.asList(adminJson, null));
+
+      when(objectMapper.readValue(adminJson, DegradationState.class))
+          .thenReturn(new DegradationState("deg-1", 0.5));
+
+      when(redisTemplate.getExpire("janus:state:deg-1:admin_ui", TimeUnit.MILLISECONDS))
+          .thenReturn(-1L);
+
+      List<AdminDegradationState> result =
+          service.getAdminDegradationStates(List.of("deg-1"));
+
+      assertThat(result).isEmpty();
+    }
+
+    @Test
     void ttlReturnsMinusTwo_keyDisappeared_skipsState() {
       String adminJson = "{\"degradationId\":\"deg-1\",\"value\":0.5}";
 
