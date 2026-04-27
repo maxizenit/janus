@@ -21,9 +21,11 @@ import org.janus.sdk.starter.registry.RegistryBackedMethodDescriptorResolver;
 import org.janus.sdk.starter.scanner.DegradableDescriptorFactory;
 import org.janus.sdk.starter.scanner.DegradableMethodScanner;
 import org.janus.sdk.starter.scheduling.DegradationRefreshScheduler;
+import java.time.Clock;
 import org.janus.sdk.starter.service.DegradationRefreshService;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -73,5 +75,11 @@ public class JanusSdkAutoConfiguration {
   @Bean
   public FallbackArgumentsTransformer fallbackArgumentsTransformer() {
     return new DefaultFallbackArgumentsTransformer();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public Clock clock() {
+    return Clock.systemUTC();
   }
 }
