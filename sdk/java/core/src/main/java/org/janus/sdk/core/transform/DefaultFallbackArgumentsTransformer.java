@@ -103,13 +103,13 @@ public class DefaultFallbackArgumentsTransformer implements FallbackArgumentsTra
 
   private Object cast(Class<?> targetType, double value) {
     if (targetType == byte.class || targetType == Byte.class) {
-      return (byte) Math.round(value);
+      return (byte) Math.clamp(Math.round(value), Byte.MIN_VALUE, Byte.MAX_VALUE);
     }
     if (targetType == short.class || targetType == Short.class) {
-      return (short) Math.round(value);
+      return (short) Math.clamp(Math.round(value), Short.MIN_VALUE, Short.MAX_VALUE);
     }
     if (targetType == int.class || targetType == Integer.class) {
-      return (int) Math.round(value);
+      return Math.clamp(Math.round(value), Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
     if (targetType == long.class || targetType == Long.class) {
       return Math.round(value);
