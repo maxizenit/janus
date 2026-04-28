@@ -83,7 +83,7 @@ public class StateRefreshService {
             updatedCount.incrementAndGet();
           } else {
             missingCount.incrementAndGet();
-            holder.markStateStale(now);
+            holder.markStateStale();
             log.debug("State not found in state store: degradation={}", holder.getDegradationId());
           }
 
@@ -116,7 +116,7 @@ public class StateRefreshService {
 
       for (var holder : eligible) {
         try {
-          if (holder.markStateStale(now)) {
+          if (holder.markStateStale()) {
             staleMarked++;
           }
           log.warn(

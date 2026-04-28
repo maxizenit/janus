@@ -1,6 +1,5 @@
 package org.janus.sidecar.model;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,14 +54,14 @@ public class RegisteredDegradation {
     stateRef.set(null);
   }
 
-  public boolean markStateStale(Instant loadedAt) {
+  public boolean markStateStale() {
     while (true) {
       var current = stateRef.get();
       if (current == null) {
         return false;
       }
 
-      if (stateRef.compareAndSet(current, current.staleCopy(loadedAt))) {
+      if (stateRef.compareAndSet(current, current.staleCopy())) {
         return true;
       }
     }
