@@ -31,6 +31,28 @@ public class InMemoryDegradationStateRegistry implements DegradationStateRegistr
   }
 
   @Override
+  public void markAllStale() {
+    this.states.updateAndGet(
+        current -> {
+          if (current.isEmpty()) {
+            return current;
+          }
+          var updated = new HashMap<String, DegradationRuntimeState>(current.size());
+          boolean anyChanged = false;
+          for (var entry : current.entrySet()) {
+            var state = entry.getValue();
+            if (state.stale()) {
+              updated.put(entry.getKey(), state);
+            } else {
+              updated.put(entry.getKey(), state.staleCopy());
+              anyChanged = true;
+            }
+          }
+          return anyChanged ? Map.copyOf(updated) : current;
+        });
+  }
+
+  @Override
   public Optional<DegradationRuntimeState> find(String degradationId) {
     return Optional.ofNullable(states.get().get(degradationId));
   }

@@ -25,16 +25,27 @@ public class DegradationRefreshService {
       return;
     }
 
-    sidecarSdkClient.syncActualDegradations(degradationIds);
+    try {
+      sidecarSdkClient.syncActualDegradations(degradationIds);
+    } catch (RuntimeException e) {
+      stateRegistry.markAllStale();
+      throw e;
+    }
     refresh();
   }
 
   public void refresh() {
-    var states =
-        sidecarSdkClient.getDegradations().stream()
-            .collect(
-                java.util.stream.Collectors.toUnmodifiableMap(
-                    DegradationRuntimeState::degradationId, state -> state));
+    Map<String, DegradationRuntimeState> states;
+    try {
+      states =
+          sidecarSdkClient.getDegradations().stream()
+              .collect(
+                  java.util.stream.Collectors.toUnmodifiableMap(
+                      DegradationRuntimeState::degradationId, state -> state));
+    } catch (RuntimeException e) {
+      stateRegistry.markAllStale();
+      throw e;
+    }
 
     stateRegistry.replaceAll(states);
 

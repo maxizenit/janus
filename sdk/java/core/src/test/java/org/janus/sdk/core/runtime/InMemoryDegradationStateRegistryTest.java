@@ -59,6 +59,34 @@ class InMemoryDegradationStateRegistryTest {
   }
 
   @Test
+  void markAllStaleFlagsExistingEntriesWithoutChangingValues() {
+    registry.replaceAll(Map.of(ID, state(ID, 0.4), "other", state("other", 0.7)));
+
+    registry.markAllStale();
+
+    assertThat(registry.find(ID))
+        .hasValueSatisfying(
+            s -> {
+              assertThat(s.stale()).isTrue();
+              assertThat(s.value()).isEqualTo(0.4);
+              assertThat(s.loadedAt()).isEqualTo(Instant.EPOCH);
+            });
+    assertThat(registry.find("other"))
+        .hasValueSatisfying(
+            s -> {
+              assertThat(s.stale()).isTrue();
+              assertThat(s.value()).isEqualTo(0.7);
+            });
+  }
+
+  @Test
+  void markAllStaleOnEmptyRegistryDoesNothing() {
+    registry.markAllStale();
+
+    assertThat(registry.getAll()).isEmpty();
+  }
+
+  @Test
   void getAllReturnsImmutableSnapshot() {
     registry.replaceAll(Map.of(ID, state(ID, 0.1)));
     Map<String, DegradationRuntimeState> snapshot = registry.getAll();

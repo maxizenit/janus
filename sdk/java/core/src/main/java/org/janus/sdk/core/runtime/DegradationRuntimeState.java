@@ -14,4 +14,18 @@ public record DegradationRuntimeState(
     double maxFallbackRatio,
     double fallbackCurveExponent,
     boolean stale,
-    Instant loadedAt) {}
+    Instant loadedAt) {
+
+  public DegradationRuntimeState staleCopy() {
+    return new DegradationRuntimeState(
+        degradationId,
+        value,
+        evaluationInterval,
+        criticalThreshold,
+        minFallbackRatio,
+        maxFallbackRatio,
+        fallbackCurveExponent,
+        true,
+        loadedAt);
+  }
+}
