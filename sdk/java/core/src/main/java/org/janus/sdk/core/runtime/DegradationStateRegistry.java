@@ -11,6 +11,8 @@ public interface DegradationStateRegistry {
 
   void upsertAll(Map<String, DegradationRuntimeState> states);
 
+  void markAllStale();
+
   Optional<DegradationRuntimeState> find(String degradationId);
 
   Map<String, DegradationRuntimeState> getAll();
