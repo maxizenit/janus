@@ -81,24 +81,22 @@ class RegisteredDegradationTest {
   }
 
   @Test
-  void markStateStale_marksExistingState() {
+  void markStateStale_preservesOriginalLoadedAt() {
     var degradation = new RegisteredDegradation("deg-1");
     var loadedAt = Instant.parse("2026-04-24T10:00:00Z");
-    var staleLoadedAt = Instant.parse("2026-04-24T10:01:00Z");
     degradation.setState(new StateSnapshot("deg-1", 0.5, loadedAt, false));
 
-    boolean marked = degradation.markStateStale(staleLoadedAt);
+    boolean marked = degradation.markStateStale();
 
     assertThat(marked).isTrue();
-    assertThat(degradation.getState())
-        .hasValue(new StateSnapshot("deg-1", 0.5, staleLoadedAt, true));
+    assertThat(degradation.getState()).hasValue(new StateSnapshot("deg-1", 0.5, loadedAt, true));
   }
 
   @Test
   void markStateStale_withoutState_returnsFalse() {
     var degradation = new RegisteredDegradation("deg-1");
 
-    boolean marked = degradation.markStateStale(Instant.now());
+    boolean marked = degradation.markStateStale();
 
     assertThat(marked).isFalse();
   }

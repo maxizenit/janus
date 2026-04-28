@@ -46,7 +46,8 @@ class StateRefreshServiceTest {
     assertThat(results).hasSize(1);
     assertThat(results.get(0).degradationId()).isEqualTo("deg-1");
     assertThat(results.get(0).nextRefreshAt()).isEqualTo(NOW.plusSeconds(10));
-    assertThat(holder.getState()).hasValue(new StateSnapshot("deg-1", 0.5, NOW, true));
+    assertThat(holder.getState())
+        .hasValue(new StateSnapshot("deg-1", 0.5, NOW.minusSeconds(60), true));
   }
 
   @Test
@@ -61,7 +62,8 @@ class StateRefreshServiceTest {
 
     assertThat(results).hasSize(1);
     assertThat(results.get(0).nextRefreshAt()).isEqualTo(NOW.plusSeconds(10));
-    assertThat(holder.getState()).hasValue(new StateSnapshot("deg-1", 0.5, NOW, true));
+    assertThat(holder.getState())
+        .hasValue(new StateSnapshot("deg-1", 0.5, NOW.minusSeconds(60), true));
   }
 
   @Test
