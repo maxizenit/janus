@@ -1,8 +1,10 @@
 package org.janus.sidecar.api;
 
 import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.janus.api.sidecar.GetDegradationsRequest;
 import org.janus.api.sidecar.GetDegradationsResponse;
 import org.janus.api.sidecar.SidecarServiceGrpc;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @NullMarked
 public class SidecarGrpcApi extends SidecarServiceGrpc.SidecarServiceImplBase {
 
@@ -37,8 +40,13 @@ public class SidecarGrpcApi extends SidecarServiceGrpc.SidecarServiceImplBase {
       return;
     }
 
-    var command = grpcMapper.fromSyncActualDegradationsRequestToResponse(request);
-    syncHandler.handle(command);
+    try {
+      var command = grpcMapper.fromSyncActualDegradationsRequestToResponse(request);
+      syncHandler.handle(command);
+    } catch (RuntimeException e) {
+      responseObserver.onError(internalError("syncActualDegradations", e));
+      return;
+    }
 
     responseObserver.onNext(SyncActualDegradationsResponse.getDefaultInstance());
     responseObserver.onCompleted();
@@ -47,10 +55,24 @@ public class SidecarGrpcApi extends SidecarServiceGrpc.SidecarServiceImplBase {
   @Override
   public void getDegradations(
       GetDegradationsRequest request, StreamObserver<GetDegradationsResponse> responseObserver) {
-    var result = getHandler.handle();
-    var response = grpcMapper.fromDegradationViewsToGetDegradationsResponse(result);
+    GetDegradationsResponse response;
+    try {
+      var result = getHandler.handle();
+      response = grpcMapper.fromDegradationViewsToGetDegradationsResponse(result);
+    } catch (RuntimeException e) {
+      responseObserver.onError(internalError("getDegradations", e));
+      return;
+    }
 
     responseObserver.onNext(response);
     responseObserver.onCompleted();
+  }
+
+  private StatusRuntimeException internalError(String operation, RuntimeException e) {
+    log.error("Sidecar gRPC operation failed: operation={}", operation, e);
+    var message = e.getMessage();
+    return Status.INTERNAL
+        .withDescription(message == null || message.isBlank() ? operation + " failed" : message)
+        .asRuntimeException();
   }
 }

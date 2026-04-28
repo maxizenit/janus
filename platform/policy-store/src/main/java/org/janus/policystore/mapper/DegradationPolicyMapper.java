@@ -161,7 +161,8 @@ public class DegradationPolicyMapper {
           "Unsupported signal source type while mapping policy: degradationId={}, signalSourceType={}",
           entity.getDegradationId(),
           entity.getSignalSourceType());
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException(
+          "Unsupported signal source type: " + entity.getSignalSourceType());
     }
 
     return builder.build();
