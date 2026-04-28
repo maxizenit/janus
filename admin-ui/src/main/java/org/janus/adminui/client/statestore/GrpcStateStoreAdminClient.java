@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.janus.adminui.mapper.StateViewMapper;
 import org.janus.adminui.model.OverrideStateCommand;
 import org.janus.adminui.model.StateView;
-import org.janus.api.statestore.ClearDegradationStateOverrideRequest;
+import org.janus.api.statestore.ClearDegradationStatesRequest;
 import org.janus.api.statestore.DegradationStateUpdate;
 import org.janus.api.statestore.DegradationStateUpdateSource;
 import org.janus.api.statestore.GetAdminDegradationStatesRequest;
@@ -80,8 +80,8 @@ public class GrpcStateStoreAdminClient implements StateStoreAdminClient {
   public void clearOverride(String degradationId) {
     log.info("Clearing override: degradationId={}", degradationId);
 
-    stub.clearDegradationStateOverride(
-        ClearDegradationStateOverrideRequest.newBuilder()
+    stub.clearDegradationStates(
+        ClearDegradationStatesRequest.newBuilder()
             .setSource(DegradationStateUpdateSource.ADMIN_UI)
             .addDegradationIds(degradationId)
             .build());

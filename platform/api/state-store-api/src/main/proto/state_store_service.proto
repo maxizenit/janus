@@ -34,12 +34,12 @@ message UpdateDegradationStatesRequest {
 message UpdateDegradationStatesResponse {
 }
 
-message ClearDegradationStateOverrideRequest {
+message ClearDegradationStatesRequest {
   repeated string degradation_ids = 1;
   DegradationStateUpdateSource source = 2;
 }
 
-message ClearDegradationStateOverrideResponse {
+message ClearDegradationStatesResponse {
 }
 
 service StateStoreService {
@@ -50,5 +50,5 @@ service StateStoreService {
 
   rpc UpdateDegradationStates(UpdateDegradationStatesRequest) returns (UpdateDegradationStatesResponse);
 
-  rpc ClearDegradationStateOverride(ClearDegradationStateOverrideRequest) returns (ClearDegradationStateOverrideResponse);
+  rpc ClearDegradationStates(ClearDegradationStatesRequest) returns (ClearDegradationStatesResponse);
 }
