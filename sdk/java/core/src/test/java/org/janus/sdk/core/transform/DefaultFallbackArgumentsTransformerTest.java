@@ -23,6 +23,22 @@ class DefaultFallbackArgumentsTransformerTest {
     public String doWorkFallback(int limit) {
       return "fallback";
     }
+
+    public String doByte(byte limit) {
+      return "";
+    }
+
+    public String doByteFallback(byte limit) {
+      return "fallback";
+    }
+
+    public String doShort(short limit) {
+      return "";
+    }
+
+    public String doShortFallback(short limit) {
+      return "fallback";
+    }
   }
 
   private final DefaultFallbackArgumentsTransformer transformer =
@@ -43,6 +59,16 @@ class DefaultFallbackArgumentsTransformerTest {
         method("doWorkFallback", int.class),
         SampleService.class,
         parameters);
+  }
+
+  private DegradableMethodDescriptor descriptor(
+      String methodName, String fallbackName, Class<?> paramType, ParameterDescriptor parameter) {
+    return new DegradableMethodDescriptor(
+        "test-degradation",
+        method(methodName, paramType),
+        method(fallbackName, paramType),
+        SampleService.class,
+        List.of(parameter));
   }
 
   private FallbackDecision decision(double fallbackRatio) {
@@ -72,6 +98,45 @@ class DefaultFallbackArgumentsTransformerTest {
 
     // cast to int: Math.round(55.0) = 55
     assertThat(result[0]).isEqualTo(55);
+  }
+
+  @Test
+  void absoluteScale_byteTarget_clampsAboveMaxValue() {
+    AbsoluteScaleDescriptor absScale =
+        new AbsoluteScaleDescriptor(10.0, 1000.0, Direction.INCREASE);
+    ParameterDescriptor param = new ParameterDescriptor(0, byte.class, absScale, null);
+    DegradableMethodDescriptor desc = descriptor("doByte", "doByteFallback", byte.class, param);
+    Object[] args = new Object[] {(byte) 0};
+
+    Object[] result = transformer.transform(desc, decision(1.0), args);
+
+    assertThat(result[0]).isEqualTo(Byte.MAX_VALUE);
+  }
+
+  @Test
+  void absoluteScale_shortTarget_clampsBelowMinValue() {
+    AbsoluteScaleDescriptor absScale =
+        new AbsoluteScaleDescriptor(-100_000.0, 100.0, Direction.DECREASE);
+    ParameterDescriptor param = new ParameterDescriptor(0, short.class, absScale, null);
+    DegradableMethodDescriptor desc = descriptor("doShort", "doShortFallback", short.class, param);
+    Object[] args = new Object[] {(short) 0};
+
+    Object[] result = transformer.transform(desc, decision(1.0), args);
+
+    assertThat(result[0]).isEqualTo(Short.MIN_VALUE);
+  }
+
+  @Test
+  void relativeScale_intTarget_clampsAboveMaxValue() {
+    RelativeScaleDescriptor relScale =
+        new RelativeScaleDescriptor(1.0, 10.0, Direction.INCREASE, Double.NaN, Double.NaN);
+    ParameterDescriptor param = new ParameterDescriptor(0, int.class, null, relScale);
+    DegradableMethodDescriptor desc = descriptor(List.of(param));
+    Object[] args = new Object[] {Integer.MAX_VALUE};
+
+    Object[] result = transformer.transform(desc, decision(1.0), args);
+
+    assertThat(result[0]).isEqualTo(Integer.MAX_VALUE);
   }
 
   @Test
