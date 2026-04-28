@@ -21,6 +21,7 @@ repositories {
 
 dependencies {
     implementation(project(":platform:api:policy-store-api"))
+    implementation(project(":platform:api:state-store-api"))
 
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -28,6 +29,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.grpc:spring-grpc-server-spring-boot-starter")
+    implementation("org.springframework.grpc:spring-grpc-client-spring-boot-starter")
 
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 

@@ -21,6 +21,7 @@ import org.janus.policystore.exception.PolicyAlreadyExistsException;
 import org.janus.policystore.exception.PolicyNotFoundException;
 import org.janus.policystore.mapper.DegradationPolicyMapper;
 import org.janus.policystore.service.DegradationPolicyService;
+import org.janus.policystore.service.PolicyDeletionOrchestrator;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServiceImplBase {
 
   private final DegradationPolicyService policyService;
+  private final PolicyDeletionOrchestrator policyDeletionOrchestrator;
   private final DegradationPolicyMapper policyMapper;
 
   @Override
@@ -169,7 +171,7 @@ public class PolicyStoreGrpcApi extends PolicyStoreServiceGrpc.PolicyStoreServic
         "DeleteDegradationPolicy request received: degradationId={}", request.getDegradationId());
 
     try {
-      policyService.deletePolicyByDegradationId(request.getDegradationId());
+      policyDeletionOrchestrator.deletePolicyByDegradationId(request.getDegradationId());
       log.info(
           "DeleteDegradationPolicy request completed: degradationId={}",
           request.getDegradationId());
