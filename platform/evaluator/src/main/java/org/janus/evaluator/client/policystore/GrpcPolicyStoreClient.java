@@ -4,10 +4,11 @@ import com.google.protobuf.util.Durations;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.janus.api.policystore.EvaluatorDegradationPolicy;
@@ -41,10 +42,7 @@ public class GrpcPolicyStoreClient implements PolicyStoreClient {
             .addAllDegradationIds(degradationIds)
             .build();
     var response = policyStoreStub.getEvaluatorDegradationPolicies(request);
-    var policies =
-        response.getDegradationPoliciesList().stream()
-            .collect(
-                Collectors.toMap(EvaluatorDegradationPolicy::getDegradationId, this::toSnapshot));
+    var policies = toSnapshots(response.getDegradationPoliciesList());
 
     var missingIds = new HashSet<>(degradationIds);
     missingIds.removeAll(policies.keySet());
@@ -72,13 +70,25 @@ public class GrpcPolicyStoreClient implements PolicyStoreClient {
 
     var request = GetEvaluatorDegradationPoliciesRequest.newBuilder().build();
     var response = policyStoreStub.getEvaluatorDegradationPolicies(request);
-    var policies =
-        response.getDegradationPoliciesList().stream()
-            .collect(
-                Collectors.toMap(EvaluatorDegradationPolicy::getDegradationId, this::toSnapshot));
+    var policies = toSnapshots(response.getDegradationPoliciesList());
 
     log.debug("All evaluator policies loaded: count={}", policies.size());
     return policies;
+  }
+
+  private Map<String, PolicySnapshot> toSnapshots(List<EvaluatorDegradationPolicy> policies) {
+    var result = new HashMap<String, PolicySnapshot>(policies.size());
+    for (var policy : policies) {
+      try {
+        result.put(policy.getDegradationId(), toSnapshot(policy));
+      } catch (RuntimeException e) {
+        log.warn(
+            "Skipping evaluator policy with unparseable signal source: degradationId={}",
+            policy.getDegradationId(),
+            e);
+      }
+    }
+    return result;
   }
 
   private PolicySnapshot toSnapshot(EvaluatorDegradationPolicy policy) {
