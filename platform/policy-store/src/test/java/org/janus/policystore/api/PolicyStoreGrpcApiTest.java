@@ -24,6 +24,7 @@ import org.janus.policystore.exception.PolicyAlreadyExistsException;
 import org.janus.policystore.exception.PolicyNotFoundException;
 import org.janus.policystore.mapper.DegradationPolicyMapper;
 import org.janus.policystore.service.DegradationPolicyService;
+import org.janus.policystore.service.PolicyDeletionOrchestrator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PolicyStoreGrpcApiTest {
 
   @Mock private DegradationPolicyService policyService;
+  @Mock private PolicyDeletionOrchestrator policyDeletionOrchestrator;
   @Mock private DegradationPolicyMapper policyMapper;
   @Mock private StreamObserver<GetEvaluatorDegradationPoliciesResponse> responseObserver;
   @Mock private StreamObserver<org.janus.api.policystore.DegradationPolicy> policyResponseObserver;
@@ -44,7 +46,7 @@ class PolicyStoreGrpcApiTest {
 
   @BeforeEach
   void setUp() {
-    api = new PolicyStoreGrpcApi(policyService, policyMapper);
+    api = new PolicyStoreGrpcApi(policyService, policyDeletionOrchestrator, policyMapper);
   }
 
   @Test
@@ -102,7 +104,7 @@ class PolicyStoreGrpcApiTest {
     var request =
         DeleteDegradationPolicyRequest.newBuilder().setDegradationId("missing-policy").build();
     doThrow(new PolicyNotFoundException("missing-policy"))
-        .when(policyService)
+        .when(policyDeletionOrchestrator)
         .deletePolicyByDegradationId("missing-policy");
 
     api.deleteDegradationPolicy(request, deleteResponseObserver);
