@@ -5,8 +5,8 @@ import io.grpc.stub.StreamObserver;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.janus.api.statestore.ClearDegradationStateOverrideRequest;
-import org.janus.api.statestore.ClearDegradationStateOverrideResponse;
+import org.janus.api.statestore.ClearDegradationStatesRequest;
+import org.janus.api.statestore.ClearDegradationStatesResponse;
 import org.janus.api.statestore.GetAdminDegradationStatesRequest;
 import org.janus.api.statestore.GetAdminDegradationStatesResponse;
 import org.janus.api.statestore.GetDegradationStatesRequest;
@@ -121,13 +121,13 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
   }
 
   @Override
-  public void clearDegradationStateOverride(
-      ClearDegradationStateOverrideRequest request,
-      StreamObserver<ClearDegradationStateOverrideResponse> responseObserver) {
+  public void clearDegradationStates(
+      ClearDegradationStatesRequest request,
+      StreamObserver<ClearDegradationStatesResponse> responseObserver) {
     DegradationStateUpdateSource source = sourceMapper.fromGrpcToDomain(request.getSource());
     if (source == null) {
       log.warn(
-          "ClearDegradationStateOverride request rejected: invalid source={}, degradationCount={}",
+          "ClearDegradationStates request rejected: invalid source={}, degradationCount={}",
           request.getSource(),
           request.getDegradationIdsCount());
       responseObserver.onError(
@@ -140,7 +140,7 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
     var degradationIds = request.getDegradationIdsList();
 
     log.info(
-        "ClearDegradationStateOverride request received: source={}, degradationCount={}",
+        "ClearDegradationStates request received: source={}, degradationCount={}",
         source,
         degradationIds.size());
 
@@ -152,11 +152,11 @@ public class StateStoreGrpcApi extends StateStoreServiceGrpc.StateStoreServiceIm
     }
 
     log.info(
-        "ClearDegradationStateOverride request completed: source={}, degradationCount={}",
+        "ClearDegradationStates request completed: source={}, degradationCount={}",
         source,
         degradationIds.size());
 
-    responseObserver.onNext(ClearDegradationStateOverrideResponse.getDefaultInstance());
+    responseObserver.onNext(ClearDegradationStatesResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
 
