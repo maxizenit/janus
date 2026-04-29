@@ -1,5 +1,6 @@
 package org.janus.demo.client.configuration;
 
+import io.micrometer.observation.ObservationRegistry;
 import org.janus.demo.client.configuration.properties.DemoClientProperties;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.context.annotation.Bean;
@@ -12,7 +13,10 @@ public class DemoClientConfiguration {
 
   @Bean
   public RestClient demoServerRestClient(
-      RestClient.Builder builder, DemoClientProperties properties) {
-    return builder.baseUrl(properties.url().toString()).build();
+      DemoClientProperties properties, ObservationRegistry observationRegistry) {
+    return RestClient.builder()
+        .baseUrl(properties.url().toString())
+        .observationRegistry(observationRegistry)
+        .build();
   }
 }
