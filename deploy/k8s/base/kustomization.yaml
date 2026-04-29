@@ -9,3 +9,7 @@ resources:
   - redis
   - prometheus
   - grafana
+  - policy-store
+  - state-store
+  - evaluator
+  - admin-ui
