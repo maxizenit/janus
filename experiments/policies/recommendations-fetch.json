@@ -3,7 +3,7 @@
   "evaluationInterval": "5s",
   "signalSource": {
     "prometheus": {
-      "query": "(sum(rate(http_client_requests_seconds_count{job=\"demo-client-with-janus\",outcome=~\"SERVER_ERROR|CLIENT_ERROR\",client_name=\"demo-server\"}[30s])) / clamp_min(sum(rate(http_client_requests_seconds_count{job=\"demo-client-with-janus\",client_name=\"demo-server\"}[30s])), 0.01)) or on() vector(0)"
+      "query": "(sum(rate(http_client_requests_seconds_count{job=\"demo-client-with-janus\",status=~\"SERVER_ERROR|CLIENT_ERROR\",client_name=\"demo-server\"}[30s])) / clamp_min(sum(rate(http_client_requests_seconds_count{job=\"demo-client-with-janus\",client_name=\"demo-server\"}[30s])), 0.01)) or on() vector(0)"
     }
   },
   "criticalThreshold": 0.3,
