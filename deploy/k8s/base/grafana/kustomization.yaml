@@ -3,5 +3,13 @@ kind: Kustomization
 resources:
   - secret.yaml
   - configmap-datasources.yaml
+  - configmap-dashboard-providers.yaml
   - service.yaml
   - deployment.yaml
+
+configMapGenerator:
+  - name: grafana-dashboards
+    files:
+      - dashboards/janus-experiment.json
+    options:
+      disableNameSuffixHash: true
