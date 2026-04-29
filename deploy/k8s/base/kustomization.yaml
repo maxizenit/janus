@@ -13,3 +13,7 @@ resources:
   - state-store
   - evaluator
   - admin-ui
+  - sidecar
+  - demo-server
+  - demo-client-with-janus
+  - demo-client-without-janus

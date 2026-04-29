@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sidecar
+  labels:
+    app.kubernetes.io/name: sidecar
+    app.kubernetes.io/component: client
+    app.kubernetes.io/part-of: janus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sidecar
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sidecar
+        app.kubernetes.io/component: client
+        app.kubernetes.io/part-of: janus
+    spec:
+      containers:
+        - name: sidecar
+          image: sidecar:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: grpc
+              containerPort: 9090
+            - name: management
+              containerPort: 8081
+          env:
+            - name: JANUS_SIDECAR_SQLITE_PATH
+              value: /var/lib/janus/sidecar.db
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/janus
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: management
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: management
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              cpu: 1000m
+              memory: 768Mi
+      volumes:
+        - name: data
+          emptyDir: {}
