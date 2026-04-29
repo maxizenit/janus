@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.janus.sdk.annotation.Degradable;
+import org.janus.sdk.core.descriptor.DegradableMethodDescriptor;
 import org.janus.sdk.core.fallback.FallbackDecisionService;
 import org.janus.sdk.core.runtime.DegradationStateRegistry;
 import org.janus.sdk.core.transform.FallbackArgumentsTransformer;
@@ -49,8 +50,7 @@ public class DegradableAspect {
     var decision = decisionService.decide(descriptor, state);
 
     if (!decision.fallbackRequired()) {
-      metrics.recordInvocation(descriptor.degradationId(), false);
-      return joinPoint.proceed();
+      return invokePrimaryWithReactiveFallback(joinPoint, target, descriptor);
     }
 
     metrics.recordInvocation(descriptor.degradationId(), true);
@@ -77,6 +77,40 @@ public class DegradableAspect {
         decision.effectiveCriticalThreshold());
 
     return fallbackMethodInvoker.invoke(target, fallbackMethod, fallbackArguments);
+  }
+
+  private Object invokePrimaryWithReactiveFallback(
+      ProceedingJoinPoint joinPoint, Object target, DegradableMethodDescriptor descriptor)
+      throws Throwable {
+    Object result;
+    try {
+      result = joinPoint.proceed();
+    } catch (Exception e) {
+      var fallbackMethod = descriptor.fallbackMethod();
+      if (fallbackMethod != null && matchesReactiveFallback(e, descriptor)) {
+        metrics.recordInvocation(descriptor.degradationId(), true);
+        log.debug(
+            "Reactive fallback selected: degradationId={}, method={}, exceptionType={}",
+            descriptor.degradationId(),
+            descriptor.method().toGenericString(),
+            e.getClass().getName());
+        return fallbackMethodInvoker.invoke(target, fallbackMethod, joinPoint.getArgs());
+      }
+      throw e;
+    }
+
+    metrics.recordInvocation(descriptor.degradationId(), false);
+    return result;
+  }
+
+  private static boolean matchesReactiveFallback(
+      Exception thrown, DegradableMethodDescriptor descriptor) {
+    for (var type : descriptor.fallbackOnException()) {
+      if (type.isInstance(thrown)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static @Nullable Object defaultReturnValue(Class<?> returnType) {

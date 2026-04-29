@@ -46,6 +46,7 @@ class DefaultDegradableDescriptorValidatorTest {
         method,
         fallbackMethod,
         SampleService.class,
+        List.of(),
         List.of());
   }
 

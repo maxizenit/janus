@@ -8,6 +8,8 @@ import org.janus.sdk.annotation.Degradable;
 import org.janus.sdk.annotation.param.RelativeScale;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +18,10 @@ public class RecommendationService {
 
   private final DemoServerClient demoServerClient;
 
-  @Degradable(value = "recommendations.fetch", fallback = "getRecommendationsFallback")
+  @Degradable(
+      value = "recommendations.fetch",
+      fallback = "getRecommendationsFallback",
+      fallbackOnException = {ResourceAccessException.class, RestClientException.class})
   public List<String> getRecommendations(
       @RelativeScale(minFactor = 0.2, maxFactor = 1.0, min = 1, max = 20) int limit) {
 
