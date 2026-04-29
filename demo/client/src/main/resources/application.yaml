@@ -1,6 +1,8 @@
 demo:
   server:
     url: http://localhost:8090
+    connect-timeout: 1s
+    read-timeout: 3s
 
 spring:
   application:
