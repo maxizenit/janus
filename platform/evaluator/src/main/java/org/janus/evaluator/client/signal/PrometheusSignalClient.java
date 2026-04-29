@@ -2,6 +2,7 @@ package org.janus.evaluator.client.signal;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.janus.evaluator.configuration.properties.PrometheusProperties;
@@ -47,9 +48,9 @@ public class PrometheusSignalClient implements SignalClient {
                 uriBuilder ->
                     uriBuilder
                         .path("/api/v1/query")
-                        .queryParam("query", query)
-                        .queryParam("time", queryTime.getEpochSecond())
-                        .build())
+                        .queryParam("query", "{q}")
+                        .queryParam("time", "{t}")
+                        .build(Map.of("q", query, "t", queryTime.getEpochSecond())))
             .retrieve()
             .bodyToMono(JsonNode.class)
             .block(properties.requestTimeout());
