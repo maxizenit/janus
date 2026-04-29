@@ -11,4 +11,5 @@ public record DegradableMethodDescriptor(
     Method method,
     @Nullable Method fallbackMethod,
     Class<?> beanClass,
-    List<ParameterDescriptor> parameters) {}
+    List<ParameterDescriptor> parameters,
+    List<Class<? extends Throwable>> fallbackOnException) {}

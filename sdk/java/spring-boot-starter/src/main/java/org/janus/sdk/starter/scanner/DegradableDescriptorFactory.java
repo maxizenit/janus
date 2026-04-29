@@ -36,7 +36,8 @@ public class DegradableDescriptorFactory {
         method,
         fallbackMethod,
         targetClass,
-        List.copyOf(parameters));
+        List.copyOf(parameters),
+        List.of(degradable.fallbackOnException()));
   }
 
   private @Nullable Method resolveFallbackMethod(

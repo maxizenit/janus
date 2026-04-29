@@ -14,4 +14,6 @@ public @interface Degradable {
   String value();
 
   String fallback() default "";
+
+  Class<? extends Throwable>[] fallbackOnException() default {};
 }

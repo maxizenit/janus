@@ -1,12 +1,14 @@
 package org.janus.sdk.starter.aop;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +50,15 @@ class DegradableAspectTest {
     @Degradable("primitive")
     public int primitiveMethod() {
       return 42;
+    }
+
+    @Degradable("reactive")
+    public String reactiveMethod() {
+      return "normal";
+    }
+
+    public String reactiveFallback() {
+      return "reactive-fallback";
     }
   }
 
@@ -91,11 +102,7 @@ class DegradableAspectTest {
     var target = new TargetService();
     var descriptor =
         new DegradableMethodDescriptor(
-            "deg",
-            method,
-            null,
-            TargetService.class,
-            List.of());
+            "deg", method, null, TargetService.class, List.of(), List.of());
     var decision = new FallbackDecision(true, 0.8, 0.5, 0.1, 1.0, 0.7);
 
     when(joinPoint.getSignature()).thenReturn(signature);
@@ -107,5 +114,109 @@ class DegradableAspectTest {
     when(decisionService.decide(descriptor, null)).thenReturn(decision);
 
     return joinPoint;
+  }
+
+  @Test
+  void reactiveFallback_invokedWhenPrimaryThrowsMatchingException() throws Throwable {
+    var method = TargetService.class.getDeclaredMethod("reactiveMethod");
+    var fallback = TargetService.class.getDeclaredMethod("reactiveFallback");
+    var aspect =
+        configureWith(
+            method,
+            fallback,
+            List.of(IOException.class),
+            new FallbackDecision(false, 0.0, 0.5, 0.1, 1.0, 0.0));
+    var thrown = new java.net.SocketTimeoutException("server slow");
+    when(joinPoint.proceed()).thenThrow(thrown);
+    when(joinPoint.getArgs()).thenReturn(new Object[0]);
+    when(fallbackMethodInvoker.invoke(any(), eq(fallback), any())).thenReturn("reactive-fallback");
+
+    var result = aspect.around(joinPoint, degradable);
+
+    assertThat(result).isEqualTo("reactive-fallback");
+    verify(metrics).recordInvocation("deg", true);
+    verify(metrics, never()).recordInvocation("deg", false);
+    verifyNoInteractions(argumentsTransformer);
+  }
+
+  @Test
+  void reactiveFallback_propagatesUnmatchedException() throws Throwable {
+    var method = TargetService.class.getDeclaredMethod("reactiveMethod");
+    var fallback = TargetService.class.getDeclaredMethod("reactiveFallback");
+    var aspect =
+        configureWith(
+            method,
+            fallback,
+            List.of(IOException.class),
+            new FallbackDecision(false, 0.0, 0.5, 0.1, 1.0, 0.0));
+    var thrown = new IllegalStateException("not network");
+    when(joinPoint.proceed()).thenThrow(thrown);
+
+    assertThatThrownBy(() -> aspect.around(joinPoint, degradable)).isSameAs(thrown);
+
+    verify(metrics, never()).recordInvocation(eq("deg"), org.mockito.ArgumentMatchers.anyBoolean());
+    verifyNoInteractions(fallbackMethodInvoker);
+  }
+
+  @Test
+  void reactiveFallback_noFallbackMethod_propagatesMatchingException() throws Throwable {
+    var method = TargetService.class.getDeclaredMethod("reactiveMethod");
+    var aspect =
+        configureWith(
+            method,
+            null,
+            List.of(IOException.class),
+            new FallbackDecision(false, 0.0, 0.5, 0.1, 1.0, 0.0));
+    var thrown = new java.net.SocketTimeoutException("server slow");
+    when(joinPoint.proceed()).thenThrow(thrown);
+
+    assertThatThrownBy(() -> aspect.around(joinPoint, degradable)).isSameAs(thrown);
+
+    verifyNoInteractions(fallbackMethodInvoker);
+  }
+
+  @Test
+  void normalPath_recordsNonFallbackInvocation() throws Throwable {
+    var method = TargetService.class.getDeclaredMethod("reactiveMethod");
+    var fallback = TargetService.class.getDeclaredMethod("reactiveFallback");
+    var aspect =
+        configureWith(
+            method,
+            fallback,
+            List.of(IOException.class),
+            new FallbackDecision(false, 0.0, 0.5, 0.1, 1.0, 0.0));
+    when(joinPoint.proceed()).thenReturn("normal");
+
+    var result = aspect.around(joinPoint, degradable);
+
+    assertThat(result).isEqualTo("normal");
+    verify(metrics).recordInvocation("deg", false);
+    verify(metrics, never()).recordInvocation("deg", true);
+    verifyNoInteractions(fallbackMethodInvoker, argumentsTransformer);
+  }
+
+  private DegradableAspect configureWith(
+      Method method,
+      Method fallback,
+      List<Class<? extends Throwable>> fallbackOnException,
+      FallbackDecision decision) {
+    var target = new TargetService();
+    var descriptor =
+        new DegradableMethodDescriptor(
+            "deg", method, fallback, TargetService.class, List.of(), fallbackOnException);
+
+    when(joinPoint.getSignature()).thenReturn(signature);
+    when(signature.getMethod()).thenReturn(method);
+    when(joinPoint.getTarget()).thenReturn(target);
+    when(descriptorResolver.resolve(eq(method), eq(TargetService.class)))
+        .thenReturn(Optional.of(descriptor));
+    when(stateRegistry.find("deg")).thenReturn(Optional.empty());
+    when(decisionService.decide(descriptor, null)).thenReturn(decision);
+
+    return aspect();
+  }
+
+  private static <T> T any() {
+    return org.mockito.ArgumentMatchers.any();
   }
 }

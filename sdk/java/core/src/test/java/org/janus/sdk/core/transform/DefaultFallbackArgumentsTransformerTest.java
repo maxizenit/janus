@@ -58,7 +58,8 @@ class DefaultFallbackArgumentsTransformerTest {
         method("doWork", int.class),
         method("doWorkFallback", int.class),
         SampleService.class,
-        parameters);
+        parameters,
+        List.of());
   }
 
   private DegradableMethodDescriptor descriptor(
@@ -68,7 +69,8 @@ class DefaultFallbackArgumentsTransformerTest {
         method(methodName, paramType),
         method(fallbackName, paramType),
         SampleService.class,
-        List.of(parameter));
+        List.of(parameter),
+        List.of());
   }
 
   private FallbackDecision decision(double fallbackRatio) {

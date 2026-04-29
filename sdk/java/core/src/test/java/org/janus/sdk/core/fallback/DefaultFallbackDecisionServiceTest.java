@@ -35,6 +35,7 @@ class DefaultFallbackDecisionServiceTest {
           method,
           fallback,
           SampleService.class,
+          List.of(),
           List.of());
     } catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
