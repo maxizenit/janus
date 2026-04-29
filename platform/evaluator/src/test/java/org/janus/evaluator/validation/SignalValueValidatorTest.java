@@ -1,7 +1,6 @@
 package org.janus.evaluator.validation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,49 +20,37 @@ class SignalValueValidatorTest {
 
   @ParameterizedTest
   @ValueSource(doubles = {0.0, 0.001, 0.5, 0.999, 1.0})
-  void validate_validValues_returnsValue(double value) {
+  void validate_inRangeValue_returnedAsIs(double value) {
     assertThat(validator.validate(value, DEGRADATION_ID)).isEqualTo(value);
   }
 
   @Test
-  void validate_nan_throwsException() {
-    assertThatThrownBy(() -> validator.validate(Double.NaN, DEGRADATION_ID))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("finite");
+  void validate_nan_treatedAsZero() {
+    assertThat(validator.validate(Double.NaN, DEGRADATION_ID)).isEqualTo(0.0);
   }
 
   @Test
-  void validate_positiveInfinity_throwsException() {
-    assertThatThrownBy(() -> validator.validate(Double.POSITIVE_INFINITY, DEGRADATION_ID))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("finite");
+  void validate_positiveInfinity_clampedToOne() {
+    assertThat(validator.validate(Double.POSITIVE_INFINITY, DEGRADATION_ID)).isEqualTo(1.0);
   }
 
   @Test
-  void validate_negativeInfinity_throwsException() {
-    assertThatThrownBy(() -> validator.validate(Double.NEGATIVE_INFINITY, DEGRADATION_ID))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("finite");
+  void validate_negativeInfinity_clampedToZero() {
+    assertThat(validator.validate(Double.NEGATIVE_INFINITY, DEGRADATION_ID)).isEqualTo(0.0);
   }
 
   @Test
-  void validate_negativeValue_throwsException() {
-    assertThatThrownBy(() -> validator.validate(-0.1, DEGRADATION_ID))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("[0.0, 1.0]");
+  void validate_negativeValue_clampedToZero() {
+    assertThat(validator.validate(-0.1, DEGRADATION_ID)).isEqualTo(0.0);
   }
 
   @Test
-  void validate_greaterThanOne_throwsException() {
-    assertThatThrownBy(() -> validator.validate(1.01, DEGRADATION_ID))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("[0.0, 1.0]");
+  void validate_greaterThanOne_clampedToOne() {
+    assertThat(validator.validate(1.01, DEGRADATION_ID)).isEqualTo(1.0);
   }
 
   @Test
-  void validate_errorMessageContainsDegradationId() {
-    assertThatThrownBy(() -> validator.validate(2.0, DEGRADATION_ID))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining(DEGRADATION_ID);
+  void validate_largeValue_clampedToOne() {
+    assertThat(validator.validate(42.0, DEGRADATION_ID)).isEqualTo(1.0);
   }
 }
