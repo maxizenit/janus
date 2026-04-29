@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: state-store
+  labels:
+    app.kubernetes.io/name: state-store
+    app.kubernetes.io/component: platform
+    app.kubernetes.io/part-of: janus
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: state-store
+  ports:
+    - name: grpc
+      port: 9090
+      targetPort: 9090
+    - name: management
+      port: 8081
+      targetPort: 8081
