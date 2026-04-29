@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # Runs all k6 experiments sequentially: 4 scenarios x 2 client targets = 8 jobs.
-# Logs are saved into experiments/k6/results/<timestamp>/<job>.log.
+# Per job: stdout log + extracted JSON summary. After all jobs: a CSV digest.
 
 set -euo pipefail
+
+if ! command -v jq >/dev/null 2>&1; then
+  echo "ERROR: jq is required to aggregate k6 results (https://jqlang.github.io/jq/)." >&2
+  exit 1
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 NAMESPACE="janus"
@@ -46,6 +51,7 @@ run_job() {
   export JOB_NAME="k6-${scenario_id}-${target}"
 
   local log_file="${RESULTS_DIR}/${JOB_NAME}.log"
+  local json_file="${RESULTS_DIR}/${JOB_NAME}.json"
 
   echo
   echo "==> ${JOB_NAME}"
@@ -65,6 +71,16 @@ run_job() {
   fi
 
   kubectl -n "${NAMESPACE}" logs "job/${JOB_NAME}" --tail=-1 >"${log_file}" 2>&1 || true
+
+  # Extract the JSON-only block emitted by handleSummary() in recommendations.js
+  if sed -n '/=== JSON SUMMARY START ===/,/=== JSON SUMMARY END ===/p' "${log_file}" \
+      | sed '1d;$d' > "${json_file}"; then
+    if [[ ! -s "${json_file}" ]]; then
+      echo "    ! No JSON summary found in logs"
+      rm -f "${json_file}"
+    fi
+  fi
+
   kubectl -n "${NAMESPACE}" delete job "${JOB_NAME}" --ignore-not-found >/dev/null
 }
 
@@ -75,5 +91,34 @@ for scenario_line in "${SCENARIOS[@]}"; do
   done
 done
 
+# Aggregate JSON summaries into a digest CSV
+DIGEST="${RESULTS_DIR}/summary.csv"
+{
+  echo "experiment,scenario,target,iterations,reqs_per_sec,fail_rate,p50_ms,p95_ms,p99_ms,max_ms"
+  for json_file in "${RESULTS_DIR}"/k6-*.json; do
+    [[ -f "${json_file}" ]] || continue
+    name="$(basename "${json_file}" .json)"
+    rest="${name#k6-}"
+    scenario="${rest%%-demo-client-*}"
+    target="demo-client-${rest#*-demo-client-}"
+
+    jq -r --arg n "${name}" --arg s "${scenario}" --arg t "${target}" '
+      [
+        $n,
+        $s,
+        $t,
+        (.metrics.iterations.values.count // 0),
+        ((.metrics.http_reqs.values.rate // 0) | tostring),
+        ((.metrics.http_req_failed.values.rate // 0) | tostring),
+        ((.metrics.http_req_duration.values.med // 0) | tostring),
+        ((.metrics.http_req_duration.values["p(95)"] // 0) | tostring),
+        ((.metrics.http_req_duration.values["p(99)"] // 0) | tostring),
+        ((.metrics.http_req_duration.values.max // 0) | tostring)
+      ] | @csv
+    ' "${json_file}"
+  done
+} >"${DIGEST}"
+
 echo
 echo "All experiments finished. Results: ${RESULTS_DIR}"
+echo "Digest: ${DIGEST}"

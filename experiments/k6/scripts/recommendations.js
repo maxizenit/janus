@@ -35,3 +35,12 @@ export function teardown() {
   console.log("Teardown: resetting demo-server to OK mode");
   resetMode();
 }
+
+export function handleSummary(data) {
+  return {
+    stdout:
+      "=== JSON SUMMARY START ===\n" +
+      JSON.stringify(data) +
+      "\n=== JSON SUMMARY END ===\n",
+  };
+}
