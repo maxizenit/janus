@@ -11,7 +11,8 @@ import org.springframework.web.client.RestClient;
 public class DemoClientConfiguration {
 
   @Bean
-  public RestClient demoServerRestClient(DemoClientProperties properties) {
-    return RestClient.builder().baseUrl(properties.url().toString()).build();
+  public RestClient demoServerRestClient(
+      RestClient.Builder builder, DemoClientProperties properties) {
+    return builder.baseUrl(properties.url().toString()).build();
   }
 }

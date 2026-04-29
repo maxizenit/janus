@@ -24,6 +24,10 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.client.requests: true
+        http.server.requests: true
 
 logging:
   level:
