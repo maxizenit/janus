@@ -1,0 +1,69 @@
+# Template — processed by run.sh through envsubst, not applied via kustomize.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB_NAME}
+  labels:
+    app.kubernetes.io/name: k6
+    app.kubernetes.io/component: experiment
+    app.kubernetes.io/part-of: janus
+    janus.experiment/scenario: "${SCENARIO_MODE}"
+    janus.experiment/target: "${TARGET_HOST}"
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: k6
+        app.kubernetes.io/component: experiment
+        app.kubernetes.io/part-of: janus
+        janus.experiment/scenario: "${SCENARIO_MODE}"
+        janus.experiment/target: "${TARGET_HOST}"
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.55.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - run
+            - /scripts/recommendations.js
+          env:
+            - name: RPS
+              value: "${RPS}"
+            - name: DURATION
+              value: "${DURATION}"
+            - name: PRE_VUS
+              value: "${PRE_VUS}"
+            - name: MAX_VUS
+              value: "${MAX_VUS}"
+            - name: TARGET_HOST
+              value: "${TARGET_HOST}"
+            - name: TARGET_PORT
+              value: "${TARGET_PORT}"
+            - name: LIMIT
+              value: "${LIMIT}"
+            - name: SCENARIO_MODE
+              value: "${SCENARIO_MODE}"
+            - name: SCENARIO_DELAY_MS
+              value: "${SCENARIO_DELAY_MS}"
+            - name: SCENARIO_STATUS
+              value: "${SCENARIO_STATUS}"
+            - name: SCENARIO_ERROR_RATE
+              value: "${SCENARIO_ERROR_RATE}"
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: k6-scripts
