@@ -3,11 +3,13 @@ package org.janus.sdk.starter.configuration;
 import org.janus.api.sidecar.SidecarServiceGrpc;
 import org.janus.sdk.starter.configuration.properties.JanusSdkProperties;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.grpc.client.GrpcChannelFactory;
 
 @Configuration
+@ConditionalOnProperty(prefix = "janus.sdk", name = "enabled", havingValue = "true")
 @NullMarked
 public class SidecarGrpcClientConfiguration {
 
