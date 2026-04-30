@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "org.janus"
-version = "1.0.0"
+version = "1.1.0-SNAPSHOT"
 description = "Sidecar API"
 
 java {
