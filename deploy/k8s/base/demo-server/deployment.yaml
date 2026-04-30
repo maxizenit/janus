@@ -31,6 +31,7 @@ spec:
               port: http
             initialDelaySeconds: 15
             periodSeconds: 5
+            timeoutSeconds: 5
             failureThreshold: 30
           livenessProbe:
             httpGet:
@@ -38,6 +39,8 @@ spec:
               port: http
             initialDelaySeconds: 60
             periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
           resources:
             requests:
               cpu: 200m
