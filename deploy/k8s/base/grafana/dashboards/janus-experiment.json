@@ -42,7 +42,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "expr": "1 - (sum by (job) (rate(http_server_requests_seconds_count{uri=\"/api/recommendations\",outcome=~\"SERVER_ERROR|CLIENT_ERROR\"}[1m])) / sum by (job) (rate(http_server_requests_seconds_count{uri=\"/api/recommendations\"}[1m])))",
+          "expr": "1 - ((sum by (job) (rate(http_server_requests_seconds_count{uri=\"/api/recommendations\",outcome=~\"SERVER_ERROR|CLIENT_ERROR\"}[1m])) or sum by (job) (rate(http_server_requests_seconds_count{uri=\"/api/recommendations\"}[1m])) * 0) / sum by (job) (rate(http_server_requests_seconds_count{uri=\"/api/recommendations\"}[1m])))",
           "legendFormat": "{{job}}",
           "refId": "A"
         }
@@ -79,7 +79,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "expr": "(sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=\"normal\"}[1m])) + sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=\"fallback\"}[1m])) * 0.5) / sum by (degradation_id) (rate(janus_degradable_invocations_total[1m]))",
+          "expr": "1 - ((sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=\"fallback\"}[1m])) or sum by (degradation_id) (rate(janus_degradable_invocations_total[1m])) * 0) / sum by (degradation_id) (rate(janus_degradable_invocations_total[1m]))) * 0.5",
           "legendFormat": "{{degradation_id}}",
           "refId": "A"
         }
@@ -189,7 +189,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "expr": "1 - (sum by (job) (rate(http_server_requests_seconds_count{uri=\"/api/recommendations\",outcome=~\"SERVER_ERROR|CLIENT_ERROR\"}[1m])) / sum by (job) (rate(http_server_requests_seconds_count{uri=\"/api/recommendations\"}[1m])))",
+          "expr": "1 - ((sum by (job) (rate(http_server_requests_seconds_count{uri=\"/api/recommendations\",outcome=~\"SERVER_ERROR|CLIENT_ERROR\"}[1m])) or sum by (job) (rate(http_server_requests_seconds_count{uri=\"/api/recommendations\"}[1m])) * 0) / sum by (job) (rate(http_server_requests_seconds_count{uri=\"/api/recommendations\"}[1m])))",
           "legendFormat": "{{job}}",
           "refId": "A"
         }
@@ -269,7 +269,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "expr": "(sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=\"normal\"}[1m])) + sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=\"fallback\"}[1m])) * 0.5) / sum by (degradation_id) (rate(janus_degradable_invocations_total[1m]))",
+          "expr": "1 - ((sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=\"fallback\"}[1m])) or sum by (degradation_id) (rate(janus_degradable_invocations_total[1m])) * 0) / sum by (degradation_id) (rate(janus_degradable_invocations_total[1m]))) * 0.5",
           "legendFormat": "{{degradation_id}}",
           "refId": "A"
         }
