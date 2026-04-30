@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package org.janus.api.statestore;
+
+option java_package = "org.janus.api.statestore";
+option java_multiple_files = true;
+
+import "google/protobuf/duration.proto";
+import "degradation_state_update_source.proto";
+
+message DegradationStateSourceEntry {
+  DegradationStateUpdateSource source = 1;
+  double value = 2;
+  google.protobuf.Duration remaining_ttl = 3;
+}

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package org.janus.api.sidecar;
+
+option java_package = "org.janus.api.sidecar";
+option java_multiple_files = true;
+
+import "google/protobuf/duration.proto";
+
+message Degradation {
+  string degradation_id = 1;
+  double value = 2;
+  google.protobuf.Duration evaluation_interval = 3;
+  double critical_threshold = 4;
+  double min_fallback_ratio = 5;
+  double max_fallback_ratio = 6;
+  double fallback_curve_exponent = 7;
+  bool stale = 8;
+}

@@ -1,0 +1,21 @@
+spring:
+  grpc:
+    server:
+      port: 9094
+    client:
+      channels:
+        policy-store:
+          address: localhost:9091
+        state-store:
+          address: localhost:9092
+
+server:
+  port: 8084
+
+management:
+  server:
+    port: 8084
+
+logging:
+  level:
+    org.janus.sidecar: DEBUG

@@ -1,0 +1,28 @@
+[versions]
+
+java = "25"
+
+springBootPlugin = "4.0.6"
+springDependencyManagementPlugin = "1.1.7"
+lombokPlugin = "9.4.0"
+protobufPlugin = "0.10.0"
+
+springGrpc = "1.0.3"
+protobuf = "4.33.4"
+grpc = "1.80.0"
+
+dockerRemoteApiPlugin = "9.4.0"
+
+mapstruct = "1.6.3"
+
+jspecify = "1.0.0"
+
+vaadin = "25.1.3"
+
+jakartaValidation = "3.1.1"
+hibernateValidator = "9.1.0.Final"
+
+sqliteJdbc = "3.53.0.0"
+
+junit = "5.14.4"
+assertj = "3.27.7"

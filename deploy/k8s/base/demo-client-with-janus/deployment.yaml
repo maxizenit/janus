@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-client-with-janus
+  labels:
+    app.kubernetes.io/name: demo-client-with-janus
+    app.kubernetes.io/component: demo
+    app.kubernetes.io/part-of: janus
+    janus.demo/variant: with-janus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: demo-client-with-janus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: demo-client-with-janus
+        app.kubernetes.io/component: demo
+        app.kubernetes.io/part-of: janus
+        janus.demo/variant: with-janus
+    spec:
+      containers:
+        - name: demo-client
+          image: client:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8091
+          env:
+            - name: DEMO_SERVER_URL
+              value: http://demo-server:8090
+            - name: SPRING_GRPC_CLIENT_CHANNELS_SIDECAR_ADDRESS
+              value: sidecar:9090
+            - name: JANUS_SDK_ENABLED
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 90
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              cpu: 1000m
+              memory: 768Mi

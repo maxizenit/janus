@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: admin-ui
+  grpc:
+    client:
+      channels:
+        policy-store:
+          address: policy-store:9090
+        state-store:
+          address: state-store:9090
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+vaadin:
+  allowed-packages: org.janus.adminui
+  launch-browser: false
+
+janus:
+  admin-ui:
+    state-refresh-interval: 10s
+    max-override-ttl: 24h

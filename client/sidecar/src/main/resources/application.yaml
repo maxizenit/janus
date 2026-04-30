@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: sidecar
+  grpc:
+    server:
+      port: 9090
+    client:
+      channels:
+        policy-store:
+          address: policy-store:9090
+        state-store:
+          address: state-store:9090
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+janus:
+  sidecar:
+    policy-refresh-interval: 30s
+    state-refresh-threads: 4
+    state-refresh-queue-capacity: 1000
+    max-sync-degradation-ids: 1000
+    sqlite-path: ./janus-sidecar.db

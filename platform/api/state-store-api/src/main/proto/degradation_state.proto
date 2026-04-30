@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package org.janus.api.statestore;
+
+option java_package = "org.janus.api.statestore";
+option java_multiple_files = true;
+
+message DegradationState {
+  string degradation_id = 1;
+  double value = 2;
+}

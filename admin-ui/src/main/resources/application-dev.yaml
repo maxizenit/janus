@@ -1,0 +1,16 @@
+spring:
+  grpc:
+    client:
+      channels:
+        policy-store:
+          address: localhost:9091
+        state-store:
+          address: localhost:9092
+
+management:
+  server:
+    port: 8080
+
+logging:
+  level:
+    org.janus.adminui: DEBUG

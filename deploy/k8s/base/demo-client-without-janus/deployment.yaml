@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-client-without-janus
+  labels:
+    app.kubernetes.io/name: demo-client-without-janus
+    app.kubernetes.io/component: demo
+    app.kubernetes.io/part-of: janus
+    janus.demo/variant: without-janus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: demo-client-without-janus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: demo-client-without-janus
+        app.kubernetes.io/component: demo
+        app.kubernetes.io/part-of: janus
+        janus.demo/variant: without-janus
+    spec:
+      containers:
+        - name: demo-client
+          image: client:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8091
+          env:
+            - name: DEMO_SERVER_URL
+              value: http://demo-server:8090
+            - name: JANUS_SDK_ENABLED
+              value: "false"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              cpu: 1000m
+              memory: 768Mi

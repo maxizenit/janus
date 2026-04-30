@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: janus
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    scrape_configs:
+      - job_name: policy-store
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets: ["policy-store:8081"]
+
+      - job_name: state-store
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets: ["state-store:8081"]
+
+      - job_name: evaluator
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets: ["evaluator:8081"]
+
+      - job_name: admin-ui
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets: ["admin-ui:8081"]
+
+      - job_name: sidecar
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets: ["sidecar:8081"]
+
+      - job_name: demo-server
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets: ["demo-server:8090"]
+
+      - job_name: demo-client-with-janus
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets: ["demo-client-with-janus:8091"]
+
+      - job_name: demo-client-without-janus
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets: ["demo-client-without-janus:8091"]

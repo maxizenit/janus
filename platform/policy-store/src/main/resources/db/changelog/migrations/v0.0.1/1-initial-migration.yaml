@@ -1,0 +1,121 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0-0-1-1
+      author: Liquibase
+      changes:
+        - createTable:
+            tableName: degradation_policy
+            columns:
+              - column:
+                  name: degradation_id
+                  type: varchar
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_degradation_policy
+
+              - column:
+                  name: evaluation_interval_ms
+                  type: bigint
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: signal_source_type
+                  type: varchar
+
+              - column:
+                  name: source_prometheus_query
+                  type: varchar
+
+              - column:
+                  name: critical_threshold
+                  type: double precision
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: min_fallback_ratio
+                  type: double precision
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: max_fallback_ratio
+                  type: double precision
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: fallback_curve_exponent
+                  type: double precision
+                  constraints:
+                    nullable: false
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_eval_interval_positive
+              check (evaluation_interval_ms > 0);
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_signal_source_type
+              check (signal_source_type is null or signal_source_type in ('PROMETHEUS'));
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_signal_source_payload
+              check (
+                (
+                  signal_source_type = 'PROMETHEUS'
+                  and source_prometheus_query is not null
+                )
+                or
+                (
+                  signal_source_type is null
+                  and source_prometheus_query is null
+                )
+              );
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_critical_threshold_range
+              check (
+                critical_threshold between 0 and 1
+              );
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_min_fallback_ratio_range
+              check (
+                min_fallback_ratio between 0 and 1
+              );
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_max_fallback_ratio_range
+              check (
+                max_fallback_ratio between 0 and 1
+              );
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_fallback_ratio_order
+              check (
+                min_fallback_ratio <= max_fallback_ratio
+              );
+
+        - sql:
+            sql: |
+              alter table degradation_policy
+              add constraint chk_degradation_policy_fallback_curve_exponent_range
+              check (
+                fallback_curve_exponent > 0
+              );

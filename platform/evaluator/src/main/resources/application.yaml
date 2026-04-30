@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: evaluator
+  grpc:
+    client:
+      channels:
+        policy-store:
+          address: policy-store:9090
+        state-store:
+          address: state-store:9090
+  data:
+    redis:
+      host: redis
+      port: 6379
+      timeout: 1s
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+janus:
+  evaluator:
+    instance-id: ${HOSTNAME:${random.uuid}}
+    policy-refresh-interval: 30s
+    leadership-lease-duration: 30s
+    leadership-retry-backoff: 5s
+    evaluation-failure-backoff: 10s
+    evaluation-threads: 4
+    evaluation-queue-capacity: 1024
+    prometheus:
+      base-url: http://prometheus:9090
+      request-timeout: 3s

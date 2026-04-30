@@ -1,0 +1,24 @@
+spring:
+  grpc:
+    client:
+      channels:
+        policy-store:
+          address: localhost:9091
+        state-store:
+          address: localhost:9092
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 1s
+
+server:
+  port: 8083
+
+management:
+  server:
+    port: 8083
+
+logging:
+  level:
+    org.janus.evaluator: DEBUG

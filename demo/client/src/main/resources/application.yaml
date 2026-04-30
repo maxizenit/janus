@@ -1,0 +1,43 @@
+demo:
+  server:
+    url: http://localhost:8090
+    connect-timeout: 1s
+    read-timeout: 3s
+
+spring:
+  application:
+    name: demo-client
+  grpc:
+    client:
+      channels:
+        sidecar:
+          address: localhost:9094
+
+server:
+  port: 8091
+
+management:
+  server:
+    port: 8091
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.client.requests: true
+        http.server.requests: true
+
+logging:
+  level:
+    org.janus: DEBUG
+
+janus:
+  sdk:
+    enabled: true
+    sidecar-channel: sidecar
+    refresh-interval: 5s
+    stale-strategy: last-value

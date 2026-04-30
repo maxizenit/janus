@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package org.janus.api.statestore;
+
+option java_package = "org.janus.api.statestore";
+option java_multiple_files = true;
+
+import "degradation_state.proto";
+import "admin_degradation_state.proto";
+import "degradation_state_update.proto";
+import "degradation_state_update_source.proto";
+
+message GetDegradationStatesRequest {
+  repeated string degradation_ids = 1;
+}
+
+message GetDegradationStatesResponse {
+  repeated DegradationState degradation_states = 1;
+}
+
+message GetAdminDegradationStatesRequest {
+  repeated string degradation_ids = 1;
+}
+
+message GetAdminDegradationStatesResponse {
+  repeated AdminDegradationState degradation_states = 1;
+}
+
+message UpdateDegradationStatesRequest {
+  DegradationStateUpdateSource source = 1;
+  repeated DegradationStateUpdate updates = 2;
+}
+
+message UpdateDegradationStatesResponse {
+}
+
+message ClearDegradationStatesRequest {
+  repeated string degradation_ids = 1;
+  DegradationStateUpdateSource source = 2;
+}
+
+message ClearDegradationStatesResponse {
+}
+
+service StateStoreService {
+
+  rpc GetDegradationStates(GetDegradationStatesRequest) returns (GetDegradationStatesResponse);
+
+  rpc GetAdminDegradationStates(GetAdminDegradationStatesRequest) returns (GetAdminDegradationStatesResponse);
+
+  rpc UpdateDegradationStates(UpdateDegradationStatesRequest) returns (UpdateDegradationStatesResponse);
+
+  rpc ClearDegradationStates(ClearDegradationStatesRequest) returns (ClearDegradationStatesResponse);
+}

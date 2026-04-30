@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package org.janus.api.sidecar;
+
+option java_package = "org.janus.api.sidecar";
+option java_multiple_files = true;
+
+import "degradation.proto";
+
+message SyncActualDegradationsRequest {
+  repeated string degradation_ids = 1;
+}
+
+message SyncActualDegradationsResponse {
+}
+
+message GetDegradationsRequest {
+}
+
+message GetDegradationsResponse {
+  repeated Degradation degradations = 1;
+}
+
+service SidecarService {
+
+  rpc SyncActualDegradations(SyncActualDegradationsRequest) returns (SyncActualDegradationsResponse);
+
+  rpc GetDegradations(GetDegradationsRequest) returns (GetDegradationsResponse);
+}

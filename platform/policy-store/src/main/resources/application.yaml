@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: policy-store
+  grpc:
+    server:
+      port: 9090
+    client:
+      channels:
+        state-store:
+          address: state-store:9090
+  datasource:
+    url: jdbc:postgresql://postgres:5432/janus-policy-store-db
+    username: postgres
+    password: postgres
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}

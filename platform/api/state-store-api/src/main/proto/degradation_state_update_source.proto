@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package org.janus.api.statestore;
+
+option java_package = "org.janus.api.statestore";
+option java_multiple_files = true;
+
+enum DegradationStateUpdateSource {
+  DEGRADATION_STATE_UPDATE_SOURCE_UNSPECIFIED = 0;
+  ADMIN_UI = 1;
+  EVALUATOR = 2;
+}
