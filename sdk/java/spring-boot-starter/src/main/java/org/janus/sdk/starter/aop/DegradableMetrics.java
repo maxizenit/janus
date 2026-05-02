@@ -17,6 +17,7 @@ public class DegradableMetrics {
   private static final String TAG_TRIGGER = "trigger";
   private static final String OUTCOME_NORMAL = "normal";
   private static final String OUTCOME_FALLBACK = "fallback";
+  private static final String OUTCOME_ERROR = "error";
   private static final String TRIGGER_PROACTIVE = "proactive";
   private static final String TRIGGER_REACTIVE = "reactive";
   private static final String TRIGGER_NONE = "none";
@@ -33,6 +34,10 @@ public class DegradableMetrics {
 
   public void recordNormal(String degradationId) {
     record(degradationId, OUTCOME_NORMAL, TRIGGER_NONE);
+  }
+
+  public void recordError(String degradationId) {
+    record(degradationId, OUTCOME_ERROR, TRIGGER_NONE);
   }
 
   private void record(String degradationId, String outcome, String trigger) {

@@ -155,6 +155,7 @@ class DegradableAspectTest {
 
     assertThatThrownBy(() -> aspect.around(joinPoint, degradable)).isSameAs(thrown);
 
+    verify(metrics).recordError("deg");
     verify(metrics, never()).recordProactiveFallback("deg");
     verify(metrics, never()).recordReactiveFallback("deg");
     verify(metrics, never()).recordNormal("deg");
@@ -175,6 +176,10 @@ class DegradableAspectTest {
 
     assertThatThrownBy(() -> aspect.around(joinPoint, degradable)).isSameAs(thrown);
 
+    verify(metrics).recordError("deg");
+    verify(metrics, never()).recordProactiveFallback("deg");
+    verify(metrics, never()).recordReactiveFallback("deg");
+    verify(metrics, never()).recordNormal("deg");
     verifyNoInteractions(fallbackMethodInvoker);
   }
 
