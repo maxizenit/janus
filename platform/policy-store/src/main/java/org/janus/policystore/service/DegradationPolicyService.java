@@ -1,5 +1,8 @@
 package org.janus.policystore.service;
 
+import static org.janus.policystore.configuration.CacheConfiguration.POLICIES_ALL_CACHE;
+import static org.janus.policystore.configuration.CacheConfiguration.POLICIES_BY_IDS_CACHE;
+
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +14,9 @@ import org.janus.policystore.mapper.DegradationPolicyMapper;
 import org.janus.policystore.repository.DegradationPolicyRepository;
 import org.janus.policystore.validation.DegradationPolicyValidator;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +32,7 @@ public class DegradationPolicyService {
   private final DegradationPolicyMapper policyMapper;
 
   @Transactional(readOnly = true)
+  @Cacheable(POLICIES_ALL_CACHE)
   public List<DegradationPolicy> getAllPolicies() {
     log.debug("Loading all degradation policies");
     var policies = policyRepository.findAll();
@@ -34,6 +41,7 @@ public class DegradationPolicyService {
   }
 
   @Transactional(readOnly = true)
+  @Cacheable(value = POLICIES_BY_IDS_CACHE, key = "#degradationIds", unless = "#result.isEmpty()")
   public List<DegradationPolicy> getPoliciesByDegradationIds(List<String> degradationIds) {
     if (degradationIds.isEmpty()) {
       log.debug("Skipping degradation policy lookup: empty degradationIds");
@@ -50,6 +58,11 @@ public class DegradationPolicyService {
     return policies;
   }
 
+  @Caching(
+      evict = {
+        @CacheEvict(value = POLICIES_ALL_CACHE, allEntries = true),
+        @CacheEvict(value = POLICIES_BY_IDS_CACHE, allEntries = true)
+      })
   public DegradationPolicy createPolicy(CreateDegradationPolicyRequest createRequest) {
     log.info(
         "Creating degradation policy started: degradationId={}", createRequest.getDegradationId());
@@ -66,6 +79,11 @@ public class DegradationPolicyService {
     return savedPolicy;
   }
 
+  @Caching(
+      evict = {
+        @CacheEvict(value = POLICIES_ALL_CACHE, allEntries = true),
+        @CacheEvict(value = POLICIES_BY_IDS_CACHE, allEntries = true)
+      })
   public DegradationPolicy updatePolicy(UpdateDegradationPolicyRequest updateRequest) {
     var degradationId = updateRequest.getDegradationId();
     log.info(
@@ -110,6 +128,11 @@ public class DegradationPolicyService {
     return savedPolicy;
   }
 
+  @Caching(
+      evict = {
+        @CacheEvict(value = POLICIES_ALL_CACHE, allEntries = true),
+        @CacheEvict(value = POLICIES_BY_IDS_CACHE, allEntries = true)
+      })
   public void deletePolicyByDegradationId(String degradationId) {
     log.info("Deleting degradation policy started: degradationId={}", degradationId);
     policyValidator.validateForDelete(degradationId);

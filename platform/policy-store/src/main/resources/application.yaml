@@ -12,6 +12,12 @@ spring:
     url: jdbc:postgresql://postgres:5432/janus-policy-store-db
     username: postgres
     password: postgres
+  data:
+    redis:
+      host: redis
+      port: 6379
+      timeout: 200ms
+      connect-timeout: 500ms
 
 management:
   server:
@@ -23,3 +29,11 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+  health:
+    redis:
+      enabled: false
+
+janus:
+  policy-store:
+    cache:
+      ttl: 60s
