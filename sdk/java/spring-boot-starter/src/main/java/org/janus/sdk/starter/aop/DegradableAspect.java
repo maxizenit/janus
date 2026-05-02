@@ -96,6 +96,7 @@ public class DegradableAspect {
             e.getClass().getName());
         return fallbackMethodInvoker.invoke(target, fallbackMethod, joinPoint.getArgs());
       }
+      metrics.recordError(descriptor.degradationId());
       throw e;
     }
 
