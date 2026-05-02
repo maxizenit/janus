@@ -53,7 +53,7 @@ public class DegradableAspect {
       return invokePrimaryWithReactiveFallback(joinPoint, target, descriptor);
     }
 
-    metrics.recordInvocation(descriptor.degradationId(), true);
+    metrics.recordProactiveFallback(descriptor.degradationId());
 
     var fallbackMethod = descriptor.fallbackMethod();
     if (fallbackMethod == null) {
@@ -88,7 +88,7 @@ public class DegradableAspect {
     } catch (Exception e) {
       var fallbackMethod = descriptor.fallbackMethod();
       if (fallbackMethod != null && matchesReactiveFallback(e, descriptor)) {
-        metrics.recordInvocation(descriptor.degradationId(), true);
+        metrics.recordReactiveFallback(descriptor.degradationId());
         log.debug(
             "Reactive fallback selected: degradationId={}, method={}, exceptionType={}",
             descriptor.degradationId(),
@@ -99,7 +99,7 @@ public class DegradableAspect {
       throw e;
     }
 
-    metrics.recordInvocation(descriptor.degradationId(), false);
+    metrics.recordNormal(descriptor.degradationId());
     return result;
   }
 
