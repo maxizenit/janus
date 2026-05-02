@@ -1,6 +1,9 @@
 rootProject.name = "janus"
 
 include(
+    //Common
+    "common:grpc",
+
     //Platform
     "platform:policy-store",
     "platform:state-store",

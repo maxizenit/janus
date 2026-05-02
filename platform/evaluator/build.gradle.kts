@@ -20,6 +20,7 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":common:grpc"))
     implementation(project(":platform:api:policy-store-api"))
     implementation(project(":platform:api:state-store-api"))
 
