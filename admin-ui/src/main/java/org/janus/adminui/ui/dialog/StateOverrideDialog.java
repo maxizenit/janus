@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.janus.adminui.model.OverrideStateCommand;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class StateOverrideDialog extends Dialog {
@@ -46,35 +47,58 @@ public class StateOverrideDialog extends Dialog {
         new Button(
             "Apply",
             e -> {
-              var stateValue = value.getValue();
-              var ttlValue = ttlAmount.getValue();
-              var unit = ttlUnit.getValue();
-              if (stateValue == null || stateValue < 0.0 || stateValue > 1.0) {
-                Notification.show("Value must be in range [0.0, 1.0]");
+              var result =
+                  validate(
+                      degradationId,
+                      value.getValue(),
+                      ttlAmount.getValue(),
+                      ttlUnit.getValue(),
+                      maxOverrideTtl);
+              if (result.errorMessage() != null) {
+                Notification.show(result.errorMessage());
                 return;
               }
-              if (ttlValue == null || ttlValue < 1) {
-                Notification.show("TTL must be positive");
-                return;
-              }
-              if (unit == null) {
-                Notification.show("TTL unit is required");
-                return;
-              }
-              Duration ttl = unit.toDuration(ttlValue);
-              if (ttl.compareTo(maxOverrideTtl) > 0) {
-                Notification.show(
-                    "TTL must not exceed " + TtlUnit.formatDuration(maxOverrideTtl));
-                return;
-              }
-
-              onApply.accept(new OverrideStateCommand(degradationId, stateValue, ttl));
+              onApply.accept(result.command());
               close();
             });
 
     Button cancel = new Button("Cancel", e -> close());
 
     add(new FormLayout(id, value, ttlAmount, ttlUnit), apply, cancel);
+  }
+
+  static ValidationResult validate(
+      String degradationId,
+      @Nullable Double stateValue,
+      @Nullable Integer ttlValue,
+      @Nullable TtlUnit unit,
+      Duration maxOverrideTtl) {
+    if (stateValue == null || stateValue < 0.0 || stateValue > 1.0) {
+      return ValidationResult.error("Value must be in range [0.0, 1.0]");
+    }
+    if (ttlValue == null || ttlValue < 1) {
+      return ValidationResult.error("TTL must be positive");
+    }
+    if (unit == null) {
+      return ValidationResult.error("TTL unit is required");
+    }
+    Duration ttl = unit.toDuration(ttlValue);
+    if (ttl.compareTo(maxOverrideTtl) > 0) {
+      return ValidationResult.error(
+          "TTL must not exceed " + TtlUnit.formatDuration(maxOverrideTtl));
+    }
+    return ValidationResult.ok(new OverrideStateCommand(degradationId, stateValue, ttl));
+  }
+
+  record ValidationResult(@Nullable OverrideStateCommand command, @Nullable String errorMessage) {
+
+    static ValidationResult ok(OverrideStateCommand command) {
+      return new ValidationResult(command, null);
+    }
+
+    static ValidationResult error(String message) {
+      return new ValidationResult(null, message);
+    }
   }
 
   private static void applyTtlBounds(
@@ -90,7 +114,7 @@ public class StateOverrideDialog extends Dialog {
     }
   }
 
-  private enum TtlUnit {
+  enum TtlUnit {
     SECONDS("seconds") {
       @Override
       Duration toDuration(int value) {
