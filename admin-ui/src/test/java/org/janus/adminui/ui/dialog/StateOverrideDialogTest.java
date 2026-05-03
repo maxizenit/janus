@@ -1,83 +1,70 @@
 package org.janus.adminui.ui.dialog;
 
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.component.textfield.NumberField;
 import java.time.Duration;
-import java.util.function.Consumer;
-import org.janus.adminui.model.OverrideStateCommand;
+import org.janus.adminui.ui.dialog.StateOverrideDialog.TtlUnit;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 class StateOverrideDialogTest {
 
   @Test
-  void apply_emptyFields_doesNotSubmitCommand() {
-    @SuppressWarnings("unchecked")
-    Consumer<OverrideStateCommand> onApply = Mockito.mock(Consumer.class);
-    UI.setCurrent(new UI());
-    var dialog = new StateOverrideDialog("deg-1", Duration.ofHours(24), onApply);
+  void validate_emptyValue_returnsError() {
+    var result =
+        StateOverrideDialog.validate("deg-1", null, 5, TtlUnit.MINUTES, Duration.ofHours(1));
 
-    find(dialog, NumberField.class).clear();
-    find(dialog, IntegerField.class).clear();
-    findApplyButton(dialog).click();
-
-    verifyNoInteractions(onApply);
+    assertThat(result.command()).isNull();
+    assertThat(result.errorMessage()).isEqualTo("Value must be in range [0.0, 1.0]");
   }
 
   @Test
-  void apply_ttlAboveMax_doesNotSubmitCommand() {
-    @SuppressWarnings("unchecked")
-    Consumer<OverrideStateCommand> onApply = Mockito.mock(Consumer.class);
-    UI.setCurrent(new UI());
-    var dialog = new StateOverrideDialog("deg-1", Duration.ofMinutes(5), onApply);
+  void validate_outOfRangeValue_returnsError() {
+    var result =
+        StateOverrideDialog.validate("deg-1", 1.5, 5, TtlUnit.MINUTES, Duration.ofHours(1));
 
-    find(dialog, IntegerField.class).setValue(6);
-    findApplyButton(dialog).click();
-
-    verifyNoInteractions(onApply);
+    assertThat(result.errorMessage()).isEqualTo("Value must be in range [0.0, 1.0]");
   }
 
   @Test
-  void apply_subMinuteMaxTtl_submitsSeconds() {
-    @SuppressWarnings("unchecked")
-    Consumer<OverrideStateCommand> onApply = Mockito.mock(Consumer.class);
-    UI.setCurrent(new UI());
-    var dialog = new StateOverrideDialog("deg-1", Duration.ofSeconds(30), onApply);
+  void validate_emptyTtl_returnsError() {
+    var result =
+        StateOverrideDialog.validate("deg-1", 0.5, null, TtlUnit.MINUTES, Duration.ofHours(1));
 
-    find(dialog, IntegerField.class).setValue(30);
-    findApplyButton(dialog).click();
-
-    verify(onApply)
-        .accept(
-            argThat(
-                command ->
-                    command != null
-                        && "deg-1".equals(command.degradationId())
-                        && command.ttl().equals(Duration.ofSeconds(30))));
+    assertThat(result.errorMessage()).isEqualTo("TTL must be positive");
   }
 
-  private static Button findApplyButton(Component root) {
-    return root.getChildren()
-        .filter(Button.class::isInstance)
-        .map(Button.class::cast)
-        .filter(button -> "Apply".equals(button.getText()))
-        .findFirst()
-        .orElseThrow();
+  @Test
+  void validate_zeroTtl_returnsError() {
+    var result =
+        StateOverrideDialog.validate("deg-1", 0.5, 0, TtlUnit.MINUTES, Duration.ofHours(1));
+
+    assertThat(result.errorMessage()).isEqualTo("TTL must be positive");
   }
 
-  private static <T extends Component> T find(Component root, Class<T> type) {
-    return root.getChildren()
-        .flatMap(child -> java.util.stream.Stream.concat(java.util.stream.Stream.of(child), child.getChildren()))
-        .filter(type::isInstance)
-        .map(type::cast)
-        .findFirst()
-        .orElseThrow();
+  @Test
+  void validate_nullUnit_returnsError() {
+    var result = StateOverrideDialog.validate("deg-1", 0.5, 5, null, Duration.ofHours(1));
+
+    assertThat(result.errorMessage()).isEqualTo("TTL unit is required");
+  }
+
+  @Test
+  void validate_ttlAboveMax_returnsError() {
+    var result =
+        StateOverrideDialog.validate("deg-1", 0.5, 6, TtlUnit.MINUTES, Duration.ofMinutes(5));
+
+    assertThat(result.errorMessage()).isEqualTo("TTL must not exceed 5 minutes");
+  }
+
+  @Test
+  void validate_subMinuteMaxTtl_returnsCommandWithSeconds() {
+    var result =
+        StateOverrideDialog.validate("deg-1", 0.7, 30, TtlUnit.SECONDS, Duration.ofSeconds(30));
+
+    assertThat(result.errorMessage()).isNull();
+    assertThat(result.command()).isNotNull();
+    assertThat(result.command().degradationId()).isEqualTo("deg-1");
+    assertThat(result.command().value()).isEqualTo(0.7);
+    assertThat(result.command().ttl()).isEqualTo(Duration.ofSeconds(30));
   }
 }
