@@ -26,6 +26,7 @@ dependencies {
     api(project(":sdk:java:core"))
 
     implementation(project(":client:api:sidecar-api"))
+    implementation(project(":common:grpc"))
 
     api("org.springframework.boot:spring-boot-autoconfigure")
     api("org.springframework.boot:spring-boot-starter-aspectj")

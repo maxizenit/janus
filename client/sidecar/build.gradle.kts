@@ -22,6 +22,7 @@ repositories {
 dependencies {
     implementation(project(":client:api:sidecar-api"))
 
+    implementation(project(":common:grpc"))
     implementation(project(":platform:api:policy-store-api"))
     implementation(project(":platform:api:state-store-api"))
 
