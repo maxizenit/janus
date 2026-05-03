@@ -23,7 +23,7 @@ public class SidecarConfiguration {
         TimeUnit.MILLISECONDS,
         new ArrayBlockingQueue<>(properties.stateRefreshQueueCapacity()),
         Thread.ofPlatform().name("sidecar-state-refresh-", 0).factory(),
-        new ThreadPoolExecutor.CallerRunsPolicy());
+        new ThreadPoolExecutor.AbortPolicy());
   }
 
   @Bean

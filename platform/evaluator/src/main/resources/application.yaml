@@ -32,6 +32,7 @@ janus:
     leadership-lease-duration: 30s
     leadership-retry-backoff: 5s
     evaluation-failure-backoff: 10s
+    queue-saturation-backoff: 1s
     evaluation-threads: 4
     evaluation-queue-capacity: 1024
     prometheus:

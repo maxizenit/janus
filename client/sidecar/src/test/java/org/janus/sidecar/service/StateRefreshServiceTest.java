@@ -28,7 +28,7 @@ class StateRefreshServiceTest {
   private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);
   private static final Duration POLICY_REFRESH_INTERVAL = Duration.ofSeconds(30);
   private static final SidecarProperties PROPERTIES =
-      new SidecarProperties(POLICY_REFRESH_INTERVAL, 1, 1, 1, "");
+      new SidecarProperties(POLICY_REFRESH_INTERVAL, 1, 1, Duration.ofSeconds(1), 1, "");
 
   @Mock private ActualDegradationRegistry registry;
   @Mock private StateStoreClient stateStoreClient;

@@ -23,7 +23,7 @@ public class EvaluatorConfiguration {
         TimeUnit.MILLISECONDS,
         new ArrayBlockingQueue<>(properties.evaluationQueueCapacity()),
         Thread.ofPlatform().name("evaluator-evaluation-", 0).factory(),
-        new ThreadPoolExecutor.CallerRunsPolicy());
+        new ThreadPoolExecutor.AbortPolicy());
   }
 
   @Bean

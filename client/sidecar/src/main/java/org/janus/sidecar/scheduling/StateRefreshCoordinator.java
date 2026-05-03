@@ -1,13 +1,16 @@
 package org.janus.sidecar.scheduling;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.janus.sidecar.configuration.properties.SidecarProperties;
 import org.janus.sidecar.model.scheduling.StateRefreshTask;
 import org.janus.sidecar.service.StateRefreshService;
 import org.jspecify.annotations.NullMarked;
@@ -23,6 +26,8 @@ public class StateRefreshCoordinator implements StateRefreshScheduler, SmartLife
 
   private final StateRefreshService stateRefreshService;
   private final ExecutorService stateRefreshExecutor;
+  private final SidecarProperties properties;
+  private final Clock clock;
 
   private final DelayQueue<StateRefreshTask> queue = new DelayQueue<>();
   private final AtomicBoolean running = new AtomicBoolean(false);
@@ -57,23 +62,36 @@ public class StateRefreshCoordinator implements StateRefreshScheduler, SmartLife
             queue.size(),
             ids.size() <= 20 ? ids : "[omitted]");
 
-        stateRefreshExecutor.submit(
-            () -> {
-              log.trace("Submitting state refresh batch to executor: size={}", ids.size());
-              var results = stateRefreshService.refresh(ids);
-              log.debug(
-                  "State refresh batch processed: requested={}, results={}",
-                  ids.size(),
-                  results.size());
+        try {
+          stateRefreshExecutor.submit(
+              () -> {
+                log.trace("Submitting state refresh batch to executor: size={}", ids.size());
+                var results = stateRefreshService.refresh(ids);
+                log.debug(
+                    "State refresh batch processed: requested={}, results={}",
+                    ids.size(),
+                    results.size());
 
-              for (var result : results) {
-                log.trace(
-                    "Scheduling next state refresh: degradation={}, nextRefreshAt={}",
-                    result.degradationId(),
-                    result.nextRefreshAt());
-                scheduleAt(result.degradationId(), result.nextRefreshAt());
-              }
-            });
+                for (var result : results) {
+                  log.trace(
+                      "Scheduling next state refresh: degradation={}, nextRefreshAt={}",
+                      result.degradationId(),
+                      result.nextRefreshAt());
+                  scheduleAt(result.degradationId(), result.nextRefreshAt());
+                }
+              });
+        } catch (RejectedExecutionException e) {
+          var backoff = properties.queueSaturationBackoff();
+          var retryAt = Instant.now(clock).plus(backoff);
+          log.warn(
+              "State refresh queue saturated, rescheduling batch: size={}, retryAt={}, backoff={}",
+              ids.size(),
+              retryAt,
+              backoff);
+          for (var id : ids) {
+            scheduleAt(id, retryAt);
+          }
+        }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         log.debug("State refresh coordinator loop interrupted");
