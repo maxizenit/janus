@@ -72,7 +72,7 @@ class DegradableAspectTest {
     assertThat(result).isNull();
     verify(joinPoint, never()).proceed();
     verifyNoInteractions(argumentsTransformer, fallbackMethodInvoker);
-    verify(metrics).recordInvocation("deg", true);
+    verify(metrics).recordProactiveFallback("deg");
   }
 
   @Test
@@ -85,7 +85,7 @@ class DegradableAspectTest {
     assertThat(result).isEqualTo(0);
     verify(joinPoint, never()).proceed();
     verifyNoInteractions(argumentsTransformer, fallbackMethodInvoker);
-    verify(metrics).recordInvocation("deg", true);
+    verify(metrics).recordProactiveFallback("deg");
   }
 
   private DegradableAspect aspect() {
@@ -134,8 +134,9 @@ class DegradableAspectTest {
     var result = aspect.around(joinPoint, degradable);
 
     assertThat(result).isEqualTo("reactive-fallback");
-    verify(metrics).recordInvocation("deg", true);
-    verify(metrics, never()).recordInvocation("deg", false);
+    verify(metrics).recordReactiveFallback("deg");
+    verify(metrics, never()).recordProactiveFallback("deg");
+    verify(metrics, never()).recordNormal("deg");
     verifyNoInteractions(argumentsTransformer);
   }
 
@@ -154,7 +155,10 @@ class DegradableAspectTest {
 
     assertThatThrownBy(() -> aspect.around(joinPoint, degradable)).isSameAs(thrown);
 
-    verify(metrics, never()).recordInvocation(eq("deg"), org.mockito.ArgumentMatchers.anyBoolean());
+    verify(metrics).recordError("deg");
+    verify(metrics, never()).recordProactiveFallback("deg");
+    verify(metrics, never()).recordReactiveFallback("deg");
+    verify(metrics, never()).recordNormal("deg");
     verifyNoInteractions(fallbackMethodInvoker);
   }
 
@@ -172,6 +176,10 @@ class DegradableAspectTest {
 
     assertThatThrownBy(() -> aspect.around(joinPoint, degradable)).isSameAs(thrown);
 
+    verify(metrics).recordError("deg");
+    verify(metrics, never()).recordProactiveFallback("deg");
+    verify(metrics, never()).recordReactiveFallback("deg");
+    verify(metrics, never()).recordNormal("deg");
     verifyNoInteractions(fallbackMethodInvoker);
   }
 
@@ -190,8 +198,9 @@ class DegradableAspectTest {
     var result = aspect.around(joinPoint, degradable);
 
     assertThat(result).isEqualTo("normal");
-    verify(metrics).recordInvocation("deg", false);
-    verify(metrics, never()).recordInvocation("deg", true);
+    verify(metrics).recordNormal("deg");
+    verify(metrics, never()).recordProactiveFallback("deg");
+    verify(metrics, never()).recordReactiveFallback("deg");
     verifyNoInteractions(fallbackMethodInvoker, argumentsTransformer);
   }
 

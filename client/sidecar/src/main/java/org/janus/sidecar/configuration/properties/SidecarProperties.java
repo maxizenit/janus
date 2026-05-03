@@ -13,5 +13,6 @@ public record SidecarProperties(
     @NotNull @DurationMin(millis = 1) Duration policyRefreshInterval,
     @Positive int stateRefreshThreads,
     @Positive int stateRefreshQueueCapacity,
+    @NotNull @DurationMin(millis = 1) Duration queueSaturationBackoff,
     @Positive int maxSyncDegradationIds,
     @NotNull String sqlitePath) {}

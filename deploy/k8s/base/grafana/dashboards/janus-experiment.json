@@ -79,7 +79,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "expr": "1 - ((sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=\"fallback\"}[1m])) or sum by (degradation_id) (rate(janus_degradable_invocations_total[1m])) * 0) / sum by (degradation_id) (rate(janus_degradable_invocations_total[1m]))) * 0.5",
+          "expr": "1 - ((sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=\"fallback\"}[1m])) or sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=~\"normal|fallback\"}[1m])) * 0) / sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=~\"normal|fallback\"}[1m]))) * 0.5",
           "legendFormat": "{{degradation_id}}",
           "refId": "A"
         }
@@ -269,7 +269,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "expr": "1 - ((sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=\"fallback\"}[1m])) or sum by (degradation_id) (rate(janus_degradable_invocations_total[1m])) * 0) / sum by (degradation_id) (rate(janus_degradable_invocations_total[1m]))) * 0.5",
+          "expr": "1 - ((sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=\"fallback\"}[1m])) or sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=~\"normal|fallback\"}[1m])) * 0) / sum by (degradation_id) (rate(janus_degradable_invocations_total{outcome=~\"normal|fallback\"}[1m]))) * 0.5",
           "legendFormat": "{{degradation_id}}",
           "refId": "A"
         }

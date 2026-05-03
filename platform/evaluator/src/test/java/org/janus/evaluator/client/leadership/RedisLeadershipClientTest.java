@@ -41,6 +41,7 @@ class RedisLeadershipClientTest {
                 Duration.ofSeconds(30),
                 Duration.ofSeconds(5),
                 Duration.ofSeconds(10),
+                Duration.ofSeconds(1),
                 2,
                 100));
   }

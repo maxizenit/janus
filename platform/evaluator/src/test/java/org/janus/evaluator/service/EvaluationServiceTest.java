@@ -63,6 +63,7 @@ class EvaluationServiceTest {
             LEASE_DURATION,
             LEADERSHIP_RETRY_BACKOFF,
             FAILURE_BACKOFF,
+            Duration.ofSeconds(1),
             4,
             100);
 

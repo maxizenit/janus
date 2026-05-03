@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "org.janus"
-version = "1.0.0"
+version = "1.1.0"
 description = "Java SDK Spring Boot Starter"
 
 java {
@@ -26,6 +26,7 @@ dependencies {
     api(project(":sdk:java:core"))
 
     implementation(project(":client:api:sidecar-api"))
+    implementation(project(":common:grpc"))
 
     api("org.springframework.boot:spring-boot-autoconfigure")
     api("org.springframework.boot:spring-boot-starter-aspectj")

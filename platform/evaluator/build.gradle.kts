@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "org.janus"
-version = "1.0.0"
+version = "1.1.0"
 description = "Evaluator"
 
 java {
@@ -20,6 +20,7 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":common:grpc"))
     implementation(project(":platform:api:policy-store-api"))
     implementation(project(":platform:api:state-store-api"))
 

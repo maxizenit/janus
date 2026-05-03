@@ -16,5 +16,6 @@ public record EvaluatorProperties(
     @NotNull @DurationMin(millis = 1) Duration leadershipLeaseDuration,
     @NotNull @DurationMin(millis = 1) Duration leadershipRetryBackoff,
     @NotNull @DurationMin(millis = 1) Duration evaluationFailureBackoff,
+    @NotNull @DurationMin(millis = 1) Duration queueSaturationBackoff,
     @Positive int evaluationThreads,
     @Positive int evaluationQueueCapacity) {}

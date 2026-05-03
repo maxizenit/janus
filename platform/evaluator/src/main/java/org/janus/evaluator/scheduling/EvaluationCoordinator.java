@@ -1,11 +1,14 @@
 package org.janus.evaluator.scheduling;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.janus.evaluator.configuration.properties.EvaluatorProperties;
 import org.janus.evaluator.model.scheduling.EvaluationTask;
 import org.janus.evaluator.service.EvaluationService;
 import org.jspecify.annotations.NullMarked;
@@ -21,6 +24,8 @@ public class EvaluationCoordinator implements EvaluationScheduler, SmartLifecycl
 
   private final EvaluationService evaluationService;
   private final ExecutorService evaluationExecutor;
+  private final EvaluatorProperties properties;
+  private final Clock clock;
 
   private final DelayQueue<EvaluationTask> queue = new DelayQueue<>();
   private final AtomicBoolean running = new AtomicBoolean(false);
@@ -49,18 +54,29 @@ public class EvaluationCoordinator implements EvaluationScheduler, SmartLifecycl
             task.scheduledAt(),
             queue.size());
 
-        evaluationExecutor.submit(
-            () ->
-                evaluationService
-                    .evaluate(task.degradationId())
-                    .ifPresent(
-                        result -> {
-                          log.debug(
-                              "Evaluation result received: degradation={}, nextEvaluationAt={}",
-                              result.degradationId(),
-                              result.nextEvaluationAt());
-                          scheduleAt(result.degradationId(), result.nextEvaluationAt());
-                        }));
+        try {
+          evaluationExecutor.submit(
+              () ->
+                  evaluationService
+                      .evaluate(task.degradationId())
+                      .ifPresent(
+                          result -> {
+                            log.debug(
+                                "Evaluation result received: degradation={}, nextEvaluationAt={}",
+                                result.degradationId(),
+                                result.nextEvaluationAt());
+                            scheduleAt(result.degradationId(), result.nextEvaluationAt());
+                          }));
+        } catch (RejectedExecutionException e) {
+          var backoff = properties.queueSaturationBackoff();
+          var retryAt = Instant.now(clock).plus(backoff);
+          log.warn(
+              "Evaluation queue saturated, rescheduling: degradation={}, retryAt={}, backoff={}",
+              task.degradationId(),
+              retryAt,
+              backoff);
+          scheduleAt(task.degradationId(), retryAt);
+        }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         log.debug("Evaluation coordinator loop interrupted");

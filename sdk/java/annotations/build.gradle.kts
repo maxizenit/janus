@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "org.janus"
-version = "1.0.0"
+version = "1.1.0"
 description = "Java SDK Annotations"
 
 java {
