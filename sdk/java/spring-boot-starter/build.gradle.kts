@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "org.janus"
-version = "1.2.0"
+version = "1.3.0-SNAPSHOT"
 description = "Java SDK Spring Boot Starter"
 
 java {
