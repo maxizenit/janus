@@ -13,6 +13,7 @@ public class DegradableMetrics {
 
   private static final String METRIC_NAME = "janus.degradable.invocations";
   private static final String TAG_DEGRADATION_ID = "degradation.id";
+  private static final String TAG_CALLER_DEGRADATION_ID = "caller.degradation.id";
   private static final String TAG_OUTCOME = "outcome";
   private static final String TAG_TRIGGER = "trigger";
   private static final String OUTCOME_NORMAL = "normal";
@@ -24,25 +25,27 @@ public class DegradableMetrics {
 
   private final MeterRegistry meterRegistry;
 
-  public void recordProactiveFallback(String degradationId) {
-    record(degradationId, OUTCOME_FALLBACK, TRIGGER_PROACTIVE);
+  public void recordProactiveFallback(String degradationId, String callerDegradationId) {
+    record(degradationId, callerDegradationId, OUTCOME_FALLBACK, TRIGGER_PROACTIVE);
   }
 
-  public void recordReactiveFallback(String degradationId) {
-    record(degradationId, OUTCOME_FALLBACK, TRIGGER_REACTIVE);
+  public void recordReactiveFallback(String degradationId, String callerDegradationId) {
+    record(degradationId, callerDegradationId, OUTCOME_FALLBACK, TRIGGER_REACTIVE);
   }
 
-  public void recordNormal(String degradationId) {
-    record(degradationId, OUTCOME_NORMAL, TRIGGER_NONE);
+  public void recordNormal(String degradationId, String callerDegradationId) {
+    record(degradationId, callerDegradationId, OUTCOME_NORMAL, TRIGGER_NONE);
   }
 
-  public void recordError(String degradationId) {
-    record(degradationId, OUTCOME_ERROR, TRIGGER_NONE);
+  public void recordError(String degradationId, String callerDegradationId) {
+    record(degradationId, callerDegradationId, OUTCOME_ERROR, TRIGGER_NONE);
   }
 
-  private void record(String degradationId, String outcome, String trigger) {
+  private void record(
+      String degradationId, String callerDegradationId, String outcome, String trigger) {
     Counter.builder(METRIC_NAME)
         .tag(TAG_DEGRADATION_ID, degradationId)
+        .tag(TAG_CALLER_DEGRADATION_ID, callerDegradationId)
         .tag(TAG_OUTCOME, outcome)
         .tag(TAG_TRIGGER, trigger)
         .register(meterRegistry)
