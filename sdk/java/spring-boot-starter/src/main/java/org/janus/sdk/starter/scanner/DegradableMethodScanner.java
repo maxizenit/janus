@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.janus.sdk.annotation.Degradable;
 import org.janus.sdk.core.registry.DegradableMethodRegistry;
 import org.janus.sdk.core.validation.DegradableDescriptorValidator;
+import org.janus.sdk.core.validation.FallbackCycleDetector;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -22,6 +23,7 @@ public class DegradableMethodScanner {
   private final DegradableMethodRegistry registry;
   private final DegradableDescriptorFactory descriptorFactory;
   private final DegradableDescriptorValidator validator;
+  private final FallbackCycleDetector cycleDetector;
 
   public void scanAndRegister() {
     for (var beanName : beanFactory.getBeanDefinitionNames()) {
@@ -48,5 +50,7 @@ public class DegradableMethodScanner {
             registry.register(descriptor);
           });
     }
+
+    cycleDetector.detect(registry.getAll());
   }
 }
