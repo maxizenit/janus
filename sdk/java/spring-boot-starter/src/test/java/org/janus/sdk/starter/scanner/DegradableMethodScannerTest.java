@@ -1,11 +1,14 @@
 package org.janus.sdk.starter.scanner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import org.janus.sdk.annotation.Degradable;
 import org.janus.sdk.core.registry.InMemoryDegradableMethodRegistry;
 import org.janus.sdk.core.validation.DefaultDegradableDescriptorValidator;
+import org.janus.sdk.core.validation.FallbackCycleDetector;
+import org.janus.sdk.core.validation.InvalidDegradableDefinitionException;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -82,7 +85,8 @@ class DegradableMethodScannerTest {
               context.getBeanFactory(),
               registry,
               new DegradableDescriptorFactory(),
-              new DefaultDegradableDescriptorValidator());
+              new DefaultDegradableDescriptorValidator(),
+              new FallbackCycleDetector());
 
       scanner.scanAndRegister();
 
@@ -100,7 +104,8 @@ class DegradableMethodScannerTest {
               context.getBeanFactory(),
               registry,
               new DegradableDescriptorFactory(),
-              new DefaultDegradableDescriptorValidator());
+              new DefaultDegradableDescriptorValidator(),
+              new FallbackCycleDetector());
 
       assertThat(LazyService.INSTANCES.get())
           .as("lazy bean must not be instantiated by application context startup")
@@ -127,7 +132,8 @@ class DegradableMethodScannerTest {
               context.getBeanFactory(),
               registry,
               new DegradableDescriptorFactory(),
-              new DefaultDegradableDescriptorValidator());
+              new DefaultDegradableDescriptorValidator(),
+              new FallbackCycleDetector());
 
       scanner.scanAndRegister();
 
@@ -148,6 +154,47 @@ class DegradableMethodScannerTest {
     @Bean
     PlainComponent plainComponent() {
       return new PlainComponent();
+    }
+  }
+
+  @SuppressWarnings("unused")
+  static class CyclicService {
+    @Degradable(value = "cycle-a", fallback = "b")
+    public String a(String input) {
+      return input;
+    }
+
+    @Degradable(value = "cycle-b", fallback = "a")
+    public String b(String input) {
+      return input;
+    }
+  }
+
+  @Configuration
+  static class CyclicServiceConfig {
+    @Bean
+    CyclicService cyclicService() {
+      return new CyclicService();
+    }
+  }
+
+  @Test
+  void scanFailsWhenFallbackMethodsFormCycle() {
+    try (var context = new AnnotationConfigApplicationContext(CyclicServiceConfig.class)) {
+      var registry = new InMemoryDegradableMethodRegistry();
+      var scanner =
+          new DegradableMethodScanner(
+              context.getBeanFactory(),
+              registry,
+              new DegradableDescriptorFactory(),
+              new DefaultDegradableDescriptorValidator(),
+              new FallbackCycleDetector());
+
+      assertThatThrownBy(scanner::scanAndRegister)
+          .isInstanceOf(InvalidDegradableDefinitionException.class)
+          .hasMessageContaining("cycle")
+          .hasMessageContaining("a(java.lang.String)")
+          .hasMessageContaining("b(java.lang.String)");
     }
   }
 }

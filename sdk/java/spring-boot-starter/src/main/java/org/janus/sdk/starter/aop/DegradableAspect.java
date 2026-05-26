@@ -1,5 +1,6 @@
 package org.janus.sdk.starter.aop;
 
+import java.lang.reflect.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -36,6 +37,7 @@ public class DegradableAspect {
     var signature = (MethodSignature) joinPoint.getSignature();
     var method = signature.getMethod();
     var target = joinPoint.getTarget();
+    var proxy = joinPoint.getThis();
     var targetClass = AopProxyUtils.ultimateTargetClass(target);
 
     var descriptor =
@@ -48,12 +50,11 @@ public class DegradableAspect {
 
     var state = stateRegistry.find(descriptor.degradationId()).orElse(null);
     var decision = decisionService.decide(descriptor, state);
+    var caller = FallbackCallerContext.currentOrNone();
 
     if (!decision.fallbackRequired()) {
-      return invokePrimaryWithReactiveFallback(joinPoint, target, descriptor);
+      return invokePrimaryWithReactiveFallback(joinPoint, proxy, descriptor, caller);
     }
-
-    metrics.recordProactiveFallback(descriptor.degradationId());
 
     var fallbackMethod = descriptor.fallbackMethod();
     if (fallbackMethod == null) {
@@ -63,6 +64,7 @@ public class DegradableAspect {
           descriptor.method().toGenericString(),
           decision.degradationValue(),
           decision.effectiveCriticalThreshold());
+      metrics.recordProactiveFallback(descriptor.degradationId(), caller);
       return defaultReturnValue(method.getReturnType());
     }
 
@@ -76,11 +78,16 @@ public class DegradableAspect {
         decision.degradationValue(),
         decision.effectiveCriticalThreshold());
 
-    return fallbackMethodInvoker.invoke(target, fallbackMethod, fallbackArguments);
+    Object result = invokeFallback(proxy, descriptor, fallbackMethod, fallbackArguments, caller);
+    metrics.recordProactiveFallback(descriptor.degradationId(), caller);
+    return result;
   }
 
   private Object invokePrimaryWithReactiveFallback(
-      ProceedingJoinPoint joinPoint, Object target, DegradableMethodDescriptor descriptor)
+      ProceedingJoinPoint joinPoint,
+      Object proxy,
+      DegradableMethodDescriptor descriptor,
+      String caller)
       throws Throwable {
     Object result;
     try {
@@ -88,20 +95,40 @@ public class DegradableAspect {
     } catch (Exception e) {
       var fallbackMethod = descriptor.fallbackMethod();
       if (fallbackMethod != null && matchesReactiveFallback(e, descriptor)) {
-        metrics.recordReactiveFallback(descriptor.degradationId());
         log.debug(
             "Reactive fallback selected: degradationId={}, method={}, exceptionType={}",
             descriptor.degradationId(),
             descriptor.method().toGenericString(),
             e.getClass().getName());
-        return fallbackMethodInvoker.invoke(target, fallbackMethod, joinPoint.getArgs());
+        Object fallbackResult =
+            invokeFallback(proxy, descriptor, fallbackMethod, joinPoint.getArgs(), caller);
+        metrics.recordReactiveFallback(descriptor.degradationId(), caller);
+        return fallbackResult;
       }
-      metrics.recordError(descriptor.degradationId());
+      metrics.recordError(descriptor.degradationId(), caller);
       throw e;
     }
 
-    metrics.recordNormal(descriptor.degradationId());
+    metrics.recordNormal(descriptor.degradationId(), caller);
     return result;
+  }
+
+  private Object invokeFallback(
+      Object proxy,
+      DegradableMethodDescriptor descriptor,
+      Method fallbackMethod,
+      Object[] arguments,
+      String caller)
+      throws Throwable {
+    FallbackCallerContext.push(descriptor.degradationId());
+    try {
+      return fallbackMethodInvoker.invoke(proxy, fallbackMethod, arguments);
+    } catch (Throwable t) {
+      metrics.recordError(descriptor.degradationId(), caller);
+      throw t;
+    } finally {
+      FallbackCallerContext.pop();
+    }
   }
 
   private static boolean matchesReactiveFallback(

@@ -10,6 +10,7 @@ import org.janus.sdk.core.transform.DefaultFallbackArgumentsTransformer;
 import org.janus.sdk.core.transform.FallbackArgumentsTransformer;
 import org.janus.sdk.core.validation.DefaultDegradableDescriptorValidator;
 import org.janus.sdk.core.validation.DegradableDescriptorValidator;
+import org.janus.sdk.core.validation.FallbackCycleDetector;
 import org.janus.sdk.starter.aop.DegradableAspect;
 import org.janus.sdk.starter.aop.DegradableMetrics;
 import org.janus.sdk.starter.aop.ReflectionFallbackMethodInvoker;
@@ -54,6 +55,11 @@ public class JanusSdkAutoConfiguration {
   @Bean
   public DegradableDescriptorValidator degradableDescriptorValidator() {
     return new DefaultDegradableDescriptorValidator();
+  }
+
+  @Bean
+  public FallbackCycleDetector fallbackCycleDetector() {
+    return new FallbackCycleDetector();
   }
 
   @Bean
