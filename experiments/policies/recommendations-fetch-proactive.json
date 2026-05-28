@@ -1,0 +1,13 @@
+{
+  "degradationId": "recommendations.fetch",
+  "evaluationInterval": "5s",
+  "signalSource": {
+    "prometheus": {
+      "query": "(sum(rate(http_client_requests_seconds_count{job=\"demo-client\",outcome=~\"SERVER_ERROR|UNKNOWN\",client_name=\"demo-server\"}[30s])) / clamp_min(sum(rate(http_client_requests_seconds_count{job=\"demo-client\",client_name=\"demo-server\"}[30s])), 0.01)) or on() vector(0)"
+    }
+  },
+  "criticalThreshold": 0.1,
+  "minFallbackRatio": 0.0,
+  "maxFallbackRatio": 0.9,
+  "fallbackCurveExponent": 1.0
+}

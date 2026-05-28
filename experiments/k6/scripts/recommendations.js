@@ -32,6 +32,13 @@ export default function () {
 }
 
 export function teardown() {
+  // During a warmup→measurement sequence the fault mode must persist across
+  // jobs so the proactive degradation level does not decay between samples.
+  // run.sh sets RESET_ON_TEARDOWN=false for those jobs and runs a final reset.
+  if (__ENV.RESET_ON_TEARDOWN === "false") {
+    console.log("Teardown: keeping demo-server mode (sequence)");
+    return;
+  }
   console.log("Teardown: resetting demo-server to OK mode");
   resetMode();
 }
