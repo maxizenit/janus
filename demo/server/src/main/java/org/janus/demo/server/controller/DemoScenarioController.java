@@ -1,11 +1,10 @@
 package org.janus.demo.server.controller;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PositiveOrZero;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.janus.demo.server.dto.Track;
 import org.janus.demo.server.service.DemoScenarioService;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.validation.annotation.Validated;
@@ -22,43 +21,31 @@ import org.springframework.web.bind.annotation.RestController;
 @NullMarked
 public class DemoScenarioController {
 
+  private static final List<Track> PERSONALIZED_TRACKS =
+      List.of(
+          new Track(101, "Tame Impala", "Let It Happen"),
+          new Track(102, "Radiohead", "Weird Fishes"),
+          new Track(103, "Aphex Twin", "Avril 14th"),
+          new Track(104, "Boards of Canada", "Roygbiv"),
+          new Track(105, "Bonobo", "Kerala"),
+          new Track(106, "Burial", "Archangel"),
+          new Track(107, "Four Tet", "Two Thousand and Seventeen"),
+          new Track(108, "Caribou", "Odessa"),
+          new Track(109, "Floating Points", "Last Bloom"),
+          new Track(110, "Nils Frahm", "Says"));
+
   private final DemoScenarioService scenarioService;
 
   @GetMapping("/recommendations")
-  public Map<String, Object> recommendations(
-      @RequestParam(defaultValue = "10") @Min(1) @Max(20) int limit) throws InterruptedException {
+  public Map<String, Object> recommendations(@RequestParam @PositiveOrZero long userId)
+      throws InterruptedException {
 
     scenarioService.applyCurrentMode();
 
-    var recommendations =
-        Stream.of(
-                "popular-1",
-                "popular-2",
-                "popular-3",
-                "popular-4",
-                "popular-5",
-                "popular-6",
-                "popular-7",
-                "popular-8",
-                "popular-9",
-                "popular-10",
-                "popular-11",
-                "popular-12",
-                "popular-13",
-                "popular-14",
-                "popular-15",
-                "popular-16",
-                "popular-17",
-                "popular-18",
-                "popular-19",
-                "popular-20")
-            .limit(limit)
-            .toList();
-
     return Map.of(
         "mode", scenarioService.snapshot().mode(),
-        "limit", limit,
-        "recommendations", recommendations);
+        "userId", userId,
+        "recommendations", PERSONALIZED_TRACKS);
   }
 
   @PostMapping("/mode")

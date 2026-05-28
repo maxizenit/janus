@@ -43,12 +43,7 @@ data:
         static_configs:
           - targets: ["demo-server:8090"]
 
-      - job_name: demo-client-with-janus
+      - job_name: demo-client
         metrics_path: /actuator/prometheus
         static_configs:
-          - targets: ["demo-client-with-janus:8091"]
-
-      - job_name: demo-client-without-janus
-        metrics_path: /actuator/prometheus
-        static_configs:
-          - targets: ["demo-client-without-janus:8091"]
+          - targets: ["demo-client:8091"]

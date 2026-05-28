@@ -5,10 +5,9 @@ import { applyScenarioMode, resetMode } from "./utils.js";
 
 export const options = makeOptions();
 
-const TARGET_HOST = __ENV.TARGET_HOST || "demo-client-with-janus";
+const TARGET_HOST = __ENV.TARGET_HOST || "demo-client";
 const TARGET_PORT = __ENV.TARGET_PORT || "8091";
-const LIMIT = __ENV.LIMIT || "10";
-const TARGET_URL = `http://${TARGET_HOST}:${TARGET_PORT}/api/recommendations?limit=${LIMIT}`;
+const TARGET_BASE = `http://${TARGET_HOST}:${TARGET_PORT}/api/recommendations`;
 
 export function setup() {
   console.log(
@@ -18,7 +17,8 @@ export function setup() {
 }
 
 export default function () {
-  const response = http.get(TARGET_URL);
+  const userId = Math.floor(Math.random() * 100000) + 1;
+  const response = http.get(`${TARGET_BASE}?userId=${userId}`);
   check(response, {
     "status is 2xx": (r) => r.status >= 200 && r.status < 300,
     "has recommendations": (r) => {

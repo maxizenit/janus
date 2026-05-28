@@ -28,6 +28,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.grpc:spring-grpc-client-spring-boot-starter")
 
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:${libs.versions.resilience4j.get()}")
+    implementation("io.github.resilience4j:resilience4j-micrometer:${libs.versions.resilience4j.get()}")
+
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     implementation("io.grpc:grpc-services")
