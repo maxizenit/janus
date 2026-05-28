@@ -42,8 +42,6 @@ spec:
               value: "${TARGET_HOST}"
             - name: TARGET_PORT
               value: "${TARGET_PORT}"
-            - name: LIMIT
-              value: "${LIMIT}"
             - name: SCENARIO_MODE
               value: "${SCENARIO_MODE}"
             - name: SCENARIO_DELAY_MS

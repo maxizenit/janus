@@ -1,24 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: demo-client-without-janus
+  name: demo-client
   labels:
-    app.kubernetes.io/name: demo-client-without-janus
+    app.kubernetes.io/name: demo-client
     app.kubernetes.io/component: demo
     app.kubernetes.io/part-of: janus
-    janus.demo/variant: without-janus
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: demo-client-without-janus
+      app.kubernetes.io/name: demo-client
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: demo-client-without-janus
+        app.kubernetes.io/name: demo-client
         app.kubernetes.io/component: demo
         app.kubernetes.io/part-of: janus
-        janus.demo/variant: without-janus
     spec:
       containers:
         - name: demo-client
@@ -30,20 +28,26 @@ spec:
           env:
             - name: DEMO_SERVER_URL
               value: http://demo-server:8090
+            - name: SPRING_GRPC_CLIENT_CHANNELS_SIDECAR_ADDRESS
+              value: sidecar:9090
+            - name: SPRING_PROFILES_ACTIVE
+              value: janus
             - name: JANUS_SDK_ENABLED
+              value: "true"
+            - name: RESILIENCE4J_ENABLED
               value: "false"
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: http
-            initialDelaySeconds: 15
+            initialDelaySeconds: 20
             periodSeconds: 5
             failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: http
-            initialDelaySeconds: 60
+            initialDelaySeconds: 90
             periodSeconds: 15
           resources:
             requests:

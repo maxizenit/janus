@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Runs all k6 experiments sequentially: 4 scenarios x 2 client targets = 8 jobs.
+# Runs all k6 experiments sequentially: 4 scenarios on the demo-client deployment.
+# The current demo-client configuration (C-base / C-react / C-proact / C-r4j) must
+# be set externally before running this script — see demo/client/README.md.
 # Per job: stdout log + extracted JSON summary. After all jobs: a CSV digest.
 
 set -euo pipefail
@@ -21,7 +23,6 @@ export DURATION="${DURATION:-60s}"
 export PRE_VUS="${PRE_VUS:-20}"
 export MAX_VUS="${MAX_VUS:-200}"
 export TARGET_PORT="${TARGET_PORT:-8091}"
-export LIMIT="${LIMIT:-10}"
 
 # Re-apply ConfigMap with the latest scripts
 kubectl apply -k "${SCRIPT_DIR}"
@@ -34,28 +35,26 @@ SCENARIOS=(
   "flaky|flaky|0|500|0.5"
 )
 
-TARGETS=(
-  "demo-client-with-janus"
-  "demo-client-without-janus"
-)
+TARGET="${TARGET:-demo-client}"
+CONFIG_TAG="${CONFIG_TAG:-unknown}"
 
 run_job() {
-  local scenario_id="$1" target="$2"
-  IFS='|' read -r _ mode delay_ms status error_rate <<<"$3"
+  local scenario_id="$1"
+  IFS='|' read -r _ mode delay_ms status error_rate <<<"$2"
 
   export SCENARIO_MODE="${mode}"
   export SCENARIO_DELAY_MS="${delay_ms}"
   export SCENARIO_STATUS="${status}"
   export SCENARIO_ERROR_RATE="${error_rate}"
-  export TARGET_HOST="${target}"
-  export JOB_NAME="k6-${scenario_id}-${target}"
+  export TARGET_HOST="${TARGET}"
+  export JOB_NAME="k6-${CONFIG_TAG}-${scenario_id}"
 
   local log_file="${RESULTS_DIR}/${JOB_NAME}.log"
   local json_file="${RESULTS_DIR}/${JOB_NAME}.json"
 
   echo
   echo "==> ${JOB_NAME}"
-  echo "    scenario=${SCENARIO_MODE} target=${TARGET_HOST}"
+  echo "    config=${CONFIG_TAG} scenario=${SCENARIO_MODE} target=${TARGET_HOST}"
   echo "    log=${log_file}"
 
   kubectl -n "${NAMESPACE}" delete job "${JOB_NAME}" --ignore-not-found --wait=true >/dev/null
@@ -86,27 +85,25 @@ run_job() {
 
 for scenario_line in "${SCENARIOS[@]}"; do
   scenario_id="${scenario_line%%|*}"
-  for target in "${TARGETS[@]}"; do
-    run_job "${scenario_id}" "${target}" "${scenario_line}"
-  done
+  run_job "${scenario_id}" "${scenario_line}"
 done
 
 # Aggregate JSON summaries into a digest CSV
 DIGEST="${RESULTS_DIR}/summary.csv"
 {
-  echo "experiment,scenario,target,iterations,reqs_per_sec,fail_rate,p50_ms,p95_ms,p99_ms,max_ms"
+  echo "experiment,config,scenario,iterations,reqs_per_sec,fail_rate,p50_ms,p95_ms,p99_ms,max_ms"
   for json_file in "${RESULTS_DIR}"/k6-*.json; do
     [[ -f "${json_file}" ]] || continue
     name="$(basename "${json_file}" .json)"
     rest="${name#k6-}"
-    scenario="${rest%%-demo-client-*}"
-    target="demo-client-${rest#*-demo-client-}"
+    config="${rest%%-*}"
+    scenario="${rest#*-}"
 
-    jq -r --arg n "${name}" --arg s "${scenario}" --arg t "${target}" '
+    jq -r --arg n "${name}" --arg c "${config}" --arg s "${scenario}" '
       [
         $n,
+        $c,
         $s,
-        $t,
         (.metrics.iterations.values.count // 0),
         ((.metrics.http_reqs.values.rate // 0) | tostring),
         ((.metrics.http_req_failed.values.rate // 0) | tostring),
