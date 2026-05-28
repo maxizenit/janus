@@ -15,7 +15,7 @@ fi
 NAMESPACE="${NAMESPACE:-janus}"
 GRPCURL_IMAGE="${GRPCURL_IMAGE:-fullstorydev/grpcurl:v1.9.1-alpine}"
 POLICY_STORE_ADDR="${POLICY_STORE_ADDR:-policy-store:9090}"
-POLICY_FILE="${POLICY_FILE:-${SCRIPT_DIR}/recommendations-fetch.json}"
+POLICY_FILE="${POLICY_FILE:-${SCRIPT_DIR}/recommendations-fetch-proactive.json}"
 SERVICE="org.janus.api.policystore.PolicyStoreService"
 JOB_NAME="policy-seed"
 CONFIGMAP_NAME="policy-seed"

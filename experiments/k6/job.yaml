@@ -50,17 +50,19 @@ spec:
               value: "${SCENARIO_STATUS}"
             - name: SCENARIO_ERROR_RATE
               value: "${SCENARIO_ERROR_RATE}"
+            - name: RESET_ON_TEARDOWN
+              value: "${RESET_ON_TEARDOWN}"
           volumeMounts:
             - name: scripts
               mountPath: /scripts
               readOnly: true
           resources:
             requests:
-              cpu: 200m
-              memory: 256Mi
-            limits:
-              cpu: 1000m
+              cpu: 500m
               memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
       volumes:
         - name: scripts
           configMap:
