@@ -49,12 +49,14 @@ set_config "r4j" "false" "true"
 CONFIG_TAG=r4j "${K6_DIR}/run.sh"
 
 echo "########## C-react (Janus reactive, no Evaluator) ##########"
-POLICY_FILE="${POLICY_DIR}/recommendations-fetch-reactive.json" "${POLICY_DIR}/seed.sh"
+POLICY_FILE="${POLICY_DIR}/recommendations-fetch-reactive.json" "${POLICY_DIR}/seed.sh" \
+  || { echo "ERROR: reactive policy seed failed — aborting" >&2; exit 1; }
 set_config "janus" "true" "false"
 CONFIG_TAG=react "${K6_DIR}/run.sh"
 
 echo "########## C-proact (Janus proactive + reactive) ##########"
-POLICY_FILE="${POLICY_DIR}/recommendations-fetch-proactive.json" "${POLICY_DIR}/seed.sh"
+POLICY_FILE="${POLICY_DIR}/recommendations-fetch-proactive.json" "${POLICY_DIR}/seed.sh" \
+  || { echo "ERROR: proactive policy seed failed — aborting" >&2; exit 1; }
 set_config "janus" "true" "false"
 CONFIG_TAG=proact "${K6_DIR}/run.sh"
 
