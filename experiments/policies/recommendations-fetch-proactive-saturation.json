@@ -1,6 +1,6 @@
 {
   "degradationId": "recommendations.fetch",
-  "evaluationInterval": "5s",
+  "evaluationInterval": "2s",
   "signalSource": {
     "prometheus": {
       "query": "avg(demo_saturation{job=\"demo-server\"}) or on() vector(0)"

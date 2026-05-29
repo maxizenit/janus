@@ -39,6 +39,10 @@ data:
           - targets: ["sidecar:8081"]
 
       - job_name: demo-server
+        # Fast scrape: demo_saturation is a leading signal for the proactive
+        # policy (phase 3). A 2s scrape keeps the observation lag small so
+        # pre-emptive degradation can act before the dependency collapses.
+        scrape_interval: 2s
         metrics_path: /actuator/prometheus
         static_configs:
           - targets: ["demo-server:8090"]

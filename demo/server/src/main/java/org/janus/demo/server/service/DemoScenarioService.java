@@ -83,9 +83,17 @@ public class DemoScenarioService {
   }
 
   private void saturate(long processingMs) throws InterruptedException {
-    waiting.incrementAndGet();
-    semaphore.acquire();
-    waiting.decrementAndGet();
+    // Non-blocking acquire — the key to a signal a circuit breaker cannot see.
+    // While the resource has free permits the call returns 200 in processingMs:
+    // per-call latency does NOT rise, so a latency/slow-call circuit breaker
+    // stays asleep. demo_saturation (= in-flight / maxConcurrent) nevertheless
+    // climbs with load. Only once permits are exhausted does the dependency
+    // collapse (503). A proactive policy reading demo_saturation degrades
+    // pre-emptively in the 0.7..1.0 band — before the collapse — whereas a CB,
+    // seeing only healthy fast calls, reacts only after the 503s begin.
+    if (!semaphore.tryAcquire()) {
+      throw error(503);
+    }
     inFlight.incrementAndGet();
     try {
       sleep(processingMs);
