@@ -1,0 +1,13 @@
+{
+  "degradationId": "recommendations.fetch",
+  "evaluationInterval": "5s",
+  "signalSource": {
+    "prometheus": {
+      "query": "avg(demo_saturation{job=\"demo-server\"}) or on() vector(0)"
+    }
+  },
+  "criticalThreshold": 0.7,
+  "minFallbackRatio": 0.0,
+  "maxFallbackRatio": 0.9,
+  "fallbackCurveExponent": 1.0
+}
