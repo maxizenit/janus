@@ -54,3 +54,11 @@ resilience4j:
         wait-duration-in-open-state: 5s
         permitted-number-of-calls-in-half-open-state: 5
         register-health-indicator: true
+        # Slow-call detection. These are the Resilience4j defaults (rate 100%,
+        # duration 60s) and so leave the "naive" r4j config unchanged. The
+        # r4j-slow config overrides them via env (relaxed binding) to make the
+        # circuit breaker latency-aware: SLOWCALLRATETHRESHOLD=50,
+        # SLOWCALLDURATIONTHRESHOLD=1000ms. Declaring them here ensures the
+        # property is known to Spring so the env override binds reliably.
+        slow-call-rate-threshold: 100
+        slow-call-duration-threshold: 60s

@@ -42,15 +42,34 @@ export TARGET_HOST="${TARGET:-demo-client}"
 kubectl apply -k "${SCRIPT_DIR}" >/dev/null
 
 # scenario_id|MODE|DELAY_MS|STATUS|ERROR_RATE
+#   timeout = slow 5000ms  > read-timeout 3000ms => client times out (error tail)
+#   latency = slow 2000ms  < read-timeout 3000ms => slow but HTTP 200 (no error;
+#             only a latency-aware proactive policy reacts — naive CB stays closed)
 SCENARIOS=(
   "baseline|ok|0|0|0"
   "errors|error|0|500|1.0"
   "flaky|flaky|0|500|0.5"
   "timeout|slow|5000|0|0"
+  "latency|slow|2000|0|0"
 )
 
+# Step-by-step runs: ONLY_SCENARIO=<id> restricts the sweep to a single scenario
+# so each (config x scenario) pair can be run and analysed on its own, instead
+# of one long unattended batch. Unset => run all scenarios above.
+if [[ -n "${ONLY_SCENARIO:-}" ]]; then
+  filtered=()
+  for line in "${SCENARIOS[@]}"; do
+    [[ "${line%%|*}" == "${ONLY_SCENARIO}" ]] && filtered+=("${line}")
+  done
+  if [[ ${#filtered[@]} -eq 0 ]]; then
+    echo "ERROR: unknown ONLY_SCENARIO='${ONLY_SCENARIO}' (valid: baseline errors flaky timeout latency)" >&2
+    exit 1
+  fi
+  SCENARIOS=("${filtered[@]}")
+fi
+
 DIGEST="${RESULTS_DIR}/summary.csv"
-echo "config,scenario,run,iterations,reqs_per_sec,dropped_iterations,fail_rate,p50_ms,p95_ms,p99_ms,max_ms" >"${DIGEST}"
+echo "config,scenario,run,iterations,reqs_per_sec,dropped_iterations,fail_rate,p50_ms,p95_ms,p99_ms,max_ms,fallback_rate" >"${DIGEST}"
 
 # run_k6 <job_name> <duration> <reset_on_teardown> -> prints k6 stdout
 run_k6() {
@@ -93,7 +112,8 @@ for line in "${SCENARIOS[@]}"; do
         (.metrics.http_req_duration.values.med // 0),
         (.metrics.http_req_duration.values["p(95)"] // 0),
         (.metrics.http_req_duration.values["p(99)"] // 0),
-        (.metrics.http_req_duration.values.max // 0)
+        (.metrics.http_req_duration.values.max // 0),
+        (.metrics.fallback_rate.values.rate // 0)
       ] | @csv' >>"${DIGEST}"
     echo "    run ${i}/${RUNS} ok"
   done

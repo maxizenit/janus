@@ -25,9 +25,16 @@ public class RecommendationController {
 
     var result = service.getRecommendations(userId);
 
+    // A degraded (fallback) response is the generic chart whose track ids are
+    // 1..10; a live personalized response has ids >=101. The flag lets the load
+    // harness measure quality as the share of non-degraded responses, uniformly
+    // across all configurations (base / r4j / react / proact).
+    boolean degraded = !result.isEmpty() && result.get(0).id() < 100;
+
     return Map.of(
         "userId", userId,
         "count", result.size(),
+        "degraded", degraded,
         "recommendations", result);
   }
 }
