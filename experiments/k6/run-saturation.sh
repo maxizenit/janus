@@ -65,28 +65,48 @@ set_config() {
   kubectl -n "${NAMESPACE}" rollout status deployment/demo-client --timeout=3m
 }
 
+# Dependency health: how many 503s demo-server emitted (cumulative counter via
+# Prometheus). The delta across a ramp shows whether the dependency collapsed
+# (base/CB) or stayed healthy because proact shed load pre-emptively.
+dep503() {
+  # Query Prometheus from the demo-server pod — it is stable across the run (only
+  # demo-client restarts on set_config, which is why querying via demo-client
+  # returned empty: kubectl exec hit a terminating pod).
+  kubectl exec -n "${NAMESPACE}" "${DEP_POD}" -- curl -s -G 'http://prometheus:9090/api/v1/query' \
+    --data-urlencode 'query=sum(http_server_requests_seconds_count{job="demo-server",status="503"})' \
+    2>/dev/null | jq -r '.data.result[0].value[1] // "0"'
+}
+
 run_ramp() {
   local tag="$1"
-  local ts outdir job log json
+  local ts outdir digest job log json i b503 a503 d503
   ts="$(date +%Y%m%d-%H%M%S)"
   outdir="${K6_DIR}/results/${ts}-${tag}-sat"
   mkdir -p "${outdir}"
   kubectl apply -k "${K6_DIR}" >/dev/null
-  job="k6-${tag}-saturate"
-  export JOB_NAME="${job}"
-  kubectl -n "${NAMESPACE}" delete job "${job}" --ignore-not-found --wait=true >/dev/null 2>&1
-  envsubst <"${K6_DIR}/job.yaml" | kubectl -n "${NAMESPACE}" apply -f - >/dev/null
-  echo "  [${tag}] ramp running (stages=${RAMP_STAGES}, N=${SCENARIO_MAX_CONCURRENT}, ms=${SCENARIO_DELAY_MS})..."
-  kubectl -n "${NAMESPACE}" wait --for=condition=complete --timeout=15m "job/${job}" >/dev/null 2>&1 \
-    || echo "  ! ${job} did not complete cleanly"
-  log="$(kubectl -n "${NAMESPACE}" logs "job/${job}" --tail=-1 2>/dev/null)"
-  json="$(printf '%s\n' "${log}" | sed -n '/=== JSON SUMMARY START ===/,/=== JSON SUMMARY END ===/p' | sed '1d;$d')"
-  kubectl -n "${NAMESPACE}" delete job "${job}" --ignore-not-found >/dev/null 2>&1
-  if [[ -z "${json}" ]]; then echo "  ! [${tag}] no JSON summary"; return; fi
-  printf '%s' "${json}" >"${outdir}/summary.json"
-  printf '  [%s] ' "${tag}"
-  printf '%s' "${json}" | jq -rc '{rps:(.metrics.http_reqs.values.rate),fail:(.metrics.http_req_failed.values.rate),p50:(.metrics.http_req_duration.values.med),p95:(.metrics.http_req_duration.values["p(95)"]),p99:(.metrics.http_req_duration.values["p(99)"]),dropped:(.metrics.dropped_iterations.values.count),fallback:(.metrics.fallback_rate.values.rate)}'
-  echo "  [${tag}] summary -> ${outdir}/summary.json"
+  digest="${outdir}/summary.csv"
+  echo "config,run,rps,fail_rate,p50_ms,p95_ms,p99_ms,fallback_rate,dep_503" >"${digest}"
+  DEP_POD=$(kubectl get pod -n "${NAMESPACE}" -l app.kubernetes.io/name=demo-server --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+  for i in $(seq 1 "${RUNS:-5}"); do
+    b503=$(dep503)
+    job="k6-${tag}-saturate-${i}"
+    export JOB_NAME="${job}"
+    kubectl -n "${NAMESPACE}" delete job "${job}" --ignore-not-found --wait=true >/dev/null 2>&1
+    envsubst <"${K6_DIR}/job.yaml" | kubectl -n "${NAMESPACE}" apply -f - >/dev/null
+    echo "  [${tag}] ramp ${i}/${RUNS:-5} (stages=${RAMP_STAGES}, N=${SCENARIO_MAX_CONCURRENT})..."
+    kubectl -n "${NAMESPACE}" wait --for=condition=complete --timeout=15m "job/${job}" >/dev/null 2>&1 \
+      || echo "  ! ${job} did not complete cleanly"
+    log="$(kubectl -n "${NAMESPACE}" logs "job/${job}" --tail=-1 2>/dev/null)"
+    json="$(printf '%s\n' "${log}" | sed -n '/=== JSON SUMMARY START ===/,/=== JSON SUMMARY END ===/p' | sed '1d;$d')"
+    kubectl -n "${NAMESPACE}" delete job "${job}" --ignore-not-found >/dev/null 2>&1
+    a503=$(dep503)
+    d503=$(awk "BEGIN{printf \"%.0f\", ${a503:-0}-${b503:-0}}")
+    if [[ -z "${json}" ]]; then echo "  ! [${tag}] run ${i}: no JSON summary"; continue; fi
+    printf '%s' "${json}" | jq -r --arg t "$tag" --arg r "$i" --arg d "$d503" \
+      '[$t,($r|tonumber),(.metrics.http_reqs.values.rate//0),(.metrics.http_req_failed.values.rate//0),(.metrics.http_req_duration.values.med//0),(.metrics.http_req_duration.values["p(95)"]//0),(.metrics.http_req_duration.values["p(99)"]//0),(.metrics.fallback_rate.values.rate//0),($d|tonumber)]|@csv' >>"${digest}"
+    echo "  [${tag}] run ${i}/${RUNS:-5} ok (dep_503=+${d503})"
+  done
+  echo "  [${tag}] digest -> ${digest}"
 }
 
 if should_run base; then
