@@ -34,11 +34,16 @@ export RUNS="${RUNS:-10}"
 export WARMUP_DURATION="${WARMUP_DURATION:-60s}"
 export DURATION="${DURATION:-90s}"
 
-# Step-by-step runs: ONLY_CONFIG=<tag> restricts the matrix to a single config
-# (base|r4j|r4j-slow|react|proact). Combine with ONLY_SCENARIO (k6/run.sh) to
-# run exactly one (config x scenario) pair and analyse it before the next.
+# Step-by-step runs: ONLY_CONFIG=<tag> runs a single config; CONFIGS=<csv> runs
+# a subset (default all 5). Combine with ONLY_SCENARIO (k6/run.sh) to run exactly
+# the (config x scenario) pairs you want and analyse before the next. E.g. the
+# optimised final matrix runs r4j-slow only on latency, baseline on base,r4j,react.
+CONFIGS="${CONFIGS:-base,r4j,r4j-slow,react,proact}"
 ONLY_CONFIG="${ONLY_CONFIG:-}"
-should_run() { [[ -z "${ONLY_CONFIG}" || "${ONLY_CONFIG}" == "$1" ]]; }
+should_run() {
+  if [[ -n "${ONLY_CONFIG}" ]]; then [[ "${ONLY_CONFIG}" == "$1" ]]; return; fi
+  [[ ",${CONFIGS}," == *",$1,"* ]]
+}
 
 # Which proactive policy C-proact seeds. Default = error-rate signal; for the
 # latency scenario pass PROACT_POLICY=recommendations-fetch-proactive-latency.json
