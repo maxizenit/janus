@@ -48,18 +48,18 @@ should_run() { [[ -z "${ONLY_CONFIG}" || "${ONLY_CONFIG}" == "$1" ]]; }
 set_config() {
   local profile="$1" janus_enabled="$2" r4j_enabled="$3" slowcall="${4:-off}"
   if [[ -z "${profile}" ]]; then
-    kubectl -n "${NAMESPACE}" set env deployment/demo-client SPRING_PROFILES_ACTIVE- >/dev/null
+    kubectl -n "${NAMESPACE}" set env deployment/demo-client -c demo-client SPRING_PROFILES_ACTIVE- >/dev/null
   else
-    kubectl -n "${NAMESPACE}" set env deployment/demo-client SPRING_PROFILES_ACTIVE="${profile}" >/dev/null
+    kubectl -n "${NAMESPACE}" set env deployment/demo-client -c demo-client SPRING_PROFILES_ACTIVE="${profile}" >/dev/null
   fi
-  kubectl -n "${NAMESPACE}" set env deployment/demo-client \
+  kubectl -n "${NAMESPACE}" set env deployment/demo-client -c demo-client \
     JANUS_SDK_ENABLED="${janus_enabled}" RESILIENCE4J_ENABLED="${r4j_enabled}" >/dev/null
   local d="RESILIENCE4J_CIRCUITBREAKER_INSTANCES_RECOMMENDATIONS_SLOWCALLDURATIONTHRESHOLD"
   local r="RESILIENCE4J_CIRCUITBREAKER_INSTANCES_RECOMMENDATIONS_SLOWCALLRATETHRESHOLD"
   if [[ "${slowcall}" == "on" ]]; then
-    kubectl -n "${NAMESPACE}" set env deployment/demo-client "${d}=1000ms" "${r}=50" >/dev/null
+    kubectl -n "${NAMESPACE}" set env deployment/demo-client -c demo-client "${d}=1000ms" "${r}=50" >/dev/null
   else
-    kubectl -n "${NAMESPACE}" set env deployment/demo-client "${d}-" "${r}-" >/dev/null
+    kubectl -n "${NAMESPACE}" set env deployment/demo-client -c demo-client "${d}-" "${r}-" >/dev/null
   fi
   echo "  rollout..."
   kubectl -n "${NAMESPACE}" rollout status deployment/demo-client --timeout=3m

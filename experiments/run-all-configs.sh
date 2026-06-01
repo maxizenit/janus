@@ -52,11 +52,11 @@ PROACT_POLICY="${PROACT_POLICY:-recommendations-fetch-proactive.json}"
 set_config() {
   local profile="$1" janus_enabled="$2" r4j_enabled="$3" slowcall="${4:-off}"
   if [[ -z "${profile}" ]]; then
-    kubectl -n "${NAMESPACE}" set env deployment/demo-client SPRING_PROFILES_ACTIVE- >/dev/null
+    kubectl -n "${NAMESPACE}" set env deployment/demo-client -c demo-client SPRING_PROFILES_ACTIVE- >/dev/null
   else
-    kubectl -n "${NAMESPACE}" set env deployment/demo-client SPRING_PROFILES_ACTIVE="${profile}" >/dev/null
+    kubectl -n "${NAMESPACE}" set env deployment/demo-client -c demo-client SPRING_PROFILES_ACTIVE="${profile}" >/dev/null
   fi
-  kubectl -n "${NAMESPACE}" set env deployment/demo-client \
+  kubectl -n "${NAMESPACE}" set env deployment/demo-client -c demo-client \
     JANUS_SDK_ENABLED="${janus_enabled}" RESILIENCE4J_ENABLED="${r4j_enabled}" >/dev/null
   # R4j slow-call detection: on => latency-aware circuit breaker (env overrides
   # the yaml defaults of 100% / 60s); off => remove overrides so the naive,
@@ -65,9 +65,9 @@ set_config() {
   local sc_dur="RESILIENCE4J_CIRCUITBREAKER_INSTANCES_RECOMMENDATIONS_SLOWCALLDURATIONTHRESHOLD"
   local sc_rate="RESILIENCE4J_CIRCUITBREAKER_INSTANCES_RECOMMENDATIONS_SLOWCALLRATETHRESHOLD"
   if [[ "${slowcall}" == "on" ]]; then
-    kubectl -n "${NAMESPACE}" set env deployment/demo-client "${sc_dur}=1000ms" "${sc_rate}=50" >/dev/null
+    kubectl -n "${NAMESPACE}" set env deployment/demo-client -c demo-client "${sc_dur}=1000ms" "${sc_rate}=50" >/dev/null
   else
-    kubectl -n "${NAMESPACE}" set env deployment/demo-client "${sc_dur}-" "${sc_rate}-" >/dev/null
+    kubectl -n "${NAMESPACE}" set env deployment/demo-client -c demo-client "${sc_dur}-" "${sc_rate}-" >/dev/null
   fi
   echo "  rollout..."
   kubectl -n "${NAMESPACE}" rollout status deployment/demo-client --timeout=3m
