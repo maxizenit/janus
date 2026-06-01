@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "org.janus"
-version = "1.3.0-SNAPSHOT"
+version = "1.3.0"
 description = "Java SDK Core"
 
 java {
