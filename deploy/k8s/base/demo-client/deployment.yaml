@@ -29,7 +29,7 @@ spec:
             - name: DEMO_SERVER_URL
               value: http://demo-server:8090
             - name: SPRING_GRPC_CLIENT_CHANNELS_SIDECAR_ADDRESS
-              value: sidecar:9090
+              value: localhost:9090
             - name: SPRING_PROFILES_ACTIVE
               value: janus
             - name: JANUS_SDK_ENABLED
@@ -56,3 +56,43 @@ spec:
             limits:
               cpu: 1000m
               memory: 768Mi
+        # Co-location (sidecar-паттерн): Sidecar Janus развёрнут вторым
+        # контейнером в одном поде с приложением-клиентом. Приложение
+        # обращается к нему по localhost, разделяя сетевое пространство пода.
+        - name: sidecar
+          image: sidecar:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: grpc
+              containerPort: 9090
+            - name: management
+              containerPort: 8081
+          env:
+            - name: JANUS_SIDECAR_SQLITE_PATH
+              value: /var/lib/janus/sidecar.db
+          volumeMounts:
+            - name: sidecar-data
+              mountPath: /var/lib/janus
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: management
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: management
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              cpu: 1000m
+              memory: 768Mi
+      volumes:
+        - name: sidecar-data
+          emptyDir: {}

@@ -13,6 +13,5 @@ resources:
   - state-store
   - evaluator
   - admin-ui
-  - sidecar
   - demo-server
   - demo-client
