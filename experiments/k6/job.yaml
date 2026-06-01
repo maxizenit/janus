@@ -50,6 +50,12 @@ spec:
               value: "${SCENARIO_STATUS}"
             - name: SCENARIO_ERROR_RATE
               value: "${SCENARIO_ERROR_RATE}"
+            - name: SCENARIO_MAX_CONCURRENT
+              value: "${SCENARIO_MAX_CONCURRENT}"
+            - name: RAMP_STAGES
+              value: "${RAMP_STAGES}"
+            - name: RAMP_START
+              value: "${RAMP_START}"
             - name: RESET_ON_TEARDOWN
               value: "${RESET_ON_TEARDOWN}"
           volumeMounts:

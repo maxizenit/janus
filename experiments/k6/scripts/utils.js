@@ -68,6 +68,13 @@ export function applyScenarioMode() {
         errorRate: __ENV.SCENARIO_ERROR_RATE || "0.5",
       });
       return;
+    case "saturate":
+      // Phase 3: bounded resource of maxConcurrent permits, each held processingMs.
+      setMode("saturate", {
+        maxConcurrent: __ENV.SCENARIO_MAX_CONCURRENT || "10",
+        processingMs: __ENV.SCENARIO_DELAY_MS || "200",
+      });
+      return;
     default:
       throw new Error(`Unsupported SCENARIO_MODE: ${scenario}`);
   }

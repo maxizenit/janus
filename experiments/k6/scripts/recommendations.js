@@ -1,9 +1,15 @@
 import http from "k6/http";
 import { check } from "k6";
+import { Rate } from "k6/metrics";
 import { makeOptions } from "./options.js";
 import { applyScenarioMode, resetMode } from "./utils.js";
 
 export const options = makeOptions();
+
+// Quality metric: share of responses served from the generic fallback chart
+// (degraded) rather than live personalized recommendations. The client sets
+// `degraded: true` when it returns the chart — uniform across all configs.
+const fallbackRate = new Rate("fallback_rate");
 
 const TARGET_HOST = __ENV.TARGET_HOST || "demo-client";
 const TARGET_PORT = __ENV.TARGET_PORT || "8091";
@@ -29,6 +35,17 @@ export default function () {
       }
     },
   });
+
+  // Record quality: a degraded (fallback) response carries `degraded: true`.
+  // Non-2xx / unparseable bodies count as non-degraded (they are failures, not
+  // fallbacks — captured separately by http_req_failed).
+  let degraded = false;
+  try {
+    degraded = response.json("degraded") === true;
+  } catch (_) {
+    degraded = false;
+  }
+  fallbackRate.add(degraded);
 }
 
 export function teardown() {

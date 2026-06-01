@@ -53,9 +53,10 @@ public class DemoScenarioController {
       @RequestParam DemoScenarioService.Mode mode,
       @RequestParam(defaultValue = "0") @PositiveOrZero long delayMs,
       @RequestParam(defaultValue = "500") int status,
-      @RequestParam(defaultValue = "0.3") double errorRate) {
+      @RequestParam(defaultValue = "0.3") double errorRate,
+      @RequestParam(defaultValue = "0") @PositiveOrZero int maxConcurrent) {
 
-    scenarioService.update(mode, delayMs, status, errorRate);
+    scenarioService.update(mode, delayMs, status, errorRate, maxConcurrent);
     return scenarioService.snapshot();
   }
 
@@ -77,6 +78,20 @@ public class DemoScenarioController {
   public DemoScenarioService.ModeSnapshot error(@RequestParam(defaultValue = "500") int status) {
 
     scenarioService.update(DemoScenarioService.Mode.ERROR, 0, status, 1.0);
+    return scenarioService.snapshot();
+  }
+
+  // Experiment v2, phase 3: bounded resource of `maxConcurrent` permits, each
+  // request held for `processingMs`. Under ramped load the resource saturates
+  // (demo_saturation -> 1) before per-call latency spikes — the early signal a
+  // circuit breaker cannot observe. Returns HTTP 200 while permits are available.
+  @PostMapping("/mode/saturate")
+  public DemoScenarioService.ModeSnapshot saturate(
+      @RequestParam(defaultValue = "20") @PositiveOrZero int maxConcurrent,
+      @RequestParam(defaultValue = "200") @PositiveOrZero long processingMs) {
+
+    scenarioService.update(
+        DemoScenarioService.Mode.SATURATE, processingMs, 200, 0.0, maxConcurrent);
     return scenarioService.snapshot();
   }
 
