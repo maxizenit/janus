@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "org.janus"
-version = "1.3.0-SNAPSHOT"
+version = "1.4.0-SNAPSHOT"
 description = "State Store API"
 
 java {
