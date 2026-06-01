@@ -1,124 +1,126 @@
 #!/usr/bin/env bash
-# Runs all k6 experiments sequentially: 4 scenarios x 2 client targets = 8 jobs.
-# Per job: stdout log + extracted JSON summary. After all jobs: a CSV digest.
+# Experiment v2 — measurement sweep for the CURRENTLY deployed demo-client
+# configuration (C-base / C-react / C-proact / C-r4j; set externally — see
+# experiments/run-all-configs.sh and ../policies).
+#
+# Per scenario: an optional warmup (lets the JVM, the Resilience4j circuit
+# and/or the Evaluator reach steady state) followed by RUNS measurement runs.
+# Each measurement run is a separate k6 job = one statistical sample. The
+# demo-server fault mode is held across warmup + all runs of a scenario
+# (RESET_ON_TEARDOWN=false), so the proactive degradation level does not decay
+# between samples; a final reset job returns the server to OK.
+#
+# Load model: open (constant-arrival-rate, see scripts/options.js). Effective
+# rps and dropped_iterations are recorded per run alongside latency percentiles.
+#
+# Output: per-run k6 JSON summaries + a per-run CSV digest under results/.
+#
+# Tunables (env): CONFIG_TAG, RUNS (10), WARMUP_DURATION (60s), DURATION (90s),
+# RPS (50), PRE_VUS (50), MAX_VUS (300).
+set -uo pipefail
 
-set -euo pipefail
-
-if ! command -v jq >/dev/null 2>&1; then
-  echo "ERROR: jq is required to aggregate k6 results (https://jqlang.github.io/jq/)." >&2
-  exit 1
-fi
+command -v jq >/dev/null 2>&1 || { echo "ERROR: jq is required" >&2; exit 1; }
+command -v envsubst >/dev/null 2>&1 || { echo "ERROR: envsubst is required" >&2; exit 1; }
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 NAMESPACE="janus"
+CONFIG_TAG="${CONFIG_TAG:-unknown}"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
-RESULTS_DIR="${SCRIPT_DIR}/results/${TIMESTAMP}"
+RESULTS_DIR="${SCRIPT_DIR}/results/${TIMESTAMP}-${CONFIG_TAG}"
 mkdir -p "${RESULTS_DIR}"
 
-# Defaults (overridable via env)
 export RPS="${RPS:-50}"
-export DURATION="${DURATION:-60s}"
-export PRE_VUS="${PRE_VUS:-20}"
-export MAX_VUS="${MAX_VUS:-200}"
+export DURATION="${DURATION:-90s}"
+export WARMUP_DURATION="${WARMUP_DURATION:-60s}"
+export PRE_VUS="${PRE_VUS:-50}"
+export MAX_VUS="${MAX_VUS:-300}"
 export TARGET_PORT="${TARGET_PORT:-8091}"
-export LIMIT="${LIMIT:-10}"
+RUNS="${RUNS:-10}"
+export TARGET_HOST="${TARGET:-demo-client}"
 
-# Re-apply ConfigMap with the latest scripts
-kubectl apply -k "${SCRIPT_DIR}"
+# Re-apply the k6 scripts ConfigMap so any local edits take effect.
+kubectl apply -k "${SCRIPT_DIR}" >/dev/null
 
-# scenario_id|SCENARIO_MODE|SCENARIO_DELAY_MS|SCENARIO_STATUS|SCENARIO_ERROR_RATE
+# scenario_id|MODE|DELAY_MS|STATUS|ERROR_RATE
+#   timeout = slow 5000ms  > read-timeout 3000ms => client times out (error tail)
+#   latency = slow 2000ms  < read-timeout 3000ms => slow but HTTP 200 (no error;
+#             only a latency-aware proactive policy reacts — naive CB stays closed)
 SCENARIOS=(
   "baseline|ok|0|0|0"
-  "timeout|slow|5000|0|0"
   "errors|error|0|500|1.0"
   "flaky|flaky|0|500|0.5"
+  "timeout|slow|5000|0|0"
+  "latency|slow|2000|0|0"
 )
 
-TARGETS=(
-  "demo-client-with-janus"
-  "demo-client-without-janus"
-)
+# Step-by-step runs: ONLY_SCENARIO=<id> restricts the sweep to a single scenario
+# so each (config x scenario) pair can be run and analysed on its own, instead
+# of one long unattended batch. Unset => run all scenarios above.
+if [[ -n "${ONLY_SCENARIO:-}" ]]; then
+  filtered=()
+  for line in "${SCENARIOS[@]}"; do
+    [[ "${line%%|*}" == "${ONLY_SCENARIO}" ]] && filtered+=("${line}")
+  done
+  if [[ ${#filtered[@]} -eq 0 ]]; then
+    echo "ERROR: unknown ONLY_SCENARIO='${ONLY_SCENARIO}' (valid: baseline errors flaky timeout latency)" >&2
+    exit 1
+  fi
+  SCENARIOS=("${filtered[@]}")
+fi
 
-run_job() {
-  local scenario_id="$1" target="$2"
-  IFS='|' read -r _ mode delay_ms status error_rate <<<"$3"
+DIGEST="${RESULTS_DIR}/summary.csv"
+echo "config,scenario,run,iterations,reqs_per_sec,dropped_iterations,fail_rate,p50_ms,p95_ms,p99_ms,max_ms,fallback_rate" >"${DIGEST}"
 
-  export SCENARIO_MODE="${mode}"
-  export SCENARIO_DELAY_MS="${delay_ms}"
-  export SCENARIO_STATUS="${status}"
-  export SCENARIO_ERROR_RATE="${error_rate}"
-  export TARGET_HOST="${target}"
-  export JOB_NAME="k6-${scenario_id}-${target}"
-
-  local log_file="${RESULTS_DIR}/${JOB_NAME}.log"
-  local json_file="${RESULTS_DIR}/${JOB_NAME}.json"
-
-  echo
-  echo "==> ${JOB_NAME}"
-  echo "    scenario=${SCENARIO_MODE} target=${TARGET_HOST}"
-  echo "    log=${log_file}"
-
-  kubectl -n "${NAMESPACE}" delete job "${JOB_NAME}" --ignore-not-found --wait=true >/dev/null
-
+# run_k6 <job_name> <duration> <reset_on_teardown> -> prints k6 stdout
+run_k6() {
+  local job_name="$1" duration="$2" reset="$3"
+  export JOB_NAME="${job_name}" DURATION="${duration}" RESET_ON_TEARDOWN="${reset}"
+  kubectl -n "${NAMESPACE}" delete job "${job_name}" --ignore-not-found --wait=true >/dev/null 2>&1
   envsubst <"${SCRIPT_DIR}/job.yaml" | kubectl -n "${NAMESPACE}" apply -f - >/dev/null
-
-  if ! kubectl -n "${NAMESPACE}" wait --for=condition=complete --timeout=10m "job/${JOB_NAME}" >/dev/null 2>&1; then
-    if kubectl -n "${NAMESPACE}" wait --for=condition=failed --timeout=5s "job/${JOB_NAME}" >/dev/null 2>&1; then
-      echo "    ! Job failed"
-    else
-      echo "    ! Job did not complete in time"
-    fi
-  fi
-
-  kubectl -n "${NAMESPACE}" logs "job/${JOB_NAME}" --tail=-1 >"${log_file}" 2>&1 || true
-
-  # Extract the JSON-only block emitted by handleSummary() in recommendations.js
-  if sed -n '/=== JSON SUMMARY START ===/,/=== JSON SUMMARY END ===/p' "${log_file}" \
-      | sed '1d;$d' > "${json_file}"; then
-    if [[ ! -s "${json_file}" ]]; then
-      echo "    ! No JSON summary found in logs"
-      rm -f "${json_file}"
-    fi
-  fi
-
-  kubectl -n "${NAMESPACE}" delete job "${JOB_NAME}" --ignore-not-found >/dev/null
+  kubectl -n "${NAMESPACE}" wait --for=condition=complete --timeout=10m "job/${job_name}" >/dev/null 2>&1 \
+    || echo "    ! ${job_name} did not complete cleanly" >&2
+  kubectl -n "${NAMESPACE}" logs "job/${job_name}" --tail=-1 2>/dev/null
+  kubectl -n "${NAMESPACE}" delete job "${job_name}" --ignore-not-found >/dev/null 2>&1
 }
 
-for scenario_line in "${SCENARIOS[@]}"; do
-  scenario_id="${scenario_line%%|*}"
-  for target in "${TARGETS[@]}"; do
-    run_job "${scenario_id}" "${target}" "${scenario_line}"
+for line in "${SCENARIOS[@]}"; do
+  IFS='|' read -r scenario_id mode delay status erate <<<"${line}"
+  export SCENARIO_MODE="${mode}" SCENARIO_DELAY_MS="${delay}" \
+         SCENARIO_STATUS="${status}" SCENARIO_ERROR_RATE="${erate}"
+  echo "==> scenario=${scenario_id} config=${CONFIG_TAG} (warmup=${WARMUP_DURATION}, runs=${RUNS})"
+
+  if [[ "${WARMUP_DURATION}" != "0" && "${WARMUP_DURATION}" != "0s" ]]; then
+    echo "    warmup ${WARMUP_DURATION}..."
+    run_k6 "k6-${CONFIG_TAG}-${scenario_id}-warmup" "${WARMUP_DURATION}" "false" >/dev/null 2>&1
+  fi
+
+  for i in $(seq 1 "${RUNS}"); do
+    log="$(run_k6 "k6-${CONFIG_TAG}-${scenario_id}-run-${i}" "${DURATION}" "false")"
+    json="$(printf '%s\n' "${log}" \
+      | sed -n '/=== JSON SUMMARY START ===/,/=== JSON SUMMARY END ===/p' | sed '1d;$d')"
+    if [[ -z "${json}" ]]; then
+      echo "    ! run ${i}/${RUNS}: no JSON summary; skipping"
+      continue
+    fi
+    printf '%s' "${json}" >"${RESULTS_DIR}/k6-${CONFIG_TAG}-${scenario_id}-run-${i}.json"
+    printf '%s' "${json}" | jq -r --arg c "${CONFIG_TAG}" --arg s "${scenario_id}" --arg r "${i}" '
+      [ $c, $s, ($r|tonumber),
+        (.metrics.iterations.values.count // 0),
+        (.metrics.http_reqs.values.rate // 0),
+        (.metrics.dropped_iterations.values.count // 0),
+        (.metrics.http_req_failed.values.rate // 0),
+        (.metrics.http_req_duration.values.med // 0),
+        (.metrics.http_req_duration.values["p(95)"] // 0),
+        (.metrics.http_req_duration.values["p(99)"] // 0),
+        (.metrics.http_req_duration.values.max // 0),
+        (.metrics.fallback_rate.values.rate // 0)
+      ] | @csv' >>"${DIGEST}"
+    echo "    run ${i}/${RUNS} ok"
   done
 done
 
-# Aggregate JSON summaries into a digest CSV
-DIGEST="${RESULTS_DIR}/summary.csv"
-{
-  echo "experiment,scenario,target,iterations,reqs_per_sec,fail_rate,p50_ms,p95_ms,p99_ms,max_ms"
-  for json_file in "${RESULTS_DIR}"/k6-*.json; do
-    [[ -f "${json_file}" ]] || continue
-    name="$(basename "${json_file}" .json)"
-    rest="${name#k6-}"
-    scenario="${rest%%-demo-client-*}"
-    target="demo-client-${rest#*-demo-client-}"
+# Final: return demo-server to OK mode.
+export SCENARIO_MODE="ok" SCENARIO_DELAY_MS="0" SCENARIO_STATUS="0" SCENARIO_ERROR_RATE="0"
+run_k6 "k6-${CONFIG_TAG}-reset" "5s" "true" >/dev/null 2>&1
 
-    jq -r --arg n "${name}" --arg s "${scenario}" --arg t "${target}" '
-      [
-        $n,
-        $s,
-        $t,
-        (.metrics.iterations.values.count // 0),
-        ((.metrics.http_reqs.values.rate // 0) | tostring),
-        ((.metrics.http_req_failed.values.rate // 0) | tostring),
-        ((.metrics.http_req_duration.values.med // 0) | tostring),
-        ((.metrics.http_req_duration.values["p(95)"] // 0) | tostring),
-        ((.metrics.http_req_duration.values["p(99)"] // 0) | tostring),
-        ((.metrics.http_req_duration.values.max // 0) | tostring)
-      ] | @csv
-    ' "${json_file}"
-  done
-} >"${DIGEST}"
-
-echo
-echo "All experiments finished. Results: ${RESULTS_DIR}"
-echo "Digest: ${DIGEST}"
+echo "Done (${CONFIG_TAG}). Digest: ${DIGEST}"

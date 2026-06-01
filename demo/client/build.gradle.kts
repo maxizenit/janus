@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "org.janus"
-version = "1.2.0"
+version = "1.3.0"
 description = "Demo Client"
 
 java {
@@ -27,6 +27,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.grpc:spring-grpc-client-spring-boot-starter")
+
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:${libs.versions.resilience4j.get()}")
+    implementation("io.github.resilience4j:resilience4j-micrometer:${libs.versions.resilience4j.get()}")
 
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 

@@ -1,7 +1,6 @@
 package org.janus.demo.client.controller;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.janus.demo.client.service.RecommendationService;
@@ -22,14 +21,20 @@ public class RecommendationController {
   private final RecommendationService service;
 
   @GetMapping
-  public Map<String, Object> getRecommendations(
-      @RequestParam(defaultValue = "10") @Min(1) @Max(20) int limit) {
+  public Map<String, Object> getRecommendations(@RequestParam @PositiveOrZero long userId) {
 
-    var result = service.getRecommendations(limit);
+    var result = service.getRecommendations(userId);
+
+    // A degraded (fallback) response is the generic chart whose track ids are
+    // 1..10; a live personalized response has ids >=101. The flag lets the load
+    // harness measure quality as the share of non-degraded responses, uniformly
+    // across all configurations (base / r4j / react / proact).
+    boolean degraded = !result.isEmpty() && result.get(0).id() < 100;
 
     return Map.of(
-        "limit", limit,
+        "userId", userId,
         "count", result.size(),
+        "degraded", degraded,
         "recommendations", result);
   }
 }

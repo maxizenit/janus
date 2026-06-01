@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: demo-server
-          image: server:local
+          image: server:p4
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

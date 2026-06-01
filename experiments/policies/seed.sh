@@ -8,14 +8,10 @@ set -euo pipefail
 export MSYS_NO_PATHCONV=1
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# On Git Bash on Windows, convert MSYS-style path to native Windows path for kubectl.
-if command -v cygpath >/dev/null 2>&1; then
-  SCRIPT_DIR="$(cygpath -w "${SCRIPT_DIR}")"
-fi
 NAMESPACE="${NAMESPACE:-janus}"
 GRPCURL_IMAGE="${GRPCURL_IMAGE:-fullstorydev/grpcurl:v1.9.1-alpine}"
 POLICY_STORE_ADDR="${POLICY_STORE_ADDR:-policy-store:9090}"
-POLICY_FILE="${POLICY_FILE:-${SCRIPT_DIR}/recommendations-fetch.json}"
+POLICY_FILE="${POLICY_FILE:-${SCRIPT_DIR}/recommendations-fetch-proactive.json}"
 SERVICE="org.janus.api.policystore.PolicyStoreService"
 JOB_NAME="policy-seed"
 CONFIGMAP_NAME="policy-seed"
@@ -41,9 +37,17 @@ echo "==> Seeding policy '${DEG_ID}' into ${POLICY_STORE_ADDR}"
 kubectl -n "${NAMESPACE}" delete job "${JOB_NAME}" --ignore-not-found >/dev/null
 kubectl -n "${NAMESPACE}" delete configmap "${CONFIGMAP_NAME}" --ignore-not-found >/dev/null
 
+# kubectl is a native Windows binary under Git Bash and cannot read MSYS-style
+# (/c/...) paths in --from-file; convert to a native path just for kubectl while
+# keeping POSIX paths for the bash file checks above.
+POLICY_FILE_NATIVE="${POLICY_FILE}"
+if command -v cygpath >/dev/null 2>&1; then
+  POLICY_FILE_NATIVE="$(cygpath -w "${POLICY_FILE}")"
+fi
+
 # Build a fresh ConfigMap with both payloads
 kubectl -n "${NAMESPACE}" create configmap "${CONFIGMAP_NAME}" \
-  --from-file=create-payload.json="${POLICY_FILE}" \
+  --from-file=create-payload.json="${POLICY_FILE_NATIVE}" \
   --from-literal=delete-payload.json="{\"degradationId\":\"${DEG_ID}\"}" \
   >/dev/null
 

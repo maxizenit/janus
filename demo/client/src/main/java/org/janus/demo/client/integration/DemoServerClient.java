@@ -3,6 +3,7 @@ package org.janus.demo.client.integration;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.janus.demo.client.dto.Track;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -19,11 +20,11 @@ public class DemoServerClient {
   private final RestClient client;
 
   @SuppressWarnings("unchecked")
-  public List<String> fetchRecommendations(int limit) {
+  public List<Track> fetchRecommendations(long userId) {
     var response =
         client
             .get()
-            .uri(uri -> uri.path("/demo/recommendations").queryParam("limit", limit).build())
+            .uri(uri -> uri.path("/demo/recommendations").queryParam("userId", userId).build())
             .retrieve()
             .body(TYPE);
 
@@ -31,6 +32,14 @@ public class DemoServerClient {
       throw new IllegalStateException("Empty response");
     }
 
-    return (List<String>) response.get("recommendations");
+    var raw = (List<Map<String, Object>>) response.get("recommendations");
+    return raw.stream()
+        .map(
+            m ->
+                new Track(
+                    ((Number) m.get("id")).longValue(),
+                    (String) m.get("artist"),
+                    (String) m.get("title")))
+        .toList();
   }
 }

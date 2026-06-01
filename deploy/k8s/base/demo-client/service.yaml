@@ -1,16 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: demo-client-without-janus
+  name: demo-client
   labels:
-    app.kubernetes.io/name: demo-client-without-janus
+    app.kubernetes.io/name: demo-client
     app.kubernetes.io/component: demo
     app.kubernetes.io/part-of: janus
-    janus.demo/variant: without-janus
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: demo-client-without-janus
+    app.kubernetes.io/name: demo-client
   ports:
     - name: http
       port: 8091

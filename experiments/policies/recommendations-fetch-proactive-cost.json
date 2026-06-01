@@ -1,0 +1,13 @@
+{
+  "degradationId": "recommendations.fetch",
+  "evaluationInterval": "5s",
+  "signalSource": {
+    "prometheus": {
+      "query": "clamp_max(sum(rate(http_server_requests_seconds_count{job=\"demo-server\",uri=\"/demo/recommendations\",status=\"200\"}[1m])) / 25.0, 1.0) or on() vector(0)"
+    }
+  },
+  "criticalThreshold": 0.3,
+  "minFallbackRatio": 0.0,
+  "maxFallbackRatio": 0.9,
+  "fallbackCurveExponent": 1.0
+}
